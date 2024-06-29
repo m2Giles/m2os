@@ -54,7 +54,7 @@ jobs:
               upstream_repo=bluefin
             elif [[ ${{ matrix.image }} == "bazzite-gnome-nvidia" ]]; then
               kernel_flavor=fsync
-              upstrem_repo=bazzite
+              upstream_repo=bazzite
             fi
             echo "version=$ver" >> $GITHUB_ENV
             echo "kernel_release=${KERNEL_RELEASE}" >> $GITHUB_ENV
@@ -69,12 +69,12 @@ jobs:
           pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
           registry: ghcr.io/ublue-os
 
-      # - name: Verify Akmods Image
-      #   uses: EyeCantCU/cosign-action/verify@v0.2.2
-      #   with:
-      #     containers: akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
-      #     pubkey: https://raw.githubusercontent.com/ublue-os/akmods/main/cosign.pub
-      #     registry: ghcr.io/ublue-os
+      - name: Verify Akmods Image
+        uses: EyeCantCU/cosign-action/verify@v0.2.2
+        with:
+          containers: akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
+          pubkey: https://raw.githubusercontent.com/ublue-os/akmods/main/cosign.pub
+          registry: ghcr.io/ublue-os
 
       - name: Checkout Push to Registry Action
         uses: actions/checkout@v4
