@@ -105,7 +105,8 @@ jobs:
         with:
           attempt_limit: 3
           attempt_delay: 15000
-          command: podman pull ghcr.io/ublue-os/${{ matrix.image }}:stable
+          command: |
+            podman pull ghcr.io/ublue-os/${{ matrix.image }}:stable
             podman pull ghcr.io/ublue-os/akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
 
       - name: Image Metadata
