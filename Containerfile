@@ -3,7 +3,7 @@ ARG FEDORA_VERSION="${FEDORA_VERSION:-40}"
 ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos}"
 
 FROM ghcr.io/ublue-os/${IMAGE}:stable
-FROM ghcr.io/ublue-os/akmods:${FEDORA_VERSION}-${KERNEL_FLAVOR} as akmods
+FROM ghcr.io/ublue-os/akmods:${KERNEL_FLAVOR}-${FEDORA_VERSION} as akmods
 
 COPY build.sh /tmp/build.sh
 COPY --from=akmods /rpms /tmp/akmods-rpms

@@ -106,7 +106,7 @@ jobs:
           attempt_limit: 3
           attempt_delay: 15000
           command: podman pull ghcr.io/ublue-os/${{ matrix.image }}:stable
-            podman pull ghcr.io/ublue-os/akmods:${{ env.fedora_version }}-${{ env.kernel_flavor }}
+            podman pull ghcr.io/ublue-os/akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
 
       - name: Image Metadata
         uses: docker/metadata-action@v5
