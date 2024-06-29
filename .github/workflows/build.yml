@@ -19,7 +19,7 @@ concurrency:
 jobs:
   push-ghcr:
     name: Build Images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: false
     permissions:
       contents: read
