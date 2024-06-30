@@ -72,5 +72,5 @@ if [[ "${IMAGE}" == "bluefin" ]]; then
 elif [[ "${IMAGE}" == "aurora" ]]; then
     sed -i '/^PRETTY_NAME/s/Aurora/m2os-aurora/' /usr/lib/os-release
 elif [[ "${IMAGE}" == "bazzite-gnome-nvidia" ]]; then
-    sed -i /^PRETTY_NAME/s/Bazzite GNOME/m2os-bazzite/' /usr/lib/os-release
+    sed -i '/^PRETTY_NAME/s/Bazzite GNOME/m2os-bazzite/' /usr/lib/os-release
 fi
