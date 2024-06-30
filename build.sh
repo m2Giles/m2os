@@ -38,6 +38,9 @@ fi
 # Emacs
 rpm-ostree install emacs
 
+# swtpm
+rpm-ostree install swtpm
+
 # VSCode because it's still better for a lot of things
 curl -Lo /etc/yum.repos.d/vscode.repo \
     https://raw.githubusercontent.com/ublue-os/bluefin/main/system_files/dx/etc/yum.repos.d/vscode.repo
@@ -63,3 +66,11 @@ mkdir -p /usr/etc/distrobox/
 groupadd -g 250 incus-admin
 groupadd -g 251 incus
 groupadd -g 252 docker
+
+if [[ "${IMAGE}" == "bluefin" ]]; then
+    sed -i '/^PRETTY_NAME/s/Bluefin/m2os-bluefin/' /usr/lib/os-release
+elif [[ "${IMAGE}" == "aurora" ]]; then
+    sed -i '/^PRETTY_NAME/s/Aurora/m2os-aurora/' /usr/lib/os-release
+elif [[ "${IMAGE}" == "bazzite-gnome-nvidia" ]]; then
+    sed -i /^PRETTY_NAME/s/Bazzite GNOME/m2os-bazzite/' /usr/lib/os-release
+fi
