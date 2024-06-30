@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+set -eoux pipefail
+
 # ZFS until this gets merged upstream
 if [[ "${IMAGE}" =~ (bluefin|aurora) ]]; then
     curl -L -o /etc/yum.repos.d/fedora-coreos-pool.repo \
@@ -54,7 +56,9 @@ curl -Lo /tmp/incus.ini \
 curl -Lo /tmp/docker.ini \
     https://raw.githubusercontent.com/ublue-os/toolboxes/main/apps/docker/distrobox.ini
 
-{ printf "\n"; /tmp/incus.ini; printf "\n"; /tmp/docker.ini; } >> /usr/etc/distrobox/distrobox.ini
+mkdir -p /usr/etc/distrobox/
+
+{ printf "\n"; cat /tmp/incus.ini; printf "\n"; cat /tmp/docker.ini; } >> /usr/etc/distrobox/distrobox.ini
 
 groupadd -g 250 incus-admin
 groupadd -g 251 incus
