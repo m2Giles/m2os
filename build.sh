@@ -2,15 +2,6 @@
 
 set -eoux pipefail
 
-# ZFS until this gets merged upstream
-if [[ "${IMAGE}" =~ (bluefin|aurora) ]]; then
-    curl -L -o /etc/yum.repos.d/fedora-coreos-pool.repo \
-        https://raw.githubusercontent.com/coreos/fedora-coreos-config/testing-devel/fedora-coreos-pool.repo
-    KERNEL_FOR_DEPMOD="$(rpm -q kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')"
-    rpm-ostree install /tmp/akmods-rpms/kmods/zfs/*.rpm pv
-    depmod -A "${KERNEL_FOR_DEPMOD}"
-fi
-
 # Bazzite Changes
 if [[ "${IMAGE}" == "bazzite-gnome-nvidia" ]]; then
     rpm-ostree install \
@@ -35,17 +26,12 @@ bluefin-cli:
 EOF
 fi
 
-# Emacs
-rpm-ostree install emacs
-
-# swtpm
-rpm-ostree install swtpm
-
 # VSCode because it's still better for a lot of things
 curl -Lo /etc/yum.repos.d/vscode.repo \
     https://raw.githubusercontent.com/ublue-os/bluefin/main/system_files/dx/etc/yum.repos.d/vscode.repo
 
-rpm-ostree install code
+# Emacs/Vscode/Swtpm
+rpm-ostree install emacs swtpm code
 
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
@@ -63,14 +49,41 @@ mkdir -p /usr/etc/distrobox/
 
 { printf "\n"; cat /tmp/incus.ini; printf "\n"; cat /tmp/docker.ini; } >> /usr/etc/distrobox/distrobox.ini
 
+# Groups
 groupadd -g 250 incus-admin
 groupadd -g 251 incus
 groupadd -g 252 docker
 
+# Branding
 if [[ "${IMAGE}" == "bluefin" ]]; then
     sed -i '/^PRETTY_NAME/s/Bluefin/m2os-bluefin/' /usr/lib/os-release
+    sed -i '/image-tag/s/stable/bluefin' /usr/share/ublue-os/image-info.json
 elif [[ "${IMAGE}" == "aurora" ]]; then
     sed -i '/^PRETTY_NAME/s/Aurora/m2os-aurora/' /usr/lib/os-release
+    sed -i '/image-tag/s/stable/aurora' /usr/share/ublue-os/image-info.json
 elif [[ "${IMAGE}" == "bazzite-gnome-nvidia" ]]; then
     sed -i '/^PRETTY_NAME/s/Bazzite GNOME/m2os-bazzite/' /usr/lib/os-release
 fi
+
+cat <<< "$(jq '."image-name" |= "m2os" |
+             ."image-vendor" |= "m2giles" |
+             ."image-ref" |= "ostree-image-signed:docker://ghcr.io/m2giles/m2os"' \
+             < /usr/share/ublue-os/image-info.json)" \
+             > /tmp/image-info.json
+cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
+
+sed -i '/^image-vendor/s/ublue-os/m2giles/' /usr/share/ublue-os/image-info.json
+
+# Signing
+cat <<< "$(jq '.transports.docker |=. + {
+   "ghcr.io/m2giles/m2os": [
+    {
+        "type": "sigstoreSigned",
+        "keypath": "/etc/pki/containers/m2os.pub",
+        "signedIdentity": {
+            "type": "matchRepository"
+        }
+    }
+]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
+cp /tmp/policy.json /usr/etc/containers/policy.json
+cp /tmp/cosign.pub /usr/etc/pki/containers/m2os.pub
