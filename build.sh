@@ -57,10 +57,10 @@ groupadd -g 252 docker
 # Branding
 if [[ "${IMAGE}" == "bluefin" ]]; then
     sed -i '/^PRETTY_NAME/s/Bluefin/m2os-bluefin/' /usr/lib/os-release
-    sed -i '/image-tag/s/stable/bluefin' /usr/share/ublue-os/image-info.json
+    sed -i '/image-tag/s/stable/bluefin/' /usr/share/ublue-os/image-info.json
 elif [[ "${IMAGE}" == "aurora" ]]; then
     sed -i '/^PRETTY_NAME/s/Aurora/m2os-aurora/' /usr/lib/os-release
-    sed -i '/image-tag/s/stable/aurora' /usr/share/ublue-os/image-info.json
+    sed -i '/image-tag/s/stable/aurora/' /usr/share/ublue-os/image-info.json
 elif [[ "${IMAGE}" == "bazzite-gnome-nvidia" ]]; then
     sed -i '/^PRETTY_NAME/s/Bazzite GNOME/m2os-bazzite/' /usr/lib/os-release
 fi
