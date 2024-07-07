@@ -8,7 +8,7 @@ ARG IMAGE="${IMAGE:-bluefin}"
 ARG FEDORA_VERSION="${FEDORA_VERSION:-40}"
 ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos}"
 
-COPY build.sh cosign.pub /tmp/
+COPY build.sh bazzite.sh cosign.pub /tmp/
 # COPY --from=akmods /rpms /tmp/akmods-rpms
 
 RUN mkdir -p /var/lib/alternatives && \
