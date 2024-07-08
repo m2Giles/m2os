@@ -175,9 +175,9 @@ L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0
 EOF
 
 cat > /usr/share/user-tmpfiles.d/keepassxc-integration.conf <<EOF
-L %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/org.keepassxc.keepassxc_browser.json
+L %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/firefox-keepassxc.json
+L %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
+L %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
 EOF
 
 cat > /usr/lib/tmpfiles.d/keepassxc-integration.conf <<EOF
@@ -234,10 +234,23 @@ exec flatpak-spawn \
 EOF
 chmod +x /usr/libexec/keepassxc-integration/keepassxc-proxy-wrapper
 
-cat > /usr/libexec/keepassxc-integration/org.keepassxc.keepassxc_browser.json <<EOF
+cat > /usr/libexec/keepassxc-integration/firefox-keepassxc.json <<EOF
 {
     "allowed_extensions": [
         "keepassxc-browser@keepassxc.org"
+    ],
+    "description": "KeePassXC integration with native messaging support",
+    "name": "org.keepassxc.keepassxc_browser",
+    "path": "/run/keepassxc-integration/keepassxc-proxy-wrapper",
+    "type": "stdio"
+}
+EOF
+
+cat > /usr/libexec/keepassxc-integration/chromium-keepassxc.json <<EOF
+{
+    "allowed_origins": [
+        "chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/",
+        "chrome-extension://oboonakemofpalcgghocfoadofidjkkk/"
     ],
     "description": "KeePassXC integration with native messaging support",
     "name": "org.keepassxc.keepassxc_browser",
