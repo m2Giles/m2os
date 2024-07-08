@@ -3,7 +3,11 @@
 set -eoux pipefail
 
 # Global Environment Variables
-{ echo "EDITOR=/usr/bin/vim"; echo "VISUAL=/usr/bin/emacs"; } >> /etc/environment
+
+tee -a /etc/environment <<EOF
+EDITOR=/usr/bin/vim
+VISUAL=/usr/bin/emacs
+EOF
 
 # VSCode because it's still better for a lot of things
 curl -Lo /etc/yum.repos.d/vscode.repo \
@@ -40,14 +44,14 @@ curl -Lo /tmp/incus.ini \
 curl -Lo /tmp/docker.ini \
     https://raw.githubusercontent.com/ublue-os/toolboxes/main/apps/docker/distrobox.ini
 
-echo 'volume="/lib/modules:/lib/modules:ro"' >> /tmp/docker.ini
+echo 'volume="/lib/modules:/lib/modules:ro"' | tee -a /tmp/docker.ini
 
 if [[ -f $(find /usr/lib/modules/*/extra/zfs/zfs.ko 2> /dev/null) ]]; then
-    echo 'additional_packages="zfsutils-linux"' >> /tmp/incus.ini
-    echo 'additional_packages="zfsutils-linux"' >> /tmp/docker.ini
+    echo 'additional_packages="zfsutils-linux"' | tee -a /tmp/incus.ini
+    echo 'additional_packages="zfsutils-linux"' | tee -a /tmp/docker.ini
 fi
 
-cat >> /tmp/fedora.ini <<EOF
+tee /tmp/fedora.ini <<EOF
 [fedora]
 image=ghcr.io/ublue-os/fedora-toolbox:latest
 nvidia=true
@@ -55,7 +59,7 @@ entry=false
 volume="/home/linuxbrew/:/home/linuxbrew:rslave"
 EOF
 
-cat >> /tmp/ubuntu.ini <<EOF
+tee /tmp/ubuntu.ini <<EOF
 [fedora]
 image=ghcr.io/ublue-os/ubuntu-toolbox:latest
 nvidia=true
@@ -65,21 +69,22 @@ EOF
 
 mkdir -p /usr/etc/distrobox/
 
-{
-    cat /tmp/incus.ini ; printf "\n";
-    cat /tmp/docker.ini; printf "\n";
-    cat /tmp/fedora.ini; printf "\n";
-    cat /tmp/ubuntu.ini;
-} >> /usr/etc/distrobox/distrobox.ini
+tee -a /usr/etc/distrobox/distrobox.ini < /tmp/incus.ini
+printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
+tee -a /usr/etc/distrobox/distrobox.ini < /tmp/docker.ini
+printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
+tee -a /usr/etc/distrobox/distrobox.ini < /tmp/fedora.ini
+printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
+tee -a /usr/etc/distrobox/distrobox.ini < /tmp/ubuntu.ini
 
-cat > /usr/etc/distrobox/distrobox.conf <<'EOF'
+tee /usr/etc/distrobox/distrobox.conf <<'EOF'
 container_always_pull=false
 container_generate_entry=false
 container_manager="podman"
 distrobox_sudo_program="/usr/bin/systemd-run --uid=0 --gid=0 -d -E TERM="$TERM" -t -q -P -G"
 EOF
 
-cat > /usr/lib/systemd/system/distrbox-assemble@.service <<EOF
+tee /usr/lib/systemd/system/distrbox-assemble@.service <<EOF
 [Unit]
 Description=Distrobox Assemble %i
 Requires=network-online.target local-fs.target
@@ -91,7 +96,7 @@ Type=oneshot
 ExecStart=/usr/bin/distrobox-assemble create --file /usr/etc/distrobox/distrobox.ini -n %i
 EOF
 
-cat > /usr/lib/systemd/system/distrbox-autostart@.service <<EOF
+tee /usr/lib/systemd/system/distrbox-autostart@.service <<EOF
 [Unit]
 Description=Autostart distrobox %i
 Requires=local-fs.target
@@ -106,7 +111,7 @@ ExecStop=/usr/bin/podman stop -t 30 %i
 EOF
 
 mkdir -p /usr/etc/systemd/system/distrobox-autostart@.service.d
-cat > /usr/etc/systemd/system/distrobox-autostart@.service.d/override.conf <<EOF
+tee /usr/etc/systemd/system/distrobox-autostart@.service.d/override.conf <<EOF
 [Service]
 Environment=HOME=/home/m2
 Environment=DISPLAY=:0
@@ -165,26 +170,31 @@ sed -i '/^image-vendor/s/ublue-os/m2giles/' /usr/share/ublue-os/image-info.json
 # ]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
 # cp /tmp/policy.json /usr/etc/containers/policy.json
 cp /tmp/cosign.pub /usr/etc/pki/containers/m2os.pub
+tee /usr/etc/containers/registries.d/m2os.yaml <<EOF
+docker:
+  ghcr.io/m2giles/m2os:
+    use-sigstore-attachments: true
+EOF
 
 systemctl enable --global p11-kit-server.socket
 systemctl enable --global p11-kit-server.service
 
 mkdir -p /usr/share/user-tmpfiles.d
-cat > /usr/share/user-tmpfiles.d/discord-rpc.conf <<EOF
+tee /usr/share/user-tmpfiles.d/discord-rpc.conf <<EOF
 L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0
 EOF
 
-cat > /usr/share/user-tmpfiles.d/keepassxc-integration.conf <<EOF
+tee /usr/share/user-tmpfiles.d/keepassxc-integration.conf <<EOF
 C %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/firefox-keepassxc.json
 C %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
 C %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
 EOF
 
-cat > /usr/lib/tmpfiles.d/keepassxc-integration.conf <<EOF
+tee /usr/lib/tmpfiles.d/keepassxc-integration.conf <<EOF
 C %t/keepassxc-integration - - - - /usr/libexec/keepassxc-integration
 EOF
 
-cat > /usr/lib/tmpfiles.d/flatpak-overrides.conf<<EOF
+tee /usr/lib/tmpfiles.d/flatpak-overrides.conf<<EOF
 C %S/flatpak/overrides/com.google.Chrome - - - - /usr/share/flatpak/overrides/com.google.Chrome
 C %S/flatpak/overrides/com.microsoft.Edge - - - - /usr/share/flatpak/overrides/com.microsoft.Edge
 C %S/flatpak/overrides/org.mozilla.firefox - - - - /usr/share/flatpak/overrides/org.mozilla.firefox
@@ -194,17 +204,17 @@ EOF
 
 mkdir -p /usr/share/flatpak/overrides
 
-cat > /usr/share/flatpak/overrides/com.google.Chrome <<EOF
+tee /usr/share/flatpak/overrides/com.google.Chrome <<EOF
 [Context]
 filesystems=~/.local/share/icons:create;~/.local/share/applications:create;~/.pki:create;/run/keepassxc-integration;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/p11-kit/pkcs11;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-run/app/org.keepassxc.KeePassXC:create;xdg-data/flatpak/runtime/org.kde.Platform:ro
 EOF
 
-cat > /usr/share/flatpak/overrides/com.microsoft.Edge <<EOF
+tee /usr/share/flatpak/overrides/com.microsoft.Edge <<EOF
 [Context]
 filesystems=~/.pki:create;/run/keepassxc-integration;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/p11-kit/pkcs11;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-run/app/org.keepassxc.KeePassXC:create;xdg-data/flatpak/runtime/org.kde.Platform:ro
 EOF
 
-cat > /usr/share/flatpak/overrides/org.mozilla.firefox <<EOF
+tee /usr/share/flatpak/overrides/org.mozilla.firefox <<EOF
 [Context]
 filesystems=/run/keepassxc-integration;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/p11-kit/pkcs11;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-run/app/org.keepassxc.KeePassXC:create;xdg-data/flatpak/runtime/org.kde.Platform:ro
 
@@ -213,7 +223,7 @@ MOZ_ENABLE_WAYLAND=1
 EOF
 
 mkdir /usr/libexec/keepassxc-integration
-cat > /usr/libexec/keepassxc-integration/keepassxc-proxy-wrapper <<'EOF'
+tee /usr/libexec/keepassxc-integration/keepassxc-proxy-wrapper <<'EOF'
 #!/usr/bin/bash
 APP_REF="org.keepassxc.KeePassXC/x86_64/stable"
 for inst in "/var/lib/flatpak/" "$HOME/.local/share/flatpak/"; do
@@ -234,7 +244,7 @@ exec flatpak-spawn \
 EOF
 chmod +x /usr/libexec/keepassxc-integration/keepassxc-proxy-wrapper
 
-cat > /usr/libexec/keepassxc-integration/firefox-keepassxc.json <<EOF
+tee /usr/libexec/keepassxc-integration/firefox-keepassxc.json <<EOF
 {
     "allowed_extensions": [
         "keepassxc-browser@keepassxc.org"
@@ -246,7 +256,7 @@ cat > /usr/libexec/keepassxc-integration/firefox-keepassxc.json <<EOF
 }
 EOF
 
-cat > /usr/libexec/keepassxc-integration/chromium-keepassxc.json <<EOF
+tee /usr/libexec/keepassxc-integration/chromium-keepassxc.json <<EOF
 {
     "allowed_origins": [
         "chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/",
@@ -259,7 +269,7 @@ cat > /usr/libexec/keepassxc-integration/chromium-keepassxc.json <<EOF
 }
 EOF
 
-cat > /usr/share/flatpak/overrides/org.mozilla.Thunderbird <<EOF
+tee /usr/share/flatpak/overrides/org.mozilla.Thunderbird <<EOF
 [Context]
 filesystems=xdg-run/p11-kit/pkcs11;
 
@@ -267,7 +277,7 @@ filesystems=xdg-run/p11-kit/pkcs11;
 MOZ_ENABLE_WAYLAND=1
 EOF
 
-cat > /usr/share/flatpak/overrides/com.discordapp.Discord <<EOF
+tee /usr/share/flatpak/overrides/com.discordapp.Discord <<EOF
 [Context]
 sockets=wayland;
 EOF
