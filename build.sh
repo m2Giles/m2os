@@ -152,18 +152,18 @@ cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
 
 sed -i '/^image-vendor/s/ublue-os/m2giles/' /usr/share/ublue-os/image-info.json
 
-# Signing
-cat <<< "$(jq '.transports.docker |=. + {
-   "ghcr.io/m2giles/m2os": [
-    {
-        "type": "sigstoreSigned",
-        "keyPath": "/etc/pki/containers/m2os.pub",
-        "signedIdentity": {
-            "type": "matchRepository"
-        }
-    }
-]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
-cp /tmp/policy.json /usr/etc/containers/policy.json
+# # Signing
+# cat <<< "$(jq '.transports.docker |=. + {
+#    "ghcr.io/m2giles/m2os": [
+#     {
+#         "type": "sigstoreSigned",
+#         "keyPath": "/etc/pki/containers/m2os.pub",
+#         "signedIdentity": {
+#             "type": "matchRepository"
+#         }
+#     }
+# ]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
+# cp /tmp/policy.json /usr/etc/containers/policy.json
 cp /tmp/cosign.pub /usr/etc/pki/containers/m2os.pub
 
 systemctl enable --global p11-kit-server.socket
