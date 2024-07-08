@@ -18,10 +18,6 @@ curl -Lo /usr/lib/systemd/system/sunshine-workaround.service \
 
 systemctl enable sunshine-workaround.service
 
-# Webapp-Manager
-curl -Lo /etc/yum.repos.d/_copr_kylegospo-webapp-manager.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/webapp-manager/repo/fedora-"${FEDORA_VERSION}"/kylegospo-webapp-manager-fedora-"${FEDORA_VERSION}".repo
-
 # Layered Applications
 rpm-ostree install \
     bootc \
@@ -30,8 +26,7 @@ rpm-ostree install \
     rclone \
     socat \
     sunshine \
-    swtpm \
-    webapp-manager
+    swtpm
 
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
