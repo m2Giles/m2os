@@ -30,6 +30,7 @@ rpm-ostree install \
     rclone \
     socat \
     sunshine \
+    swtpm \
     webapp-manager
 
 # Docker sysctl.d
