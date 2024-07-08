@@ -180,14 +180,13 @@ L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0
 EOF
 
 cat > /usr/share/user-tmpfiles.d/keepassxc-integration.conf <<EOF
-C %t/org.keepassxc.keepassxc_browser.json - - - - /usr/libexec/keepassxc-integration/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - %t/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - %t/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - %t/org.keepassxc.keepassxc_browser.json
+L %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - /run/org.keepassxc.keepassxc_browser.json
+L %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/org.keepassxc.keepassxc_browser.json
+L %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/org.keepassxc.keepassxc_browser.json
 EOF
 
 cat > /usr/lib/tmpfiles.d/keepassxc-integration.conf <<EOF
-C %t/keepassxc-proxy-wrapper - - - - /usr/libexec/keepassxc-integration/keepassxc-proxy-wrapper
+C %t/keepassxc-integration - - - - /usr/libexec/keepassxc-integration
 EOF
 
 cat > /usr/lib/tmpfiles.d/flatpak-overrides.conf<<EOF
@@ -202,17 +201,17 @@ mkdir -p /usr/share/flatpak/overrides
 
 cat > /usr/share/flatpak/overrides/com.google.Chrome <<EOF
 [Context]
-filesystems=~/.local/share/icons:create;~/.local/share/applications:create;xdg-run/p11-kit/pkcs11;~/.pki:create;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-proxy-wrapper;xdg-run/org.keepassxc.keepassxc_browser.json;
+filesystems=~/.local/share/icons:create;~/.local/share/applications:create;xdg-run/p11-kit/pkcs11;~/.pki:create;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
 EOF
 
 cat > /usr/share/flatpak/overrides/com.microsoft.Edge <<EOF
 [Context]
-filesystems=~/.local/share/icons:create;~/.local/share/applications:create;xdg-run/p11-kit/pkcs11;~/.pki:create;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-proxy-wrapper;xdg-run/org.keepassxc.keepassxc_browser.json;
+filesystems=~/.local/share/icons:create;~/.local/share/applications:create;xdg-run/p11-kit/pkcs11;~/.pki:create;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
 EOF
 
 cat > /usr/share/flatpak/overrides/org.mozilla.firefox <<EOF
 [Context]
-filesystems=xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-proxy-wrapper;xdg-run/org.keepassxc.keepassxc_browser.json;
+filesystems=xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
 
 [Environment]
 MOZ_ENABLE_WAYLAND=1
@@ -247,7 +246,7 @@ cat > /usr/libexec/keepassxc-integration/org.keepassxc.keepassxc_browser.json <<
     ],
     "description": "KeePassXC integration with native messaging support",
     "name": "org.keepassxc.keepassxc_browser",
-    "path": "/run/keepassxc-proxy-wrapper",
+    "path": "/run/keepassxc-integration/keepassxc-proxy-wrapper",
     "type": "stdio"
 }
 EOF
