@@ -181,13 +181,13 @@ EOF
 
 cat > /usr/share/user-tmpfiles.d/keepassxc-integration.conf <<EOF
 C %t/org.keepassxc.keepassxc_browser.json - - - - /usr/libexec/keepassxc-integration/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - /run/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/org.keepassxc.keepassxc_browser.json
-L %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/org.keepassxc.keepassxc_browser.json
+L %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - %t/org.keepassxc.keepassxc_browser.json
+L %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - %t/org.keepassxc.keepassxc_browser.json
+L %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - %t/org.keepassxc.keepassxc_browser.json
 EOF
 
 cat > /usr/lib/tmpfiles.d/keepassxc-integration.conf <<EOF
-C %t/keepassxc-proxy-wrapper - - - - /usr/libexec/keepassxc-proxy-wrapper
+C %t/keepassxc-proxy-wrapper - - - - /usr/libexec/keepassxc-integration/keepassxc-proxy-wrapper
 EOF
 
 cat > /usr/lib/tmpfiles.d/flatpak-overrides.conf<<EOF
