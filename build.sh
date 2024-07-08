@@ -196,17 +196,17 @@ mkdir -p /usr/share/flatpak/overrides
 
 cat > /usr/share/flatpak/overrides/com.google.Chrome <<EOF
 [Context]
-filesystems=~/.local/share/icons:create;~/.local/share/applications:create;xdg-run/p11-kit/pkcs11;~/.pki:create;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
+filesystems=~/.local/share/icons:create;~/.local/share/applications:create;~/.pki:create;xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
 EOF
 
 cat > /usr/share/flatpak/overrides/com.microsoft.Edge <<EOF
 [Context]
-filesystems=~/.local/share/icons:create;~/.local/share/applications:create;xdg-run/p11-kit/pkcs11;~/.pki:create;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
+filesystems=~/.local/share/icons:create;~/.local/share/applications:create;~/.pki:create;xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
 EOF
 
 cat > /usr/share/flatpak/overrides/org.mozilla.firefox <<EOF
 [Context]
-filesystems=xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXc:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
+filesystems=xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
 
 [Environment]
 MOZ_ENABLE_WAYLAND=1
