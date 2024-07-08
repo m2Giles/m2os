@@ -125,18 +125,23 @@ groupadd -g 251 incus
 groupadd -g 252 docker
 
 # Individual Changes
-case  "${IMAGE}" in
-    "bluefin")
+case "${IMAGE}" in
+    "bluefin"*)
         sed -i '/^PRETTY_NAME/s/Bluefin/m2os-bluefin/' /usr/lib/os-release
-        sed -i '/image-tag/s/stable/bluefin/' /usr/share/ublue-os/image-info.json
+        sed -i "/image-tag/s/stable/${IMAGE}/" /usr/share/ublue-os/image-info.json
         ;;
-    "aurora")
+    "aurora"*)
         sed -i '/^PRETTY_NAME/s/Aurora/m2os-aurora/' /usr/lib/os-release
-        sed -i '/image-tag/s/stable/aurora/' /usr/share/ublue-os/image-info.json
+        sed -i "/image-tag/s/stable/${IMAGE}/" /usr/share/ublue-os/image-info.json
         ;;
-    "bazzite-gnome-nvidia")
+    "bazzite-deck"*)
+        sed -i '/^PRETTY_NAME/s/"Bazzite GNOME"/m2os-bazzite-deck/' /usr/lib/os-release
+        sed -i "/image-tag/s/stable/bazzite-deck/" /usr/share/ublue-os/image-info.json
+        /tmp/bazzite.sh
+        ;;
+    "bazzite-gnome"*)
         sed -i '/^PRETTY_NAME/s/"Bazzite GNOME"/m2os-bazzite/' /usr/lib/os-release
-        sed -i '/image-tag/s/stable/gaming-desktop/' /usr/share/ublue-os/image-info.json
+        sed -i "/image-tag/s/stable/bazzite/" /usr/share/ublue-os/image-info.json
         /tmp/bazzite.sh
         ;;
 esac

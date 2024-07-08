@@ -30,7 +30,10 @@ jobs:
       matrix:
         image:
           - bluefin
+          - bluefin-nvidia
           - aurora
+          - aurora-nvidia
+          - bazzite-deck-gnome
           - bazzite-gnome-nvidia
     steps:
       - name: Build Variables
@@ -49,12 +52,12 @@ jobs:
               echo "inspected image version must not be empty or null"
               exit 1
             fi
-            if [[ ${{ matrix.image }} == "bluefin" || ${{ matrix.image }} == "aurora" ]]; then
-              kernel_flavor=coreos
-              upstream_repo=bluefin
-            elif [[ ${{ matrix.image }} == "bazzite-gnome-nvidia" ]]; then
+            if [[ ${{ matrix.image }} =~ "bazzite" ]]; then
               kernel_flavor=fsync
               upstream_repo=bazzite
+            else
+              kernel_flavor=coreos
+              upstream_repo=bluefin
             fi
             echo "version=$ver" >> $GITHUB_ENV
             echo "kernel_release=${KERNEL_RELEASE}" >> $GITHUB_ENV
@@ -88,8 +91,10 @@ jobs:
         shell: bash
         run: |
           TIMESTAMP="$(date +%Y%m%d)"
-          if [[ "${{ matrix.image }}" == "bazzite-gnome-nvidia" ]]; then
-             tag="gaming-desktop"
+          if [[ "${{ matrix.image }}" =~ "bazzite-deck" ]]; then
+             tag="bazzite-deck"
+          elif [[ "${{ matrix.image }}" =~ "bazzite" ]]; then
+             tag="bazzite"
           else
              tag=${{ matrix.image }}
           fi
