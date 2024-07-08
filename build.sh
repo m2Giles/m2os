@@ -162,7 +162,7 @@ cat <<< "$(jq '.transports.docker |=. + {
    "ghcr.io/m2giles/m2os": [
     {
         "type": "sigstoreSigned",
-        "keypath": "/etc/pki/containers/m2os.pub",
+        "keyPath": "/etc/pki/containers/m2os.pub",
         "signedIdentity": {
             "type": "matchRepository"
         }
