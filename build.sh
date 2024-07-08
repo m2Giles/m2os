@@ -175,9 +175,9 @@ L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0
 EOF
 
 cat > /usr/share/user-tmpfiles.d/keepassxc-integration.conf <<EOF
-L %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/firefox-keepassxc.json
-L %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
-L %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
+C %h/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/firefox-keepassxc.json
+C %h/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
+C %h/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts/org.keepassxc.keepassxc_browser.json - - - - /run/keepassxc-integration/chromium-keepassxc.json
 EOF
 
 cat > /usr/lib/tmpfiles.d/keepassxc-integration.conf <<EOF
@@ -196,17 +196,17 @@ mkdir -p /usr/share/flatpak/overrides
 
 cat > /usr/share/flatpak/overrides/com.google.Chrome <<EOF
 [Context]
-filesystems=~/.local/share/icons:create;~/.local/share/applications:create;~/.pki:create;xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
+filesystems=~/.local/share/icons:create;~/.local/share/applications:create;~/.pki:create;/run/keepassxc-integration;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/p11-kit/pkcs11;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-run/app/org.keepassxc.KeePassXC:create;xdg-data/flatpak/runtime/org.kde.Platform:ro
 EOF
 
 cat > /usr/share/flatpak/overrides/com.microsoft.Edge <<EOF
 [Context]
-filesystems=~/.local/share/icons:create;~/.local/share/applications:create;~/.pki:create;xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
+filesystems=~/.pki:create;/run/keepassxc-integration;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/p11-kit/pkcs11;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-run/app/org.keepassxc.KeePassXC:create;xdg-data/flatpak/runtime/org.kde.Platform:ro
 EOF
 
 cat > /usr/share/flatpak/overrides/org.mozilla.firefox <<EOF
 [Context]
-filesystems=xdg-run/p11-kit/pkcs11;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-data/flatpak/runtime/org.kde.Platform:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/app/org.keepassxc.KeePassXc:create;/run/keepassxc-integration;
+filesystems=/run/keepassxc-integration;/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro;/var/lib/flatpak/runtime/org.kde.Platform:ro;xdg-run/p11-kit/pkcs11;xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro;xdg-run/app/org.keepassxc.KeePassXC:create;xdg-data/flatpak/runtime/org.kde.Platform:ro
 
 [Environment]
 MOZ_ENABLE_WAYLAND=1
@@ -215,7 +215,7 @@ EOF
 mkdir /usr/libexec/keepassxc-integration
 cat > /usr/libexec/keepassxc-integration/keepassxc-proxy-wrapper <<'EOF'
 #!/usr/bin/bash
-APP_REF="org.keepassxc.KeePassXc/x86_64/stable"
+APP_REF="org.keepassxc.KeePassXC/x86_64/stable"
 for inst in "/var/lib/flatpak/" "$HOME/.local/share/flatpak/"; do
     if [ -d "$inst/app/$APP_REF" ]; then
         FLATPAK_INST="$inst"
