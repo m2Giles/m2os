@@ -228,7 +228,7 @@ flatpak override \
     --filesystem=/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro \
     --filesystem=/var/lib/flatpak/runtime/org.kde.Platform:ro \
     --filesystem=xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro \
-    --filesystem=xdg-data/flatpak/runtime/org.kde.Platform:ro
+    --filesystem=xdg-data/flatpak/runtime/org.kde.Platform:ro \
     --filesystem=xdg-run/app/org.keepassxc.KeePassXC:create \
     com.google.Chrome
 
@@ -241,7 +241,7 @@ flatpak override \
     --filesystem=/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro \
     --filesystem=/var/lib/flatpak/runtime/org.kde.Platform:ro \
     --filesystem=xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro \
-    --filesystem=xdg-data/flatpak/runtime/org.kde.Platform:ro
+    --filesystem=xdg-data/flatpak/runtime/org.kde.Platform:ro \
     --filesystem=xdg-run/app/org.keepassxc.KeePassXC:create \
     com.microsoft.Edge
 
@@ -253,7 +253,7 @@ flatpak override \
     --filesystem=/var/lib/flatpak/app/org.keepassxc.KeePassXC:ro \
     --filesystem=/var/lib/flatpak/runtime/org.kde.Platform:ro \
     --filesystem=xdg-data/flatpak/app/org.keepassxc.KeePassXC:ro \
-    --filesystem=xdg-data/flatpak/runtime/org.kde.Platform:ro
+    --filesystem=xdg-data/flatpak/runtime/org.kde.Platform:ro \
     --filesystem=xdg-run/app/org.keepassxc.KeePassXC:create \
     --env=MOZ_ENABLE_WAYLAND=1 \
     --env=MOZ_USE_XINPUT2=1 \
@@ -296,7 +296,7 @@ flatpak override \
 flatpak override \
     --system \
     --socket=cups \
-    --socket=session-bus
+    --socket=session-bus \
     org.libreoffice.LibreOffice
 
 #Discord
