@@ -138,9 +138,15 @@ jobs:
         shell: bash
         run: |
           set -x
-          command -v sbverify || (sudo apt update && sudo apt install sbsigntool)
+          if [[ ! $(command -v sbverify) || ! $(command -v curl) || ! $(command -v openssl) ]]; then
+            sudo apt update
+            sudo apt install sbsigntool curl openssl
+          fi
           podman run --rm "${{ env.IMAGE_NAME }}":$(echo "${{ steps.generate_tags.outputs.build_tags }}" | cut -d " " -f 1) /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           sbverify --list vmlinuz
+          curl -o akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
+          openssl x509 -in akmods.der -out akmods.crt
+          sbverify --cert akmods.crt vmlinuz
 
       - name: Lowercase Registry
         id: registry_case
