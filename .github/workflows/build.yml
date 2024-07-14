@@ -133,6 +133,15 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           oci: false
 
+      - name: Check Secureboot
+        id: secureboot
+        shell: bash
+        run: |
+          set -x
+          command -v sbverify || (sudo apt update && sudo apt install sbsigntool)
+          podman run --rm "${{ env.IMAGE_NAME }}":$(echo "${{ steps.generate_tags.outputs.build_tags }}" | cut -d " " -f 1) /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
+          sbverify --list vmlinuz
+
       - name: Lowercase Registry
         id: registry_case
         uses: ASzc/change-string-case-action@v6
