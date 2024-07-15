@@ -2,13 +2,6 @@
 
 set -eoux pipefail
 
-# Global Environment Variables
-
-tee -a /etc/environment <<EOF
-EDITOR=/usr/bin/vim
-VISUAL=/usr/bin/emacs
-EOF
-
 # VSCode because it's still better for a lot of things
 curl -Lo /etc/yum.repos.d/vscode.repo \
     https://raw.githubusercontent.com/ublue-os/bluefin/main/system_files/dx/etc/yum.repos.d/vscode.repo
@@ -28,6 +21,7 @@ rpm-ostree install \
     code \
     emacs \
     rclone \
+    sbsigntools \
     socat \
     sunshine \
     swtpm
@@ -167,18 +161,18 @@ cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
 
 sed -i '/^image-vendor/s/ublue-os/m2giles/' /usr/share/ublue-os/image-info.json
 
-# # Signing
-# cat <<< "$(jq '.transports.docker |=. + {
-#    "ghcr.io/m2giles/m2os": [
-#     {
-#         "type": "sigstoreSigned",
-#         "keyPath": "/etc/pki/containers/m2os.pub",
-#         "signedIdentity": {
-#             "type": "matchRepository"
-#         }
-#     }
-# ]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
-# cp /tmp/policy.json /usr/etc/containers/policy.json
+# Signing
+cat <<< "$(jq '.transports.docker |=. + {
+   "ghcr.io/m2giles/m2os": [
+    {
+        "type": "sigstoreSigned",
+        "keyPath": "/etc/pki/containers/m2os.pub",
+        "signedIdentity": {
+            "type": "matchRepository"
+        }
+    }
+]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
+cp /tmp/policy.json /usr/etc/containers/policy.json
 cp /tmp/cosign.pub /usr/etc/pki/containers/m2os.pub
 tee /usr/etc/containers/registries.d/m2os.yaml <<EOF
 docker:
@@ -190,6 +184,16 @@ systemctl enable --global p11-kit-server.socket
 systemctl enable --global p11-kit-server.service
 
 mkdir -p /usr/share/user-tmpfiles.d
+tee /usr/share/user-tmpfiles.d/editor.conf <<EOF
+C %h/.config/environment.d/editor.conf - - - - /usr/share/ublue-os/etc/environment.d/default-editor.conf
+EOF
+
+mkdir -p /usr/share/ublue-os/etc/environment.d
+tee /usr/share/ublue-os/etc/environment.d/default-editor.conf <<EOF
+EDITOR=/usr/bin/vim
+VISUAL=/usr/bin/emacs
+EOF
+
 tee /usr/share/user-tmpfiles.d/discord-rpc.conf <<EOF
 L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0
 EOF
@@ -207,11 +211,13 @@ EOF
 tee /usr/lib/systemd/system/m2os-flatpak-overrides.service <<EOF
 [Unit]
 Description=Set Overrides for Flatpaks
+ConditionPathExists=!/etc/.%N.stamp
 After=local-fs.target
 
 [Service]
 Type=oneshot
 ExecStart=/usr/libexec/m2os-flatpak-overrides.sh
+ExecStop=/etc/.%N.stamp
 
 [Install]
 WantedBy=default.target multi-user.target
