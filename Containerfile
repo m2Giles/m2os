@@ -1,16 +1,28 @@
 ARG IMAGE="${IMAGE:-bluefin}"
 ARG FEDORA_VERSION="${FEDORA_VERSION:-40}"
-ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos}"
-# FROM ghcr.io/ublue-os/akmods:${KERNEL_FLAVOR}-${FEDORA_VERSION} as akmods
+ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos-stable}"
+
+FROM scratch AS ctx
+COPY / /
+
+FROM ghcr.io/ublue-os/akmods:${KERNEL_FLAVOR}-${FEDORA_VERSION} AS akmods
+FROM ghcr.io/ublue-os/akmods-zfs:coreos-stable-${FEDORA_VERSION} AS akmods-zfs
+FROM ghcr.io/ublue-os/coreos-stable-kernel:${FEDORA_VERSION} AS kernel
 
 FROM ghcr.io/ublue-os/${IMAGE}:stable
+
 ARG IMAGE="${IMAGE:-bluefin}"
 ARG FEDORA_VERSION="${FEDORA_VERSION:-40}"
-ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos}"
+ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos-stable}"
 
-COPY build.sh bazzite.sh cosign.pub /tmp/
-# COPY --from=akmods /rpms /tmp/akmods-rpms
-
-RUN mkdir -p /var/lib/alternatives && \
-    /tmp/build.sh && \
+RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/akmods-rpms \
+    --mount=type=bind,from=akmods-zfs,src=/rpms,dst=/tmp/akmods-zfs \
+    --mount=type=bind,from=kernel,src=/tmp/rpms,dst=/tmp/kernel-rpms \
+    mkdir -p /var/lib/alternatives && \
+    /ctx/build.sh && \
+    mv /var/lib/alternatives/ /staged-alternatives \
+    rm -rf /tmp/ || true && \
+    rm -rf /var/ || true && \
+    mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives && \
     ostree container commit

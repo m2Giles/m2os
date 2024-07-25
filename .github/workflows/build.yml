@@ -33,6 +33,7 @@ jobs:
           - bluefin-nvidia
           - aurora
           - aurora-nvidia
+          - cosmic
           - bazzite-deck-gnome
           - bazzite-gnome-nvidia
     steps:

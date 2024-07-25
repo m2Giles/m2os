@@ -15,10 +15,29 @@ curl -Lo /usr/lib/systemd/system/sunshine-workaround.service \
 
 systemctl enable sunshine-workaround.service
 
+# Docker Repo
+tee /etc/yum.repos.d/docker-ce.repo <<'EOF'
+[docker-ce-stable]
+name=Docker CE Stable - "$basearch"
+baseurl=https://download.docker.com/linux/fedora/"$releasever"/"$basearch"/stable
+enabled=1
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/fedora/gpg
+EOF
+
+# Get Incus Client
+curl -Lo /usr/bin/incus \
+    "https://github.com/lxc/incus/releases/latest/download/bin.linux.incus.$(uname -m)"
+
+chmod +x /usr/bin/incus
+
 # Layered Applications
 rpm-ostree install \
     bootc \
     code \
+    docker-buildx-plugin \
+    docker-ce-cli \
+    docker-compose-plugin \
     emacs \
     rclone \
     sbsigntools \
@@ -85,7 +104,7 @@ tee /usr/etc/distrobox/distrobox.conf <<'EOF'
 container_always_pull=false
 container_generate_entry=false
 container_manager="podman"
-distrobox_sudo_program="/usr/bin/systemd-run --uid=0 --gid=0 -d -E TERM="$TERM" -t -q -P -G"
+distrobox_sudo_program="sudo --askpass"
 EOF
 
 tee /usr/lib/systemd/system/distrbox-assemble@.service <<EOF
@@ -112,6 +131,9 @@ RemainAfterExit=true
 ExecStartPre=-/usr/bin/systemctl start distrobox-assemble@%i.service
 ExecStart=/usr/bin/distrobox-enter %i
 ExecStop=/usr/bin/podman stop -t 30 %i
+
+[Install]
+WantedBy=multi-user.target default.target
 EOF
 
 mkdir -p /usr/etc/systemd/system/distrobox-autostart@.service.d
@@ -132,22 +154,17 @@ groupadd -g 252 docker
 # Individual Changes
 case "${IMAGE}" in
     "bluefin"*)
-        sed -i '/^PRETTY_NAME/s/Bluefin/m2os-bluefin/' /usr/lib/os-release
-        sed -i "/image-tag/s/stable/${IMAGE}/" /usr/share/ublue-os/image-info.json
         ;;
     "aurora"*)
-        sed -i '/^PRETTY_NAME/s/Aurora/m2os-aurora/' /usr/lib/os-release
-        sed -i "/image-tag/s/stable/${IMAGE}/" /usr/share/ublue-os/image-info.json
+        ;;
+    "cosmic"*)
+        /ctx/cosmic.sh
         ;;
     "bazzite-deck"*)
-        sed -i '/^PRETTY_NAME/s/"Bazzite GNOME"/m2os-bazzite-deck/' /usr/lib/os-release
-        sed -i "/image-tag/s/stable/bazzite-deck/" /usr/share/ublue-os/image-info.json
-        /tmp/bazzite.sh
+        /ctx/bazzite.sh
         ;;
     "bazzite-gnome"*)
-        sed -i '/^PRETTY_NAME/s/"Bazzite GNOME"/m2os-bazzite/' /usr/lib/os-release
-        sed -i "/image-tag/s/stable/bazzite/" /usr/share/ublue-os/image-info.json
-        /tmp/bazzite.sh
+        /ctx/bazzite.sh
         ;;
 esac
 
@@ -173,7 +190,7 @@ cat <<< "$(jq '.transports.docker |=. + {
     }
 ]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
 cp /tmp/policy.json /usr/etc/containers/policy.json
-cp /tmp/cosign.pub /usr/etc/pki/containers/m2os.pub
+cp /ctx/cosign.pub /usr/etc/pki/containers/m2os.pub
 tee /usr/etc/containers/registries.d/m2os.yaml <<EOF
 docker:
   ghcr.io/m2giles/m2os:
