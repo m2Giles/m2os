@@ -34,6 +34,7 @@ jobs:
           - aurora
           - aurora-nvidia
           - cosmic-base
+          - cosmic-base-nvidia
           - bazzite-deck-gnome
           - bazzite-gnome-nvidia
     steps:
@@ -93,10 +94,12 @@ jobs:
         shell: bash
         run: |
           TIMESTAMP="$(date +%Y%m%d)"
-          if [[ "${{ matrix.image }}" =~ "bazzite-deck" ]]; then
+          if [[ "${{ matrix.image }}" =~ bazzite-deck ]]; then
              tag="bazzite-deck"
-          elif [[ "${{ matrix.image }}" =~ "bazzite" ]]; then
+          elif [[ "${{ matrix.image }}" =~ bazzite ]]; then
              tag="bazzite"
+          elif [[ ${{ matrix.image }} =~ cosmic-base-nvidia ]]; then
+             tag="cosmic-nvidia"
           elif [[ "${{ matrix.image }}" =~ cosmic ]]; then
              tag="cosmic"
           else
