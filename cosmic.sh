@@ -42,19 +42,14 @@ EOF
 rpm-ostree override replace --experimental \
     --install=pv \
     --install=ptyxis \
-    /tmp/akmods-zfs/kmod-zfs*.rpm \
-    /tmp/akmods-zfs/libnvpair*.rpm \
-    /tmp/akmods-zfs/libuutil*.rpm \
-    /tmp/akmods-zfs/libzfs*.rpm \
-    /tmp/akmods-zfs/libzpool*.rpm \
-    /tmp/akmods-zfs/python3-pyzfs*.rpm \
-    /tmp/akmods-zfs/zfs*.rpm \
-    /tmp/akmods-rpms/kmods/*kvmfr*.rpm \
-    /tmp/akmods-rpms/kmods/*xpadneo*.rpm \
-    /tmp/akmods-rpms/kmods/*xone*.rpm \
-    /tmp/akmods-rpms/kmods/*openrazer*.rpm \
-    /tmp/akmods-rpms/kmods/*wl*.rpm \
-    /tmp/akmods-rpms/kmods/*v4l2loopback*.rpm \
+    /tmp/config-rpms/*.rpm \
+    /tmp/akmods-zfs/*.rpm \
+    /tmp/akmods-rpms/*kvmfr*.rpm \
+    /tmp/akmods-rpms/*xpadneo*.rpm \
+    /tmp/akmods-rpms/*xone*.rpm \
+    /tmp/akmods-rpms/*openrazer*.rpm \
+    /tmp/akmods-rpms/*wl*.rpm \
+    /tmp/akmods-rpms/*v4l2loopback*.rpm \
     /tmp/kernel-rpms/kernel-[0-9]*.rpm \
     /tmp/kernel-rpms/kernel-core-*.rpm \
     /tmp/kernel-rpms/kernel-modules-*.rpm
