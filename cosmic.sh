@@ -93,17 +93,23 @@ rpm-ostree override replace --experimental \
     --install=xprop \
     --install=wl-clipboard \
     /tmp/akmods-zfs/*.rpm \
-    /tmp/akmods-rpms/*kvmfr*.rpm \
-    /tmp/akmods-rpms/*xpadneo*.rpm \
-    /tmp/akmods-rpms/*xone*.rpm \
-    /tmp/akmods-rpms/*openrazer*.rpm \
-    /tmp/akmods-rpms/*wl*.rpm \
-    /tmp/akmods-rpms/*v4l2loopback*.rpm \
+    /tmp/akmods/*kvmfr*.rpm \
+    /tmp/akmods/*xpadneo*.rpm \
+    /tmp/akmods/*xone*.rpm \
+    /tmp/akmods/*openrazer*.rpm \
+    /tmp/akmods/*wl*.rpm \
+    /tmp/akmods/*v4l2loopback*.rpm \
     /tmp/kernel-rpms/kernel-[0-9]*.rpm \
     /tmp/kernel-rpms/kernel-core-*.rpm \
     /tmp/kernel-rpms/kernel-modules-*.rpm
 
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/negativo17-fedora-multimedia.repo
+
+# curl -Lo /tmp/nvidia-install.sh \
+#     https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
+# chmod +x /tmp/nvidia-install.sh
+# IMAGE_NAME="base" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
+# rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
 
 KERNEL_SUFFIX=""
 QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\d+)' | sed -E 's/kernel-(|'"$KERNEL_SUFFIX"'-)//')"
@@ -115,3 +121,7 @@ echo "zfs" > /usr/lib/modules-load.d/zfs.conf
 pip install --prefix=/usr topgrade
 
 rpm-ostree install ublue-update
+
+# /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
+
+chmod 0600 "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"

@@ -34,7 +34,6 @@ jobs:
           - aurora
           - aurora-nvidia
           - cosmic-base
-          - cosmic-base-nvidia
           - bazzite-deck-gnome
           - bazzite-gnome-nvidia
     steps:
@@ -98,8 +97,6 @@ jobs:
              tag="bazzite-deck"
           elif [[ "${{ matrix.image }}" =~ bazzite ]]; then
              tag="bazzite"
-          elif [[ ${{ matrix.image }} =~ cosmic-base-nvidia ]]; then
-             tag="cosmic-nvidia"
           elif [[ "${{ matrix.image }}" =~ cosmic ]]; then
              tag="cosmic"
           else
