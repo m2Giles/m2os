@@ -33,7 +33,7 @@ skip_if_unavailable=True
 gpgcheck=1
 gpgkey=https://download.copr.fedorainfracloud.org/results/ublue-os/akmods/pubkey.gpg
 repo_gpgcheck=0
-enabled=0
+enabled=1
 enabled_metadata=1
 priority=90
 EOF
