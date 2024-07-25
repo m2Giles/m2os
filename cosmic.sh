@@ -56,6 +56,43 @@ EOF
 rpm-ostree override replace --experimental \
     --install=pv \
     --install=ptyxis \
+    --install=bash-color-prompt \
+    --install=bcache-tools \
+    --install=bootc \
+    --install=evtest \
+    --install=fastfetch \
+    --install=fish \
+    --install=firewall-config \
+    --install=foo2zjs \
+    --install=gcc \
+    --install=glow \
+    --install=gum \
+    --install=hplip \
+    --install=ifuse \
+    --install=libimobiledevice \
+    --install=libxcrypt-compat \
+    --install=lm_sensors \
+    --install=make \
+    --install=mesa-libGLU \
+    --install=nerd-fonts \
+    --install=playerctl \
+    --install=pulseaudio-utils \
+    --install=python3-pip \
+    --install=rclone \
+    --install=restic \
+    --install=samba-dcerpc \
+    --install=samba-ldb-ldap-modules \
+    --install=samba-winbind-clients \
+    --install=samba-winbind-modules \
+    --install=samba \
+    --install=solaar \
+    --install=tailscale \
+    --install=tmux \
+    --install=usbmuxd \
+    --install=ublue-update \
+    --install=wireguard-tools \
+    --install=xprop \
+    --install=wl-clipboard \
     /tmp/akmods-zfs/*.rpm \
     /tmp/akmods-rpms/*kvmfr*.rpm \
     /tmp/akmods-rpms/*xpadneo*.rpm \
@@ -74,43 +111,3 @@ QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\
 
 depmod -a -v "$QUALIFIED_KERNEL"
 echo "zfs" > /usr/lib/modules-load.d/zfs.conf
-
-rpm-ostree install \
-    bash-color-prompt \
-    bcache-tools \
-    bootc \
-    evtest \
-    fastfetch \
-    fish \
-    firewall-config \
-    foo2zjs \
-    gcc \
-    glow \
-    gum \
-    hplip \
-    ifuse \
-    libimobiledevice \
-    libxcrypt-compat \
-    lm_sensors \
-    make \
-    mesa-libGLU \
-    nerd-fonts \
-    playerctl \
-    pulseaudio-utils \
-    python3-pip \
-    rclone \
-    restic \
-    samba-dcerpc \
-    samba-ldb-ldap-modules \
-    samba-winbind-clients \
-    samba-winbind-modules \
-    samba \
-    solaar \
-    tailscale \
-    tmux \
-    usbmuxd \
-    wireguard-tools \
-    xprop \
-    wl-clipboard
-
-rpm-ostree install ublue-update
