@@ -9,6 +9,9 @@ function pull_image(){
     fi
 }
 
+# Bash Prexec
+curl -Lo /usr/share/bash-prexec https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh
+
 curl -Lo /usr/libexec/ublue-bling.sh \
     https://raw.githubusercontent.com/ublue-os/bluefin/main/system_files/shared/usr/libexec/ublue-bling.sh
 chmod +x /usr/libexec/ublue-bling.sh

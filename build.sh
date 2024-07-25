@@ -159,6 +159,7 @@ case "${IMAGE}" in
         ;;
     "cosmic"*)
         /ctx/cosmic.sh
+        /ctx/bazzite.sh
         ;;
     "bazzite-deck"*)
         /ctx/bazzite.sh

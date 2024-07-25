@@ -89,7 +89,6 @@ rpm-ostree override replace --experimental \
     --install=tailscale \
     --install=tmux \
     --install=usbmuxd \
-    --install=ublue-update \
     --install=wireguard-tools \
     --install=xprop \
     --install=wl-clipboard \
@@ -111,3 +110,11 @@ QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\
 
 depmod -a -v "$QUALIFIED_KERNEL"
 echo "zfs" > /usr/lib/modules-load.d/zfs.conf
+
+# Bash Prexec
+curl -Lo /usr/share/bash-prexec https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh
+
+# Topgrade Install
+pip install --prefix=/usr topgrade
+
+rpm-ostree install ublue-update
