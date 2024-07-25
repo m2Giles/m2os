@@ -21,21 +21,21 @@ curl -Lo /etc/yum.repos.d/hikariknight-looking-glass-kvmfr-fedora-"${FEDORA_VERS
 
 
 rpm-ostree override replace --experimental \
-    --install=/tmp/akmods/kmods/*kvmfr*.rpm \
-    --install=/tmp/akmods/kmods/*xpadneo*.rpm \
-    --install=/tmp/akmods/kmods/*xone*.rpm \
-    --install=/tmp/akmods/kmods/*openrazer*.rpm \
-    --install=/tmp/akmods/kmods/*wl*.rpm \
-    --install=/tmp/akmods/kmods/*v4l2loopback*.rpm \
     --install=pv \
-    --install=/tmp/akmods-zfs/kmod-zfs*.rpm \
-    --install=/tmp/akmods-zfs/libnvpair*.rpm \
-    --install=/tmp/akmods-zfs/libuutil*.rpm \
-    --install=/tmp/akmods-zfs/libzfs*.rpm \
-    --install=/tmp/akmods-zfs/libzpool*.rpm \
-    --install=/tmp/akmods-zfs/python3-pyzfs*.rpm \
-    --install=/tmp/akmods-zfs/zfs*.rpm \
     --install=ptyxis \
+    /tmp/akmods-zfs/kmod-zfs*.rpm \
+    /tmp/akmods-zfs/libnvpair*.rpm \
+    /tmp/akmods-zfs/libuutil*.rpm \
+    /tmp/akmods-zfs/libzfs*.rpm \
+    /tmp/akmods-zfs/libzpool*.rpm \
+    /tmp/akmods-zfs/python3-pyzfs*.rpm \
+    /tmp/akmods-zfs/zfs*.rpm \
+    /tmp/akmods/kmods/*kvmfr*.rpm \
+    /tmp/akmods/kmods/*xpadneo*.rpm \
+    /tmp/akmods/kmods/*xone*.rpm \
+    /tmp/akmods/kmods/*openrazer*.rpm \
+    /tmp/akmods/kmods/*wl*.rpm \
+    /tmp/akmods/kmods/*v4l2loopback*.rpm \
     /tmp/kernel-rpms/kernel-[0-9]*.rpm \
     /tmp/kernel-rpms/kernel-core-*.rpm \
     /tmp/kernel-rpms/kernel-modules-*.rpm
