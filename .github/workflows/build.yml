@@ -76,17 +76,8 @@ jobs:
 
       - name: Verify Base Image
         uses: EyeCantCU/cosign-action/verify@v0.2.2
-        if: matrix.image != cosmic-base
         with:
-          containers: ${{ matrix.image }}:stable
-          pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
-          registry: ghcr.io/ublue-os
-
-      - name: Verify Base Image
-        uses: EyeCantCU/cosign-action/verify@v0.2.2
-        if: matrix.image == cosmic-base
-        with:
-          containers: ${{ matrix.image }}:${{ env.fedora_version }}
+          containers: ${{ matrix.image }}:${{ env.tag_version }}
           pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
           registry: ghcr.io/ublue-os
 
