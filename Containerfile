@@ -1,6 +1,7 @@
-ARG IMAGE="${IMAGE:-bluefin}"
-ARG FEDORA_VERSION="${FEDORA_VERSION:-40}"
-ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos-stable}"
+ARG IMAGE="bluefin"
+ARG FEDORA_VERSION="40"
+ARG KERNEL_FLAVOR="coreos-stable"
+ARG TAG_VERSION="stable"
 
 FROM scratch AS ctx
 COPY / /
@@ -9,7 +10,7 @@ FROM ghcr.io/ublue-os/akmods:${KERNEL_FLAVOR}-${FEDORA_VERSION} AS akmods
 FROM ghcr.io/ublue-os/akmods-zfs:coreos-stable-${FEDORA_VERSION} AS akmods-zfs
 FROM ghcr.io/ublue-os/coreos-stable-kernel:${FEDORA_VERSION} AS kernel
 
-FROM ghcr.io/ublue-os/${IMAGE}:stable
+FROM ghcr.io/ublue-os/${IMAGE}:${TAG_VERSION}
 
 ARG IMAGE="${IMAGE:-bluefin}"
 ARG FEDORA_VERSION="${FEDORA_VERSION:-40}"
