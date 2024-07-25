@@ -6,10 +6,6 @@ set -eoux pipefail
 curl -Lo /etc/yum.repos.d/ublue-os-staging-fedora-"${FEDORA_VERSION}".repo \
     https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-"${FEDORA_VERSION}"/ublue-os-staging-fedora-"${FEDORA_VERSION}".repo
 
-# Add Bling repo
-curl -Lo /etc/yum.repos.d/ublue-os-bling-fedora-"${FEDORA_VERSION}".repo \
-    https://copr.fedorainfracloud.org/coprs/ublue-os/bling/repo/fedora-"${FEDORA_VERSION}"/ublue-os-bling-fedora-"${FEDORA_VERSION}".repo
-
 # Tailscale
 curl -Lo /etc/yum.repos.d/tailscale.repo \
     https://pkgs.tailscale.com/stable/fedora/tailscale.repo && \
@@ -88,7 +84,9 @@ rpm-ostree override replace --experimental \
     --install=solaar \
     --install=tailscale \
     --install=tmux \
+    --install=udica \
     --install=usbmuxd \
+    --install=vim \
     --install=wireguard-tools \
     --install=xprop \
     --install=wl-clipboard \
@@ -120,7 +118,18 @@ echo "zfs" > /usr/lib/modules-load.d/zfs.conf
 # Topgrade Install
 pip install --prefix=/usr topgrade
 
-rpm-ostree install ublue-update
+rpm-ostree override remove \
+        --install=ublue-update \
+        ublue-os-update-services \
+        firefox \
+        firefox-langpacks \
+        htop
+
+sed -i '1s/^/[include]\npaths = ["\/etc\/ublue-os\/topgrade.toml"]\n\n/' /usr/share/ublue-update/topgrade-user.toml
+sed -i 's/min_battery_percent.*/min_battery_percent = 20.0/' /usr/etc/ublue-update/ublue-update.toml
+sed -i 's/max_cpu_load_percent.*/max_cpu_load_percent = 100.0/' /usr/etc/ublue-update/ublue-update.toml
+sed -i 's/max_mem_percent.*/max_mem_percent = 90.0/' /usr/etc/ublue-update/ublue-update.toml
+sed -i 's/dbus_notify.*/dbus_notify = false/' /usr/etc/ublue-update/ublue-update.toml
 
 # /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
 
