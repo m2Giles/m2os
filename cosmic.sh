@@ -10,6 +10,10 @@ curl -Lo /etc/yum.repos.d/ublue-os-staging-fedora-"${FEDORA_VERSION}".repo \
 curl -Lo /etc/yum.repos.d/ublue-os-bling-fedora-"${FEDORA_VERSION}".repo \
     https://copr.fedorainfracloud.org/coprs/ublue-os/bling/repo/fedora-"${FEDORA_VERSION}"/ublue-os-bling-fedora-"${FEDORA_VERSION}".repo
 
+# Tailscale
+curl -Lo /etc/yum.repos.d/tailscale.repo \
+    https://pkgs.tailscale.com/stable/fedora/tailscale.repo && \
+
 # Add Nerd Fonts
 curl -Lo /etc/yum.repos.d/_copr_che-nerd-fonts-"${FEDORA_VERSION}".repo \
     https://copr.fedorainfracloud.org/coprs/che/nerd-fonts/repo/fedora-"${FEDORA_VERSION}"/che-nerd-fonts-fedora-"${FEDORA_VERSION}".repo
@@ -36,6 +40,16 @@ repo_gpgcheck=0
 enabled=1
 enabled_metadata=1
 priority=90
+EOF
+
+#Charm Repo
+tee /etc/yum.repos.d/charm.repo <<'EOF'
+[charm]
+name=Charm
+baseurl=https://repo.charm.sh/yum/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.charm.sh/yum/gpg.key
 EOF
 
 
