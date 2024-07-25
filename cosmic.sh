@@ -30,12 +30,12 @@ rpm-ostree override replace --experimental \
     /tmp/akmods-zfs/libzpool*.rpm \
     /tmp/akmods-zfs/python3-pyzfs*.rpm \
     /tmp/akmods-zfs/zfs*.rpm \
-    /tmp/akmods/kmods/*kvmfr*.rpm \
-    /tmp/akmods/kmods/*xpadneo*.rpm \
-    /tmp/akmods/kmods/*xone*.rpm \
-    /tmp/akmods/kmods/*openrazer*.rpm \
-    /tmp/akmods/kmods/*wl*.rpm \
-    /tmp/akmods/kmods/*v4l2loopback*.rpm \
+    /tmp/akmods-rpms/kmods/*kvmfr*.rpm \
+    /tmp/akmods-rpms/kmods/*xpadneo*.rpm \
+    /tmp/akmods-rpms/kmods/*xone*.rpm \
+    /tmp/akmods-rpms/kmods/*openrazer*.rpm \
+    /tmp/akmods-rpms/kmods/*wl*.rpm \
+    /tmp/akmods-rpms/kmods/*v4l2loopback*.rpm \
     /tmp/kernel-rpms/kernel-[0-9]*.rpm \
     /tmp/kernel-rpms/kernel-core-*.rpm \
     /tmp/kernel-rpms/kernel-modules-*.rpm
