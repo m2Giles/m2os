@@ -56,7 +56,6 @@ EOF
 rpm-ostree override replace --experimental \
     --install=pv \
     --install=ptyxis \
-    /tmp/config-rpms/*.rpm \
     /tmp/akmods-zfs/*.rpm \
     /tmp/akmods-rpms/*kvmfr*.rpm \
     /tmp/akmods-rpms/*xpadneo*.rpm \
