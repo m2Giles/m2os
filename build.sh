@@ -149,7 +149,7 @@ EOF
 # Groups
 groupadd -g 250 incus-admin
 groupadd -g 251 incus
-groupadd -g 252 docker
+groupmod -g 252 docker
 
 # Individual Changes
 case "${IMAGE}" in
