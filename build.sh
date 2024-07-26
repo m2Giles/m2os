@@ -71,7 +71,9 @@ chmod +x /usr/bin/incus
 rpm-ostree install \
     bootc \
     code \
+    containerd.io \
     docker-buildx-plugin \
+    docker-ce \
     docker-ce-cli \
     docker-compose-plugin \
     emacs \
@@ -93,7 +95,7 @@ sed -i "s|Exec=zed|Exec=/usr/lib/zed.app/libexec/zed-editor|g" /usr/share/applic
 
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
-echo "net.ipv4.conf.all.forwarding=1" > /usr/lib/sysctl.d/docker-ce.conf
+echo "net.ipv4.ip_forward = 1" > /usr/lib/sysctl.d/docker-ce.conf
 sysctl -p
 
 # Distrobox Stuff
