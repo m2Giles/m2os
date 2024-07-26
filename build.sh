@@ -67,10 +67,6 @@ curl -Lo /usr/bin/incus \
 
 chmod +x /usr/bin/incus
 
-tee /usr/etc/sysctl.d/50-docker.conf <<EOF
-net.ipv4.conf.all.forwarding=1
-EOF
-
 # Layered Applications
 rpm-ostree install \
     bootc \
@@ -97,7 +93,7 @@ sed -i "s|Exec=zed|Exec=/usr/lib/zed.app/libexec/zed-editor|g" /usr/share/applic
 
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
-echo "net.ipv4.ip_forward = 1" > /usr/lib/sysctl.d/docker-ce.conf
+echo "net.ipv4.conf.all.forwarding=1" > /usr/lib/sysctl.d/docker-ce.conf
 sysctl -p
 
 # Distrobox Stuff
