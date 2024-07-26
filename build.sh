@@ -3,15 +3,51 @@
 set -eoux pipefail
 
 # VSCode because it's still better for a lot of things
-curl -Lo /etc/yum.repos.d/vscode.repo \
-    https://raw.githubusercontent.com/ublue-os/bluefin/main/system_files/dx/etc/yum.repos.d/vscode.repo
+tee /etc/yum.repos.d/vscode.repo <<'EOF'
+[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+EOF
 
 # Sunshine
-curl -Lo /etc/yum.repos.d/_copr_matte-schwartz-sunshine.repo \
-    https://copr.fedorainfracloud.org/coprs/matte-schwartz/sunshine/repo/fedora-"${FEDORA_VERSION}"/matte-schwartz-sunshine-fedora-"${FEDORA_VERSION}".repo
+tee /etc/yum.repos.d/_copr_matte-schwartz-sunshine.repo <<'EOF'
+[copr:copr.fedorainfracloud.org:matte-schwartz:sunshine]
+name=Copr repo for sunshine owned by matte-schwartz
+baseurl=https://download.copr.fedorainfracloud.org/results/matte-schwartz/sunshine/fedora-$releasever-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/matte-schwartz/sunshine/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+EOF
 
-curl -Lo /usr/lib/systemd/system/sunshine-workaround.service \
-    https://raw.githubusercontent.com/ublue-os/bazzite/main/system_files/desktop/shared/usr/lib/systemd/system/sunshine-workaround.service
+tee /usr/lib/systemd/system/sunshine-workaround.service <<'EOF'
+[Unit]
+Description=Workaround sunshine not having the correct caps
+ConditionFileIsExecutable=/usr/bin/sunshine
+After=local-fs.target
+
+[Service]
+Type=oneshot
+# Copy if it doesn't exist
+ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/.sunshine ] || /usr/bin/cp /usr/bin/sunshine /usr/local/bin/.sunshine"
+# This is faster than using .mount unit. Also allows for the previous line/cleanup
+ExecStartPre=/usr/bin/bash -c "/usr/bin/mount --bind /usr/local/bin/.sunshine /usr/bin/sunshine"
+# Fix caps
+ExecStart=/usr/bin/bash -c "/usr/sbin/setcap 'cap_sys_admin+p' $(/usr/bin/readlink -f $(/usr/bin/which sunshine))"
+# Clean-up after ourselves
+ExecStop=/usr/bin/umount /usr/bin/sunshine
+ExecStop=/usr/bin/rm /usr/local/bin/.sunshine
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 systemctl enable sunshine-workaround.service
 

@@ -72,6 +72,7 @@ rpm-ostree override replace --experimental \
     --install=mesa-libGLU \
     --install=nerd-fonts \
     --install=playerctl \
+    --install=power-profile-daemon \
     --install=pulseaudio-utils \
     --install=python3-pip \
     --install=rclone \

@@ -13,9 +13,9 @@ FROM ghcr.io/ublue-os/coreos-stable-kernel:${FEDORA_VERSION} AS kernel
 
 FROM ghcr.io/ublue-os/${IMAGE}:${TAG_VERSION}
 
-ARG IMAGE="${IMAGE:-bluefin}"
-ARG FEDORA_VERSION="${FEDORA_VERSION:-40}"
-ARG KERNEL_FLAVOR="${KERNEL_FLAVOR:-coreos-stable}"
+ARG IMAGE="bluefin"
+ARG FEDORA_VERSION="40"
+ARG KERNEL_FLAVOR="coreos-stable"
 
 RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=bind,from=akmods,src=/rpms/kmods,dst=/tmp/akmods \
