@@ -67,6 +67,10 @@ curl -Lo /usr/bin/incus \
 
 chmod +x /usr/bin/incus
 
+tee /usr/etc/sysctl.d/50-docker.conf <<EOF
+net.ipv4.conf.all.forwarding=1
+EOF
+
 # Layered Applications
 rpm-ostree install \
     bootc \
