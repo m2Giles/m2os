@@ -67,7 +67,7 @@ jobs:
               kernel_flavor=coreos-stable
               upstream_repo=cosmic
               image=cosmic-base
-              if [[ "${matrix.image}" =~ nvidia ]]; then
+              if [[ "${{ matrix.image }}" =~ nvidia ]]; then
                  nvidia=nvidia
               fi
             elif [[ "${{ matrix.image }}" =~ bluefin|aurora ]]; then
