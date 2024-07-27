@@ -34,6 +34,7 @@ jobs:
           - aurora
           - aurora-nvidia
           - cosmic-base
+          - cosmic-base-nvidia
           - bazzite-deck-gnome
           - bazzite-gnome-nvidia
     steps:
@@ -57,27 +58,36 @@ jobs:
               echo "inspected image version must not be empty or null"
               exit 1
             fi
+            nvidia=""
             if [[ ${{ matrix.image }} =~ "bazzite" ]]; then
               kernel_flavor=fsync
               upstream_repo=bazzite
+              image="${{ matrix.image }}"
             elif [[ "${{ matrix.image }}" =~ cosmic ]]; then
               kernel_flavor=coreos-stable
               upstream_repo=cosmic
+              image=cosmic-base
+              if [[ "${matrix.image}" =~ nvidia ]]; then
+                 nvidia=nvidia
+              fi
             elif [[ "${{ matrix.image }}" =~ bluefin|aurora ]]; then
               kernel_flavor=coreos-stable
               upstream_repo=bluefin
+              image="${{ matrix.image }}"
             fi
+            echo "nvidia=$nvidia" >> $GITHUB_ENV
             echo "version=$ver" >> $GITHUB_ENV
             echo "tag_version=$tag_version" >> $GITHUB_ENV
             echo "kernel_release=${KERNEL_RELEASE}" >> $GITHUB_ENV
             echo "fedora_version=${fedora_version}" >> $GITHUB_ENV
             echo "kernel_flavor=${kernel_flavor}" >> $GITHUB_ENV
             echo "upstream_repo=${upstream_repo}" >> $GITHUB_ENV
+            echo "image=${image}" >> $GITHUB_ENV
 
       - name: Verify Base Image
         uses: EyeCantCU/cosign-action/verify@v0.2.2
         with:
-          containers: ${{ matrix.image }}:${{ env.tag_version }}
+          containers: ${{ env.image }}:${{ env.tag_version }}
           pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
           registry: ghcr.io/ublue-os
 
@@ -97,6 +107,8 @@ jobs:
              tag="bazzite-deck"
           elif [[ "${{ matrix.image }}" =~ bazzite ]]; then
              tag="bazzite"
+          elif [[ "${{ matrix.image }}" =~ cosmic-*-nvidia ]]; then
+             tag="cosmic-nvidia"
           elif [[ "${{ matrix.image }}" =~ cosmic ]]; then
              tag="cosmic"
           else
@@ -129,10 +141,11 @@ jobs:
           image: ${{ env.IMAGE_NAME }}
           tags: ${{ steps.generate_tags.outputs.build_tags }}
           build-args: |
-            IMAGE=${{ matrix.image }}
+            IMAGE=${{ env.image }}
             TAG_VERSION=${{ env.tag_version }}
             FEDORA_VERSION=${{ env.fedora_version }}
             KERNEL_FLAVOR=${{ env.kernel_flavor }}
+            NVIDIA=${{ env.nvidia }}
           labels: ${{ steps.meta.outputs.labels }}
           oci: false
 

@@ -103,17 +103,20 @@ rpm-ostree override replace --experimental \
 
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 
-# curl -Lo /tmp/nvidia-install.sh \
-#     https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
-# chmod +x /tmp/nvidia-install.sh
-# IMAGE_NAME="base" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
-# rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
-
 KERNEL_SUFFIX=""
 QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\d+)' | sed -E 's/kernel-(|'"$KERNEL_SUFFIX"'-)//')"
 
 depmod -a -v "$QUALIFIED_KERNEL"
 echo "zfs" > /usr/lib/modules-load.d/zfs.conf
+
+if [[ -n "${NVIDIA}" ]]; then
+    curl -Lo /tmp/nvidia-install.sh \
+        https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
+    chmod +x /tmp/nvidia-install.sh
+    IMAGE_NAME="base" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
+    rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
+    /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
+fi
 
 # Topgrade Install
 pip install --prefix=/usr topgrade
@@ -131,6 +134,5 @@ sed -i 's/max_cpu_load_percent.*/max_cpu_load_percent = 100.0/' /usr/etc/ublue-u
 sed -i 's/max_mem_percent.*/max_mem_percent = 90.0/' /usr/etc/ublue-update/ublue-update.toml
 sed -i 's/dbus_notify.*/dbus_notify = false/' /usr/etc/ublue-update/ublue-update.toml
 
-# /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
 
 chmod 0600 "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
