@@ -107,7 +107,7 @@ jobs:
              tag="bazzite-deck"
           elif [[ "${{ matrix.image }}" =~ bazzite ]]; then
              tag="bazzite"
-          elif [[ "${{ matrix.image }}" =~ cosmic-*-nvidia ]]; then
+          elif [[ "${{ matrix.image }}" =~ cosmic-.*-nvidia ]]; then
              tag="cosmic-nvidia"
           elif [[ "${{ matrix.image }}" =~ cosmic ]]; then
              tag="cosmic"
