@@ -113,7 +113,7 @@ if [[ -n "${NVIDIA}" ]]; then
     curl -Lo /tmp/nvidia-install.sh \
         https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
     chmod +x /tmp/nvidia-install.sh
-    IMAGE_NAME="base" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
+    IMAGE_NAME="base" RPMFUSION_MIRROR="" FEDOAR_MAJOR_VERSION="${FEDORA_VERSION}" /tmp/nvidia-install.sh
     rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
     /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
 fi
