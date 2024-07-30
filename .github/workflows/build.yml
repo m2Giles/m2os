@@ -164,6 +164,17 @@ jobs:
           openssl x509 -in akmods.der -out akmods.crt
           sbverify --cert akmods.crt vmlinuz
 
+      - name: Rechunk
+        id: rechunk
+        uses: hhd-dev/rechunk@v0.1.0
+        with:
+          ref: ${{ steps.build_image.outputs.image }}
+          labels: |
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
+            org.opencontainers.image.version=${{ env.version }}
+            ostree.linux=${{ env.kernel_release }}.x86_64
+
       - name: Lowercase Registry
         id: registry_case
         uses: ASzc/change-string-case-action@v6
@@ -182,7 +193,7 @@ jobs:
           attempt_limit: 3
           attempt_delay: 15000
           with: |
-            image: ${{ steps.build_image.outputs.image }}
+            image: ${{ steps.rechunk.outputs.ref }}
             tags: ${{ steps.build_image.outputs.tags }}
             registry: ${{ steps.registry_case.outputs.lowercase }}
             username: ${{ env.REGISTRY_USER }}
