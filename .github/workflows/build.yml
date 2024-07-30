@@ -182,7 +182,7 @@ jobs:
           attempt_limit: 3
           attempt_delay: 15000
           with: |
-            image: ${{ steps.rechunk.outputs.ref }}
+            image: ${{ steps.build_image.outputs.image }}
             tags: ${{ steps.build_image.outputs.tags }}
             registry: ${{ steps.registry_case.outputs.lowercase }}
             username: ${{ env.REGISTRY_USER }}
