@@ -164,17 +164,6 @@ jobs:
           openssl x509 -in akmods.der -out akmods.crt
           sbverify --cert akmods.crt vmlinuz
 
-      - name: Rechunk
-        id: rechunk
-        uses: hhd-dev/rechunk@v0.1.0
-        with:
-          ref: ${{ steps.build_image.outputs.image }}
-          labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
-            org.opencontainers.image.version=${{ env.version }}
-            ostree.linux=${{ env.kernel_release }}.x86_64
-
       - name: Lowercase Registry
         id: registry_case
         uses: ASzc/change-string-case-action@v6
@@ -225,3 +214,120 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           echo "${{ toJSON(steps.push.outputs) }}"
+
+  rechunk-images:
+    name: Rechunk Images
+    runs-on: ubuntu-24.04
+    continue-on-error: false
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - bluefin
+          - bluefin-nvidia
+          - aurora
+          - aurora-nvidia
+          - cosmic-base
+          - cosmic-base-nvidia
+          - bazzite-deck-gnome
+          - bazzite-gnome-nvidia
+    if: always() && !cancelled()
+    needs: [push-ghcr]
+
+    steps:
+      - name: Lowercase Registry
+        id: registry_case
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ env.IMAGE_REGISTRY }}
+
+      - name: Get labels
+        shell: bash
+        run: |
+          set -euox pipefail
+          skopeo inspect docker://${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }} > inspect.json
+          kernel=$(jq -r '.["Labels"]["ostree.linux"]' inspect.json)
+          version=$(jq -r '.["Labels"]["org.opencontainers.image.version"]' inspect.json)
+          echo "kernel=$kernel" >> $GITHUB_ENV
+          echo "version=$version" >> $GITHUB_ENV
+
+      - name: Rechunk
+        id: rechunk
+        uses: hhd-dev/rechunk@v0.1.0
+        with:
+          ref: ${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+          labels: |
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
+            org.opencontainers.image.version=${{ env.version }}
+            ostree.linux=${{ env.kernel }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to GHCR
+        uses: Wandalen/wretry.action@v3.5.0
+        id: push
+        if: github.event_name != 'pull_request'
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
+        with:
+          action: redhat-actions/push-to-registry@v2
+          attempt_limit: 3
+          attempt_delay: 15000
+          with: |
+            image: ${{ steps.rechunk.outputs.ref }}
+            tags: ${{ matrix.image }}
+            registry: ${{ steps.registry_case.outputs.lowercase }}
+            username: ${{ env.REGISTRY_USER }}
+            password: ${{ env.REGISTRY_PASSWORD }}
+            extra-args: |
+              --disable-content-trust
+
+      - name: Push to GHCR with Date
+        uses: Wandalen/wretry.action@v3.5.0
+        id: push-date
+        if: github.event_name != 'pull_request'
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
+        with:
+          action: redhat-actions/push-to-registry@v2
+          attempt_limit: 3
+          attempt_delay: 15000
+          with: |
+            image: ${{ steps.rechunk.outputs.ref }}
+            tags: ${{ matrix.image }}-${{ steps.rechunk.outputs.version }}
+            registry: ${{ steps.registry_case.outputs.lowercase }}
+            username: ${{ env.REGISTRY_USER }}
+            password: ${{ env.REGISTRY_PASSWORD }}
+            extra-args: |
+              --disable-content-trust
+
+      - uses: sigstore/cosign-installer@v3.5.0
+        if: github.event_name != 'pull_request'
+
+      - name: Sign Container Image
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ steps.rechunk.outputs.ref }}@${{ matrix.image }}
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ steps.rechunk.outputs.ref }}@${{ matrix.image }}-${{ steps.rechunk.outputs.version }}
+        env:
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+
+      - name: Echo Outputs
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ toJSON(steps.push.outputs) }}"
+          echo "${{ toJSON(steps.push-date.outputs) }}"
