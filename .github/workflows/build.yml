@@ -249,7 +249,7 @@ jobs:
         shell: bash
         run: |
           set -euox pipefail
-          skopeo inspect docker://${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }} > inspect.json
+          skopeo inspect docker://${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ matrix.image }} > inspect.json
           kernel=$(jq -r '.["Labels"]["ostree.linux"]' inspect.json)
           version=$(jq -r '.["Labels"]["org.opencontainers.image.version"]' inspect.json)
           echo "kernel=$kernel" >> $GITHUB_ENV
