@@ -102,7 +102,6 @@ jobs:
             sudo podman pull ghcr.io/ublue-os/akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/akmods-nvidia:${{ env.kernel_flavor }}-${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
-            sudo podman pull ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
             sudo podman pull ghcr.io/hhd-dev/rechunk:v0.5.0
@@ -182,7 +181,6 @@ jobs:
           set -eoux pipefail
           sudo podman image rm ghcr.io/ublue-os/akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
           sudo podman image rm ghcr.io/ublue-os/akmods-nvidia:${{ env.kernel_flavor }}-${{ env.fedora_version }}
-          sudo podman image rm ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
           sudo podman image rm ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
           sudo podman image rm ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
           sudo podman image rm ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
