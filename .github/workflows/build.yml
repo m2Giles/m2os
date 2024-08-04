@@ -179,7 +179,7 @@ jobs:
 
       - name: Rechunk Image
         id: rechunk
-        uses: hhd-dev/rechunk@latest
+        uses: hhd-dev/rechunk
         with:
           ref: "raw-img"
           prev-ref: ""
