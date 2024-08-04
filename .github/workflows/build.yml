@@ -182,9 +182,7 @@ jobs:
         uses: hhd-dev/rechunk@master
         with:
           ref: "localhost/raw-img"
-          prev-ref: ""
           rechunk: "ghcr.io/hhd-dev/rechunk:latest"
-          version: "${{ env.version }}"
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
