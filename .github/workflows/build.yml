@@ -237,7 +237,7 @@ jobs:
           fi
           # podman run --rm "${{ env.IMAGE_NAME }}":$(echo "${{ steps.generate_tags.outputs.build_tags }}" | cut -d " " -f 1) /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           TMP=$(podman create rechunked-img bash)
-          podman cp $TMP:/usr/lib/modules/${{ env.kernel_release }}/vmlinuz .
+          podman cp $TMP:/usr/lib/modules/${{ env.kernel_release }}.x86_64/vmlinuz .
           podman rm $TMP
           # podman run --rm rechunked-img /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           sbverify --list vmlinuz
