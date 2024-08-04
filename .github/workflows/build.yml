@@ -121,33 +121,68 @@ jobs:
           echo "default_tag=${tag}" >> "$GITHUB_OUTPUT"
           echo "build_tags=${BUILD_TAGS[*]}" >> "$GITHUB_OUTPUT"
 
-      - name: Image Metadata
-        uses: docker/metadata-action@v5
-        id: meta
+      # - name: Image Metadata
+      #   uses: docker/metadata-action@v5
+      #   id: meta
+      #   with:
+      #     images: ${{ env.IMAGE_NAME }}
+      #     labels: |
+      #       org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+      #       org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
+      #       org.opencontainers.image.version=${{ env.version }}
+      #       ostree.linux=${{ env.kernel_release }}.x86_64
+
+      # - name: Build Image
+      #   id: build_image
+      #   uses: redhat-actions/buildah-build@v2
+      #   with:
+      #     containerfiles: |
+      #       ./Containerfile
+      #     image: ${{ env.IMAGE_NAME }}
+      #     tags: ${{ steps.generate_tags.outputs.build_tags }}
+      #     build-args: |
+      #       IMAGE=${{ env.image }}
+      #       TAG_VERSION=${{ env.tag_version }}
+      #       FEDORA_VERSION=${{ env.fedora_version }}
+      #       KERNEL_FLAVOR=${{ env.kernel_flavor }}
+      #       NVIDIA=${{ env.nvidia }}
+      #     labels: ${{ steps.meta.outputs.labels }}
+      #     oci: false
+      - name: Build Image
+        id: build_image
+        shell: bash
+        run: |
+          sudo buildah build \
+            --format "docker" \
+            --build-arg IMAGE=${{ env.image }} \
+            --build-arg TAG_VERSION=${{ env.tag_version }} \
+            --build-arg FEDORA_VERSION=${{ env.fedora_version }}
+            --KERNEL_FLAVOR=${{ env.kernel_flavor }}
+            --NVIDIA=${{ env.nvidia }}
+            --tag raw-img .
+
+      - name: Rechunk Image
+        id: rechunk
+        uses: hhd-dev/rechunk@v0.5.0
         with:
-          images: ${{ env.IMAGE_NAME }}
+          rechunk: "ghcr.io/hhd-dev/rechunk:v0.5.0"
+          ref: "raw-img"
+          prev-ref: true
+          version: ""
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
             org.opencontainers.image.version=${{ env.version }}
             ostree.linux=${{ env.kernel_release }}.x86_64
 
-      - name: Build Image
-        id: build_image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          containerfiles: |
-            ./Containerfile
-          image: ${{ env.IMAGE_NAME }}
-          tags: ${{ steps.generate_tags.outputs.build_tags }}
-          build-args: |
-            IMAGE=${{ env.image }}
-            TAG_VERSION=${{ env.tag_version }}
-            FEDORA_VERSION=${{ env.fedora_version }}
-            KERNEL_FLAVOR=${{ env.kernel_flavor }}
-            NVIDIA=${{ env.nvidia }}
-          labels: ${{ steps.meta.outputs.labels }}
-          oci: false
+      - name: Load into Podman and Tag
+        shell: bash
+        run: |
+          IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
+          sudo rm -rf ${{ steps.rechunk.outputs.output }}
+          for tag in ${{ steps.generate_tags.outputs.alias_tags }}; do
+            podman tag $IMAGE m2os:$tag
+          done
 
       - name: Check Secureboot
         id: secureboot
