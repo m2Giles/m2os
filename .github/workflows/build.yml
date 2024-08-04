@@ -218,6 +218,7 @@ jobs:
       - name: Load into Podman and Tag
         shell: bash
         run: |
+          set -eoux pipefail
           IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
           sudo rm -rf ${{ steps.rechunk.outputs.output }}
           for tag in ${{ steps.generate_tags.outputs.alias_tags }}; do
@@ -235,7 +236,10 @@ jobs:
             sudo apt install sbsigntool curl openssl
           fi
           # podman run --rm "${{ env.IMAGE_NAME }}":$(echo "${{ steps.generate_tags.outputs.build_tags }}" | cut -d " " -f 1) /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
-          podman run --rm rechunked-img /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
+          TMP=$(podman create rechunked-img bash)
+          podman cp $TMP:/usr/lib/modules/${{ env.kernel_release }}/vmlinuz .
+          podman rm $TMP
+          # podman run --rm rechunked-img /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           sbverify --list vmlinuz
           curl --retry 3 -Lo kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
           curl --retry 3 -Lo akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
