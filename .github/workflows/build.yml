@@ -133,7 +133,7 @@ jobs:
             sudo podman pull ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
-            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.7.4
+            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.0
 
       # - name: Pull Images
       #   uses: Wandalen/wretry.action@v3.5.0
@@ -231,12 +231,12 @@ jobs:
 
       - name: Rechunk Image
         id: rechunk
-        uses: hhd-dev/rechunk@v0.7.4
+        uses: hhd-dev/rechunk@v0.8.0
         with:
           ref: "raw-img"
           prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
           version: "${{ env.version }}"
-          rechunk: "ghcr.io/hhd-dev/rechunk:v0.7.4"
+          rechunk: "ghcr.io/hhd-dev/rechunk:v0.8.0"
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
