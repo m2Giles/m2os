@@ -171,9 +171,9 @@ jobs:
             --format "docker" \
             --build-arg IMAGE=${{ env.image }} \
             --build-arg TAG_VERSION=${{ env.tag_version }} \
-            --build-arg FEDORA_VERSION=${{ env.fedora_version }}
-            --build-arg KERNEL_FLAVOR=${{ env.kernel_flavor }}
-            --build-arg NVIDIA=${{ env.nvidia }}
+            --build-arg FEDORA_VERSION=${{ env.fedora_version }} \
+            --build-arg KERNEL_FLAVOR=${{ env.kernel_flavor }} \
+            --build-arg NVIDIA=${{ env.nvidia }} \
             --tag raw-img .
 
       - name: Rechunk Image
