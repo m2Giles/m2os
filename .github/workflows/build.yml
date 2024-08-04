@@ -105,7 +105,7 @@ jobs:
             sudo podman pull ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
-            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.5.0"
+            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.5.0
 
       - name: Checkout Push to Registry Action
         uses: actions/checkout@v4
