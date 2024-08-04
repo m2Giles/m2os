@@ -162,22 +162,22 @@ jobs:
             org.opencontainers.image.version=${{ env.version }}
             ostree.linux=${{ env.kernel_release }}.x86_64
 
-      # - name: Build Image
-      #   id: build_image
-      #   uses: redhat-actions/buildah-build@v2
-      #   with:
-      #     containerfiles: |
-      #       ./Containerfile
-      #     image: ${{ env.IMAGE_NAME }}
-      #     tags: ${{ steps.generate_tags.outputs.build_tags }}
-      #     build-args: |
-      #       IMAGE=${{ env.image }}
-      #       TAG_VERSION=${{ env.tag_version }}
-      #       FEDORA_VERSION=${{ env.fedora_version }}
-      #       KERNEL_FLAVOR=${{ env.kernel_flavor }}
-      #       NVIDIA=${{ env.nvidia }}
-      #     labels: ${{ steps.meta.outputs.labels }}
-      #     oci: false
+      - name: Build Image
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: |
+            ./Containerfile
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ steps.generate_tags.outputs.build_tags }}
+          build-args: |
+            IMAGE=${{ env.image }}
+            TAG_VERSION=${{ env.tag_version }}
+            FEDORA_VERSION=${{ env.fedora_version }}
+            KERNEL_FLAVOR=${{ env.kernel_flavor }}
+            NVIDIA=${{ env.nvidia }}
+          labels: ${{ steps.meta.outputs.labels }}
+          oci: false
 
       # - name: Build Image
       #   id: build_image
