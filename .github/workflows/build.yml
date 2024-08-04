@@ -205,8 +205,8 @@ jobs:
         id: rechunk
         uses: hhd-dev/rechunk@v0.6.2
         with:
-          ref: "localhost/raw-img"
-          prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
+          ref: "raw-img"
+          # prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
           version: "${{ env.version }}"
           rechunk: "ghcr.io/hhd-dev/rechunk:latest"
           labels: |
