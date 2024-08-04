@@ -2,6 +2,9 @@
 
 set -eoux pipefail
 
+# Setup Alternatives
+mkdir -p /var/lib/alternatives/
+
 # VSCode because it's still better for a lot of things
 tee /etc/yum.repos.d/vscode.repo <<'EOF'
 [code]
@@ -430,3 +433,10 @@ tee /usr/libexec/keepassxc-integration/chromium-keepassxc.json <<EOF
     "type": "stdio"
 }
 EOF
+
+# Clean Up
+mv /var/lib/alternatives/ /staged-alternatives
+rm -rf /tmp/ || true
+rm -rf /var/ || true
+mkdir -p /var/lib/
+mv /staged-alternatives /var/lib/alternatives

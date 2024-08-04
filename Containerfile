@@ -23,10 +23,5 @@ RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=bind,from=akmods-nvidia,src=/rpms,dst=/tmp/akmods-rpms \
     --mount=type=bind,from=akmods-zfs,source=/rpms/kmods/zfs,target=/tmp/akmods-zfs \
     --mount=type=bind,from=kernel,src=/tmp/rpms,dst=/tmp/kernel-rpms \
-    mkdir -p /var/lib/alternatives && \
     /ctx/build.sh && \
-    mv /var/lib/alternatives/ /staged-alternatives && \
-    rm -rf /tmp/ || true && \
-    rm -rf /var/ || true && \
-    mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives && \
     ostree container commit

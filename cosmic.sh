@@ -71,6 +71,7 @@ rpm-ostree override replace --experimental \
     --install=make \
     --install=mesa-libGLU \
     --install=nerd-fonts \
+    --install=NetworkManager-tui \
     --install=playerctl \
     --install=pulseaudio-utils \
     --install=python3-pip \
