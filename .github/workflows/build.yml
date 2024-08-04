@@ -51,7 +51,7 @@ jobs:
             else
               tag_version=stable
             fi
-            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${{ matrix.image }}:"$tag_version" | jq -r '.Labels["ostree.linux"] | split(".x86_64")[0]')
+            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${{ matrix.image }}:"$tag_version" | jq -r '.Labels["ostree.linux"]')
             fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
             ver=$(skopeo inspect docker://ghcr.io/ublue-os/${{ matrix.image }}:"$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
             if [ -z "$ver" ] || [ "null" = "$ver" ]; then
@@ -64,6 +64,7 @@ jobs:
               upstream_repo=bazzite
               image="${{ matrix.image }}"
             elif [[ "${{ matrix.image }}" =~ cosmic ]]; then
+              KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:"$tag_version" | jq -r '.Labels["ostree.linux"]')
               kernel_flavor=coreos-stable
               upstream_repo=cosmic
               image=cosmic-base
@@ -104,7 +105,7 @@ jobs:
             sudo podman pull ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
-            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.6.4
+            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.6.5
 
       # - name: Pull Images
       #   uses: Wandalen/wretry.action@v3.5.0
@@ -160,7 +161,7 @@ jobs:
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
             org.opencontainers.image.version=${{ env.version }}
-            ostree.linux=${{ env.kernel_release }}.x86_64
+            ostree.linux=${{ env.kernel_release }}
 
       # - name: Build Image
       #   id: build_image
@@ -203,17 +204,17 @@ jobs:
 
       - name: Rechunk Image
         id: rechunk
-        uses: hhd-dev/rechunk@v0.6.4
+        uses: hhd-dev/rechunk@v0.6.5
         with:
           ref: "raw-img"
           prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
           version: "${{ env.version }}"
-          rechunk: "ghcr.io/hhd-dev/rechunk:v0.6.4"
+          rechunk: "ghcr.io/hhd-dev/rechunk:v0.6.5"
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
             org.opencontainers.image.version=${{ env.version }}
-            ostree.linux=${{ env.kernel_release }}.x86_64
+            ostree.linux=${{ env.kernel_release }}
 
       - name: Load into Podman and Tag
         shell: bash
@@ -237,7 +238,7 @@ jobs:
           fi
           # podman run --rm "${{ env.IMAGE_NAME }}":$(echo "${{ steps.generate_tags.outputs.build_tags }}" | cut -d " " -f 1) /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           TMP=$(podman create rechunked-img bash)
-          podman cp $TMP:/usr/lib/modules/${{ env.kernel_release }}.x86_64/vmlinuz .
+          podman cp $TMP:/usr/lib/modules/${{ env.kernel_release }}/vmlinuz .
           podman rm $TMP
           # podman run --rm rechunked-img /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           sbverify --list vmlinuz
