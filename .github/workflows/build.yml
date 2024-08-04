@@ -221,7 +221,7 @@ jobs:
           set -eoux pipefail
           IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
           sudo rm -rf ${{ steps.rechunk.outputs.output }}
-          for tag in ${{ steps.generate_tags.outputs.alias_tags }}; do
+          for tag in ${{ steps.generate_tags.outputs.build_tags }}; do
             podman tag $IMAGE m2os:$tag
           done
           podman tag $IMAGE rechunked-img
