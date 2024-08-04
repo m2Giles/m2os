@@ -181,7 +181,7 @@ jobs:
         id: rechunk
         uses: hhd-dev/rechunk@master
         with:
-          ref: "raw-img"
+          ref: "localhost/raw-img"
           prev-ref: ""
           rechunk: "ghcr.io/hhd-dev/rechunk:latest"
           version: "${{ env.version }}"
