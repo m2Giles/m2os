@@ -267,7 +267,7 @@ jobs:
           attempt_delay: 15000
           with: |
             image: m2os
-            tags: ${{ steps.generate_tags.outputs.alias_tags }}
+            tags: ${{ steps.generate_tags.outputs.build_tags }}
             registry: ${{ steps.registry_case.outputs.lowercase }}
             username: ${{ env.REGISTRY_USER }}
             password: ${{ env.REGISTRY_PASSWORD }}
