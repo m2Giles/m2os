@@ -121,6 +121,7 @@ echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
 sysctl -p
 
 # Distrobox Stuff
+mkdir -p /usr/etc/distrobox/
 cp /etc/distrobox/distrobox.ini /usr/etc/distrobox/distrobox.ini
 cp /etc/distrobox/apps.ini /usr/etc/distrobox/apps.ini
 curl -Lo /tmp/incus.ini \
