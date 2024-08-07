@@ -121,6 +121,8 @@ echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
 sysctl -p
 
 # Distrobox Stuff
+cp /etc/distrobox/distrobox.ini /usr/etc/distrobox/distrobox.ini
+cp /etc/distrobox/apps.ini /usr/etc/distrobox/apps.ini
 curl -Lo /tmp/incus.ini \
     https://raw.githubusercontent.com/ublue-os/toolboxes/main/apps/incus/distrobox.ini
 
@@ -199,6 +201,9 @@ ExecStop=/usr/bin/podman stop -t 30 %i
 [Install]
 WantedBy=multi-user.target default.target
 EOF
+
+cp /usr/etc/distrobox/distrobox.ini /etc/distrobox/distrobox.ini
+cp /usr/etc/distrobox/apps.ini /etc/distrobox/apps.ini
 
 mkdir -p /usr/etc/systemd/system/distrobox-autostart@.service.d
 tee /usr/etc/systemd/system/distrobox-autostart@.service.d/override.conf <<EOF
