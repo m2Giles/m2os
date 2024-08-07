@@ -70,6 +70,9 @@ curl -Lo /usr/bin/incus \
 
 chmod +x /usr/bin/incus
 
+incus completion bash > \
+    /usr/share/bash-completion/completions/incus
+
 # Layered Applications
 rpm-ostree install \
     bootc \
@@ -96,21 +99,45 @@ cp /usr/lib/zed.app/share/applications/zed.desktop /usr/share/applications/dev.z
 sed -i "s|Icon=zed|Icon=/usr/lib/zed.app/share/icons/hicolor/512x512/apps/zed.png|g" /usr/share/applications/dev.zed.Zed.desktop
 sed -i "s|Exec=zed|Exec=/usr/lib/zed.app/libexec/zed-editor|g" /usr/share/applications/dev.zed.Zed.desktop
 
+# Individual Changes
+case "${IMAGE}" in
+"bluefin"*) ;;
+"aurora"*) ;;
+"cosmic"*)
+    /ctx/cosmic.sh
+    /ctx/bazzite.sh
+    ;;
+"bazzite-deck"*)
+    /ctx/bazzite.sh
+    ;;
+"bazzite-gnome"*)
+    /ctx/bazzite.sh
+    ;;
+esac
+
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
-echo "net.ipv4.ip_forward = 1" > /usr/lib/sysctl.d/docker-ce.conf
+echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
 sysctl -p
 
 # Distrobox Stuff
 curl -Lo /tmp/incus.ini \
     https://raw.githubusercontent.com/ublue-os/toolboxes/main/apps/incus/distrobox.ini
 
-curl -Lo /tmp/docker.ini \
-    https://raw.githubusercontent.com/ublue-os/toolboxes/main/apps/docker/distrobox.ini
+tee /tmp/docker.ini <<'EOF'
+[docker]
+image=ghcr.io/ublue-os/docker-distrobox:latest
+# Change the group name to your desired group. Otherwise falls back to docker @ gid 252
+#additional_flags="-e DOCKERGROUP=$group"
+init=true
+nvidia=true
+root=true
+entry=false
+volume="/var/lib/docker:/var/lib/docker /lib/modules:/lib/modules:ro"
+init_hooks="usermod -aG docker ${USER}"
+EOF
 
-echo 'volume="/lib/modules:/lib/modules:ro"' | tee -a /tmp/docker.ini
-
-if [[ -f $(find /usr/lib/modules/*/extra/zfs/zfs.ko 2> /dev/null) ]]; then
+if [[ -f $(find /usr/lib/modules/*/extra/zfs/zfs.ko 2>/dev/null) ]]; then
     echo 'additional_packages="zfsutils-linux"' | tee -a /tmp/incus.ini
     echo 'additional_packages="zfsutils-linux"' | tee -a /tmp/docker.ini
 fi
@@ -133,13 +160,13 @@ EOF
 
 mkdir -p /usr/etc/distrobox/
 
-tee -a /usr/etc/distrobox/distrobox.ini < /tmp/incus.ini
+tee -a /usr/etc/distrobox/distrobox.ini </tmp/incus.ini
 printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
-tee -a /usr/etc/distrobox/distrobox.ini < /tmp/docker.ini
+tee -a /usr/etc/distrobox/distrobox.ini </tmp/docker.ini
 printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
-tee -a /usr/etc/distrobox/distrobox.ini < /tmp/fedora.ini
+tee -a /usr/etc/distrobox/distrobox.ini </tmp/fedora.ini
 printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
-tee -a /usr/etc/distrobox/distrobox.ini < /tmp/ubuntu.ini
+tee -a /usr/etc/distrobox/distrobox.ini </tmp/ubuntu.ini
 
 tee /usr/etc/distrobox/distrobox.conf <<'EOF'
 container_always_pull=false
@@ -192,36 +219,18 @@ groupadd -g 250 incus-admin
 groupadd -g 251 incus
 groupmod -g 252 docker
 
-# Individual Changes
-case "${IMAGE}" in
-    "bluefin"*)
-        ;;
-    "aurora"*)
-        ;;
-    "cosmic"*)
-        /ctx/cosmic.sh
-        /ctx/bazzite.sh
-        ;;
-    "bazzite-deck"*)
-        /ctx/bazzite.sh
-        ;;
-    "bazzite-gnome"*)
-        /ctx/bazzite.sh
-        ;;
-esac
-
 # Branding
-cat <<< "$(jq '."image-name" |= "m2os" |
+cat <<<"$(jq '."image-name" |= "m2os" |
              ."image-vendor" |= "m2giles" |
              ."image-ref" |= "ostree-image-signed:docker://ghcr.io/m2giles/m2os"' \
-             < /usr/share/ublue-os/image-info.json)" \
-             > /tmp/image-info.json
+    </usr/share/ublue-os/image-info.json)" \
+>/tmp/image-info.json
 cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
 
 sed -i '/^image-vendor/s/ublue-os/m2giles/' /usr/share/ublue-os/image-info.json
 
 # Signing
-cat <<< "$(jq '.transports.docker |=. + {
+cat <<<"$(jq '.transports.docker |=. + {
    "ghcr.io/m2giles/m2os": [
     {
         "type": "sigstoreSigned",
@@ -230,7 +239,7 @@ cat <<< "$(jq '.transports.docker |=. + {
             "type": "matchRepository"
         }
     }
-]}' < "/usr/etc/containers/policy.json")" > "/tmp/policy.json"
+]}' <"/usr/etc/containers/policy.json")" >"/tmp/policy.json"
 cp /tmp/policy.json /usr/etc/containers/policy.json
 cp /ctx/cosign.pub /usr/etc/pki/containers/m2os.pub
 tee /usr/etc/containers/registries.d/m2os.yaml <<EOF
