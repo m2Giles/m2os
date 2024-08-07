@@ -70,8 +70,8 @@ curl -Lo /usr/bin/incus \
 
 chmod +x /usr/bin/incus
 
-incus completion bash > \
-    /usr/share/bash-completion/completions/incus
+mkdir -p /var/roothome/
+incus completion bash | tee /usr/share/bash-completion/completions/incus
 
 # Layered Applications
 rpm-ostree install \
