@@ -142,31 +142,27 @@ if [[ -f $(find /usr/lib/modules/*/extra/zfs/zfs.ko 2>/dev/null) ]]; then
     echo 'additional_packages="zfsutils-linux"' | tee -a /tmp/docker.ini
 fi
 
-tee /tmp/fedora.ini <<EOF
-[fedora]
+tee -a /usr/etc/distrobox/distrobox.ini <<EOF
+
+[fedora-distrobox]
 image=ghcr.io/ublue-os/fedora-toolbox:latest
 nvidia=true
 entry=false
 volume="/home/linuxbrew/:/home/linuxbrew:rslave"
+
 EOF
 
-tee /tmp/ubuntu.ini <<EOF
-[fedora]
+tee -a /usr/etc/distrobox/distrobox.ini <<EOF
+[ubuntu-distrobox]
 image=ghcr.io/ublue-os/ubuntu-toolbox:latest
 nvidia=true
 entry=false
 volume="/home/linuxbrew/:/home/linuxbrew:rslave"
+
 EOF
 
-mkdir -p /usr/etc/distrobox/
-
-tee -a /usr/etc/distrobox/distrobox.ini </tmp/incus.ini
-printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
-tee -a /usr/etc/distrobox/distrobox.ini </tmp/docker.ini
-printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
-tee -a /usr/etc/distrobox/distrobox.ini </tmp/fedora.ini
-printf "\n" | tee -a /usr/etc/distrobox/distrobox.ini
-tee -a /usr/etc/distrobox/distrobox.ini </tmp/ubuntu.ini
+cat /tmp/docker.ini >>/usr/etc/distrobox/distrobox.ini
+cat /tmp/incus.ini >>/usr/etc/distrobox/distrobox.ini
 
 tee /usr/etc/distrobox/distrobox.conf <<'EOF'
 container_always_pull=false
