@@ -233,7 +233,9 @@ mkdir -p /etc/containers
 mkdir -p /etc/pki/containers
 mkdir -p /etc/containers/registries.d/
 
-cp /usr/etc/containers/policy.json /etc/containers/policy.json
+if [ -f /usr/etc/containers/policy.json ]; then
+    cp /usr/etc/containers/policy.json /etc/containers/policy.json
+fi
 
 cat <<<"$(jq '.transports.docker |=. + {
    "ghcr.io/m2giles/m2os": [
@@ -253,6 +255,7 @@ docker:
     use-sigstore-attachments: true
 EOF
 
+mkdir -p /usr/etc/containers/
 cp /etc/containers/policy.json /usr/etc/containers/policy.json
 
 systemctl enable --global p11-kit-server.socket
