@@ -8,7 +8,7 @@ curl -Lo /etc/yum.repos.d/ublue-os-staging-fedora-"${FEDORA_VERSION}".repo \
 
 # Tailscale
 curl -Lo /etc/yum.repos.d/tailscale.repo \
-    https://pkgs.tailscale.com/stable/fedora/tailscale.repo && \
+    https://pkgs.tailscale.com/stable/fedora/tailscale.repo
 
 # Add Nerd Fonts
 curl -Lo /etc/yum.repos.d/_copr_che-nerd-fonts-"${FEDORA_VERSION}".repo \
@@ -21,7 +21,6 @@ curl -Lo /etc/yum.repos.d/hikariknight-looking-glass-kvmfr-fedora-"${FEDORA_VERS
 # Add Negativo17 Repo
 curl -Lo /etc/yum.repos.d/negativo17-fedora-multimedia.repo \
     https://negativo17.org/repos/fedora-multimedia.repo
-
 
 # Akmods Repo
 tee /etc/yum.repos.d/_copr_ublue-os-akmods.repo <<'EOF'
@@ -47,7 +46,6 @@ enabled=1
 gpgcheck=1
 gpgkey=https://repo.charm.sh/yum/gpg.key
 EOF
-
 
 rpm-ostree override replace --experimental \
     --install=pv \
@@ -108,7 +106,7 @@ KERNEL_SUFFIX=""
 QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\d+)' | sed -E 's/kernel-(|'"$KERNEL_SUFFIX"'-)//')"
 
 depmod -a -v "$QUALIFIED_KERNEL"
-echo "zfs" > /usr/lib/modules-load.d/zfs.conf
+echo "zfs" >/usr/lib/modules-load.d/zfs.conf
 
 if [[ -n "${NVIDIA}" ]]; then
     curl -Lo /tmp/nvidia-install.sh \
@@ -123,17 +121,16 @@ fi
 pip install --prefix=/usr topgrade
 
 rpm-ostree override remove \
-        --install=ublue-update \
-        ublue-os-update-services \
-        firefox \
-        firefox-langpacks \
-        htop
+    --install=ublue-update \
+    ublue-os-update-services \
+    firefox \
+    firefox-langpacks \
+    htop
 
 sed -i '1s/^/[include]\npaths = ["\/etc\/ublue-os\/topgrade.toml"]\n\n/' /usr/share/ublue-update/topgrade-user.toml
-sed -i 's/min_battery_percent.*/min_battery_percent = 20.0/' /usr/etc/ublue-update/ublue-update.toml
-sed -i 's/max_cpu_load_percent.*/max_cpu_load_percent = 100.0/' /usr/etc/ublue-update/ublue-update.toml
-sed -i 's/max_mem_percent.*/max_mem_percent = 90.0/' /usr/etc/ublue-update/ublue-update.toml
-sed -i 's/dbus_notify.*/dbus_notify = false/' /usr/etc/ublue-update/ublue-update.toml
-
+sed -i 's/min_battery_percent.*/min_battery_percent = 20.0/' /etc/ublue-update/ublue-update.toml
+sed -i 's/max_cpu_load_percent.*/max_cpu_load_percent = 100.0/' /etc/ublue-update/ublue-update.toml
+sed -i 's/max_mem_percent.*/max_mem_percent = 90.0/' /etc/ublue-update/ublue-update.toml
+sed -i 's/dbus_notify.*/dbus_notify = false/' /etc/ublue-update/ublue-update.toml
 
 chmod 0600 "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"

@@ -121,9 +121,8 @@ echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
 sysctl -p
 
 # Distrobox Stuff
-mkdir -p /usr/etc/distrobox/
-cp /etc/distrobox/distrobox.ini /usr/etc/distrobox/distrobox.ini
-cp /etc/distrobox/apps.ini /usr/etc/distrobox/apps.ini
+mkdir -p /etc/distrobox/
+
 curl -Lo /tmp/incus.ini \
     https://raw.githubusercontent.com/ublue-os/toolboxes/main/apps/incus/distrobox.ini
 
@@ -138,6 +137,7 @@ root=true
 entry=false
 volume="/var/lib/docker:/var/lib/docker /lib/modules:/lib/modules:ro"
 init_hooks="usermod -aG docker ${USER}"
+
 EOF
 
 if [[ -f $(find /usr/lib/modules/*/extra/zfs/zfs.ko 2>/dev/null) ]]; then
@@ -145,7 +145,7 @@ if [[ -f $(find /usr/lib/modules/*/extra/zfs/zfs.ko 2>/dev/null) ]]; then
     echo 'additional_packages="zfsutils-linux"' | tee -a /tmp/docker.ini
 fi
 
-tee -a /usr/etc/distrobox/distrobox.ini <<EOF
+tee -a /etc/distrobox/distrobox.ini <<EOF
 
 [fedora-distrobox]
 image=ghcr.io/ublue-os/fedora-toolbox:latest
@@ -155,7 +155,7 @@ volume="/home/linuxbrew/:/home/linuxbrew:rslave"
 
 EOF
 
-tee -a /usr/etc/distrobox/distrobox.ini <<EOF
+tee -a /etc/distrobox/distrobox.ini <<EOF
 [ubuntu-distrobox]
 image=ghcr.io/ublue-os/ubuntu-toolbox:latest
 nvidia=true
@@ -164,10 +164,10 @@ volume="/home/linuxbrew/:/home/linuxbrew:rslave"
 
 EOF
 
-cat /tmp/docker.ini >>/usr/etc/distrobox/distrobox.ini
-cat /tmp/incus.ini >>/usr/etc/distrobox/distrobox.ini
+cat /tmp/docker.ini >>/etc/distrobox/distrobox.ini
+cat /tmp/incus.ini >>/etc/distrobox/distrobox.ini
 
-tee /usr/etc/distrobox/distrobox.conf <<'EOF'
+tee /etc/distrobox/distrobox.conf <<'EOF'
 container_always_pull=false
 container_generate_entry=false
 container_manager="podman"
@@ -183,7 +183,7 @@ After=network-online.target local-fs.target
 [Service]
 User=1000
 Type=oneshot
-ExecStart=/usr/bin/distrobox-assemble create --file /usr/etc/distrobox/distrobox.ini -n %i
+ExecStart=/usr/bin/distrobox-assemble create --file /etc/distrobox/distrobox.ini -n %i
 EOF
 
 tee /usr/lib/systemd/system/distrbox-autostart@.service <<EOF
@@ -203,11 +203,8 @@ ExecStop=/usr/bin/podman stop -t 30 %i
 WantedBy=multi-user.target default.target
 EOF
 
-cp /usr/etc/distrobox/distrobox.ini /etc/distrobox/distrobox.ini
-cp /usr/etc/distrobox/apps.ini /etc/distrobox/apps.ini
-
-mkdir -p /usr/etc/systemd/system/distrobox-autostart@.service.d
-tee /usr/etc/systemd/system/distrobox-autostart@.service.d/override.conf <<EOF
+mkdir -p /etc/systemd/system/distrobox-autostart@.service.d
+tee /etc/systemd/system/distrobox-autostart@.service.d/override.conf <<EOF
 [Service]
 Environment=HOME=/home/m2
 Environment=DISPLAY=:0
@@ -241,10 +238,10 @@ cat <<<"$(jq '.transports.docker |=. + {
             "type": "matchRepository"
         }
     }
-]}' <"/usr/etc/containers/policy.json")" >"/tmp/policy.json"
-cp /tmp/policy.json /usr/etc/containers/policy.json
-cp /ctx/cosign.pub /usr/etc/pki/containers/m2os.pub
-tee /usr/etc/containers/registries.d/m2os.yaml <<EOF
+]}' <"/etc/containers/policy.json")" >"/tmp/policy.json"
+cp /tmp/policy.json /etc/containers/policy.json
+cp /ctx/cosign.pub /etc/pki/containers/m2os.pub
+tee /etc/containers/registries.d/m2os.yaml <<EOF
 docker:
   ghcr.io/m2giles/m2os:
     use-sigstore-attachments: true
