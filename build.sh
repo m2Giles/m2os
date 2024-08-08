@@ -229,6 +229,12 @@ cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
 sed -i '/^image-vendor/s/ublue-os/m2giles/' /usr/share/ublue-os/image-info.json
 
 # Signing
+mkdir -p /etc/containers
+mkdir -p /etc/pki/containers
+mkdir -p /etc/containers/registries.d/
+
+cp /usr/etc/containers/policy.json /etc/containers/policy.json
+
 cat <<<"$(jq '.transports.docker |=. + {
    "ghcr.io/m2giles/m2os": [
     {
@@ -246,6 +252,8 @@ docker:
   ghcr.io/m2giles/m2os:
     use-sigstore-attachments: true
 EOF
+
+cp /etc/containers/policy.json /usr/etc/containers/policy.json
 
 systemctl enable --global p11-kit-server.socket
 systemctl enable --global p11-kit-server.service
