@@ -37,6 +37,8 @@ jobs:
           - cosmic-base-nvidia
           - bazzite-deck-gnome
           - bazzite-gnome-nvidia
+          - ucore
+          - ucore-nvidia
     steps:
       - name: Build Variables
         id: labels
@@ -45,18 +47,14 @@ jobs:
           attempt_limit: 3
           attempt_delay: 15000
           command: |
-            set -eo pipefail
+            set -eoux pipefail
             if [[ "${{ matrix.image }}" =~ cosmic ]]; then
               tag_version=40
             else
               tag_version=stable
             fi
-            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${{ matrix.image }}:"$tag_version" | jq -r '.Labels["ostree.linux"]')
-            fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
-            ver=$(skopeo inspect docker://ghcr.io/ublue-os/${{ matrix.image }}:"$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
-            if [ -z "$ver" ] || [ "null" = "$ver" ]; then
-              echo "inspected image version must not be empty or null"
-              exit 1
+            if [[ ! ${{ matrix.image }} =~ ucore|cosmic ]]; then
+              KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${{ matrix.image }}:"$tag_version" | jq -r '.Labels["ostree.linux"]')
             fi
             nvidia=""
             if [[ ${{ matrix.image }} =~ "bazzite" ]]; then
@@ -71,10 +69,26 @@ jobs:
               if [[ "${{ matrix.image }}" =~ nvidia ]]; then
                  nvidia=nvidia
               fi
+            elif [[ "${{ matrix.image }}" =~ ucore ]]; then
+              if [[ "${{ matrix.image }}" =~ nvidia ]]; then
+                tag_version=stable-nvidia-zfs
+              else
+                tag_version=stable-zfs
+              fi
+              KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/ucore:${tag_version} | jq -r '.Labels["ostree.linux"]')
+              kernel_flavor=coreos-stable
+              upstream_repo=ucore
+              image=ucore
             elif [[ "${{ matrix.image }}" =~ bluefin|aurora ]]; then
               kernel_flavor=coreos-stable
               upstream_repo=bluefin
               image="${{ matrix.image }}"
+            fi
+            fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
+            ver=$(skopeo inspect docker://ghcr.io/ublue-os/${image}:"$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
+            if [ -z "$ver" ] || [ "null" = "$ver" ]; then
+              echo "inspected image version must not be empty or null"
+              exit 1
             fi
             echo "nvidia=$nvidia" >> $GITHUB_ENV
             echo "version=$ver" >> $GITHUB_ENV
@@ -178,34 +192,6 @@ jobs:
           done
           echo "default_tag=${tag}" >> "$GITHUB_OUTPUT"
           echo "build_tags=${BUILD_TAGS[*]}" >> "$GITHUB_OUTPUT"
-
-      - name: Image Metadata
-        uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
-            org.opencontainers.image.version=${{ env.version }}
-            ostree.linux=${{ env.kernel_release }}
-
-      # - name: Build Image
-      #   id: build_image
-      #   uses: redhat-actions/buildah-build@v2
-      #   with:
-      #     containerfiles: |
-      #       ./Containerfile
-      #     image: ${{ env.IMAGE_NAME }}
-      #     tags: ${{ steps.generate_tags.outputs.build_tags }}
-      #     build-args: |
-      #       IMAGE=${{ env.image }}
-      #       TAG_VERSION=${{ env.tag_version }}
-      #       FEDORA_VERSION=${{ env.fedora_version }}
-      #       KERNEL_FLAVOR=${{ env.kernel_flavor }}
-      #       NVIDIA=${{ env.nvidia }}
-      #     labels: ${{ steps.meta.outputs.labels }}
-      #     oci: false
 
       - name: Build Image
         id: build_image

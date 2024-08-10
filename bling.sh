@@ -13,7 +13,8 @@ curl -Lo /usr/share/ublue-os/bluefin-cli/bling.sh \
     https://raw.githubusercontent.com/ublue-os/bluefin/main/system_files/shared/usr/share/ublue-os/bluefin-cli/bling.sh
 curl -Lo /usr/share/ublue-os/bluefin-cli/bling.fish \
     https://raw.githubusercontent.com/ublue-os/bluefin/main/system_files/shared/usr/share/ublue-os/bluefin-cli/bling.fish
-cat >>/usr/share/ublue-os/just/80-bazzite.just <<EOF
+
+cat >>/usr/share/ublue-os/just/60-custom.just <<EOF
 
 # Bluefin-CLI Bling
 bluefin-cli:
