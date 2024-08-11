@@ -2,6 +2,12 @@
 
 set -eoux pipefail
 
+if [[ ! "$(command -v gcc)" ]]; then
+    rpm-ostree install \
+        gcc \
+        make
+fi
+
 touch /.dockerenv
 mkdir -p /var/home
 mkdir -p /var/roothome
