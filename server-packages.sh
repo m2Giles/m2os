@@ -37,6 +37,7 @@ if [[ ! ${IMAGE} =~ ucore ]]; then
         docker-compose-plugin
 else
     rpm-ostree override replace \
+        --experimental \
         containerd.io \
         docker-buildx-plugin \
         docker-ce \
