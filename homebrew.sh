@@ -3,7 +3,7 @@
 set -eoux pipefail
 
 curl -Lo /etc/yum.repos.d/fedora-coreos-pool.repo \
-    https://github.com/coreos/fedora-coreos-config/blob/testing-devel/fedora-coreos-pool.repo
+    https://raw.githubusercontent.com/coreos/fedora-coreos-config/testing-devel/fedora-coreos-pool.repo
 
 rpm-ostree install \
     gcc \
