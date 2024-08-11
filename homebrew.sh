@@ -2,13 +2,6 @@
 
 set -eoux pipefail
 
-curl -Lo /etc/yum.repos.d/fedora-coreos-pool.repo \
-    https://raw.githubusercontent.com/coreos/fedora-coreos-config/testing-devel/fedora-coreos-pool.repo
-
-rpm-ostree install \
-    gcc \
-    make
-
 touch /.dockerenv
 mkdir -p /var/home
 mkdir -p /var/roothome
