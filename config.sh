@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -eoux pipefail
+
 curl -Lo /etc/yum.repos.d/_copr_ublue-os_staging.repo \
     https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-"${FEDORA_VERSION}"/ublue-os-staging-fedora-"${FEDORA_VERSION}".repo
 

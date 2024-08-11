@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+set -eoux pipefail
+
 systemctl enable --global p11-kit-server.socket
 systemctl enable --global p11-kit-server.service
 

@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+set -eoux pipefail
+
 # Branding
 cat <<<"$(jq '."image-name" |= "m2os" |
              ."image-vendor" |= "m2giles" |

@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+set -eoux pipefail
+
 # Distrobox Stuff
 mkdir -p /etc/distrobox/
 

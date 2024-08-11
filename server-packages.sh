@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+set -eoux pipefail
+
 # Docker Repo
 tee /etc/yum.repos.d/docker-ce.repo <<'EOF'
 [docker-ce-stable]

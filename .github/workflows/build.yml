@@ -229,12 +229,12 @@ jobs:
         uses: hhd-dev/rechunk@v0.8.3
         with:
           ref: "raw-img"
-          # prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
+          prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
           version: "${{ env.version }}"
           rechunk: "ghcr.io/hhd-dev/rechunk:v0.8.3"
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends bazzite/bluefin for my uses.
+            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends them for my uses.
             org.opencontainers.image.version=${{ env.version }}
             ostree.linux=${{ env.kernel_release }}
 

@@ -1,6 +1,13 @@
 #!/usr/bin/bash
 
-rpm-ostree install gcc
+set -eoux pipefail
+
+curl -Lo /etc/yum.repos.d/fedora-coreos-pool.repo \
+    https://github.com/coreos/fedora-coreos-config/blob/testing-devel/fedora-coreos-pool.repo
+
+rpm-ostree install \
+    gcc \
+    make
 
 touch /.dockerenv
 mkdir -p /var/home
