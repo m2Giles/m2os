@@ -1,13 +1,14 @@
 # m2Giles' OS
 
-This is my customized version of universal blue's bluefin/aurora and bazzite for my needs.
+[![Build m2os](https://github.com/m2Giles/m2os/actions/workflows/build.yml/badge.svg)](https://github.com/m2Giles/m2os/actions/workflows/build.yml)
 
-## Additions
+This is my customized version of universal blue images for my needs
 
-This adds the following packages:
-- Emacs
-- Sunshine on Bazzite Build
-- Bootc on Bazzite Build
+## Images
+Bluefin
+Aurora
+Cosmic
+Bazzite
+Ucore
 
-This adds the following items:
-- Assemble Files for distrobox docker and distrobox incus
+And nvidia variants
