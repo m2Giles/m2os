@@ -134,6 +134,13 @@ jobs:
           pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
           registry: ghcr.io/ublue-os
 
+      - name: Verify Config Image
+        uses: EyeCantCU/cosign-action/verify@v0.2.2
+        with:
+          containers: config:latest
+          pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
+          registry: ghcr.io/ublue-os
+
       - name: Pull Images
         uses: Wandalen/wretry.action@v3.5.0
         id: pull
@@ -147,6 +154,7 @@ jobs:
             sudo podman pull ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
             sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+            sudo podman pull ghcr.io/ublue-os/config:latest
             sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.0
 
       # - name: Pull Images
@@ -213,6 +221,7 @@ jobs:
           sudo podman image rm ghcr.io/ublue-os/akmods-nvidia:${{ env.kernel_flavor }}-${{ env.fedora_version }}
           sudo podman image rm ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
           sudo podman image rm ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
+          sudo podman image rm ghcr.io/ublue-os/config:latest
           sudo podman image rm ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
 
       - name: Rechunk Image

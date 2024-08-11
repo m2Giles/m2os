@@ -21,15 +21,26 @@ incus completion bash | tee /usr/share/bash-completion/completions/incus
 
 rpm-ostree install \
     bootc \
-    containerd.io \
-    docker-buildx-plugin \
-    docker-ce \
-    docker-ce-cli \
-    docker-compose-plugin \
     rclone \
     sbsigntools \
     socat \
     swtpm
+
+if [[ ! ${IMAGE} =~ ucore ]]; then
+    rpm-ostree install \
+        containerd.io \
+        docker-buildx-plugin \
+        docker-ce \
+        docker-ce-cli \
+        docker-compose-plugin
+else
+    rpm-ostree override replace \
+        containerd.io \
+        docker-buildx-plugin \
+        docker-ce \
+        docker-ce-cli \
+        docker-compose-plugin
+fi
 
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
