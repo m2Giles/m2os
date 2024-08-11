@@ -36,13 +36,15 @@ if [[ ! ${IMAGE} =~ ucore ]]; then
         docker-ce-cli \
         docker-compose-plugin
 else
-    rpm-ostree override replace \
-        --experimental \
-        containerd.io \
-        docker-buildx-plugin \
-        docker-ce \
-        docker-ce-cli \
-        docker-compose-plugin
+    rpm-ostree override remove \
+        containerd \
+        moby-engine \
+        runc \
+        --install=containerd.io \
+        --install=docker-buildx-plugin \
+        --install=docker-ce \
+        --install=docker-ce-cli \
+        --install=docker-compose-plugin
 fi
 
 # Docker sysctl.d
