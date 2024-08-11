@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+rpm-ostree install gcc
+
 touch /.dockerenv
 mkdir -p /var/home
 mkdir -p /var/roothome
