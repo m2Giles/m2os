@@ -33,8 +33,8 @@ jobs:
           - bluefin-nvidia
           - aurora
           - aurora-nvidia
-          - cosmic-base
-          - cosmic-base-nvidia
+          - cosmic
+          - cosmic-nvidia
           - bazzite-deck-gnome
           - bazzite-gnome-nvidia
           - ucore
@@ -65,7 +65,7 @@ jobs:
               KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:"$tag_version" | jq -r '.Labels["ostree.linux"]')
               kernel_flavor=coreos-stable
               upstream_repo=cosmic
-              image=cosmic-base
+              image=cosmic
               if [[ "${{ matrix.image }}" =~ nvidia ]]; then
                  nvidia=nvidia
               fi
