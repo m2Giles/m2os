@@ -3,9 +3,10 @@
 set -eoux pipefail
 
 if [[ ! "$(command -v gcc)" ]]; then
-    rpm-ostree install \
-        gcc \
-        make
+    rpm-ostree override replace \
+        --install=gcc \
+        --install=make \
+        libgcc
 fi
 
 touch /.dockerenv
