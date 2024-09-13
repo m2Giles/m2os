@@ -50,4 +50,3 @@ fi
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
 echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
-sysctl -p
