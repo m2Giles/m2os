@@ -24,13 +24,7 @@ case "${IMAGE}" in
     ;;
 "bazzite"*)
     /ctx/desktop-packages.sh
-    /ctx/bling.sh
     /ctx/flatpak.sh
-    ;;
-"ucore"*)
-    /ctx/config.sh
-    /ctx/bling.sh
-    /ctx/homebrew.sh
     ;;
 esac
 
