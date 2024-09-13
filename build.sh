@@ -31,3 +31,4 @@ esac
 # Clean Up
 rm -rf /tmp/ || true
 rm -rf /var/ || true
+mkdir -p /var/tmp && chmod 1777 /var/tmp
