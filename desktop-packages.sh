@@ -53,6 +53,7 @@ systemctl enable sunshine-workaround.service
 
 # Layered Applications
 rpm-ostree install \
+    breeze-cursor-theme \
     code \
     emacs \
     sunshine

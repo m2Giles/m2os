@@ -16,10 +16,10 @@ case "${IMAGE}" in
     ;;
 "cosmic"*)
     /ctx/config.sh
-    /ctx/desktop-packages.sh
     /ctx/cosmic.sh
     /ctx/bling.sh
     /ctx/homebrew.sh
+    /ctx/desktop-packages.sh
     /ctx/flatpak.sh
     ;;
 "bazzite"*)
