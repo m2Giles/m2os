@@ -30,5 +30,10 @@ case "${IMAGE}" in
 esac
 
 # Clean Up
-rm -rf /tmp/ || true
-mkdir -p /var/tmp && chmod 1777 /var/tmp
+mv /var/lib/alternatives /staged-alternatives
+shopt -s extglob
+rm -rf /tmp/* || true
+rm -rf /"${var:?}"/!(cache)
+ostree container commit
+mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives
+mkdir -p /var/tmp && chmod -R 1777 /var/tmp
