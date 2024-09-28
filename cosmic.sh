@@ -47,48 +47,50 @@ gpgcheck=1
 gpgkey=https://repo.charm.sh/yum/gpg.key
 EOF
 
+rpm-ostree install \
+   pv \
+   ptyxis \
+   bash-color-prompt \
+   bcache-tools \
+   bootc \
+   evtest \
+   fastfetch \
+   fish \
+   firewall-config \
+   foo2zjs \
+   gcc \
+   glow \
+   gum \
+   hplip \
+   ifuse \
+   libimobiledevice \
+   libxcrypt-compat \
+   lm_sensors \
+   make \
+   mesa-libGLU \
+   nerd-fonts \
+   NetworkManager-tui \
+   playerctl \
+   pulseaudio-utils \
+   python3-pip \
+   rclone \
+   restic \
+   samba-dcerpc \
+   samba-ldb-ldap-modules \
+   samba-winbind-clients \
+   samba-winbind-modules \
+   samba \
+   solaar \
+   tailscale \
+   tmux \
+   udica \
+   usbmuxd \
+   vim \
+   wireguard-tools \
+   xprop \
+   wl-clipboard
+
 rpm-ostree override replace --experimental \
-    --install=pv \
-    --install=ptyxis \
-    --install=bash-color-prompt \
-    --install=bcache-tools \
-    --install=bootc \
-    --install=evtest \
-    --install=fastfetch \
-    --install=fish \
-    --install=firewall-config \
-    --install=foo2zjs \
-    --install=gcc \
-    --install=glow \
-    --install=gum \
-    --install=hplip \
-    --install=ifuse \
-    --install=libimobiledevice \
-    --install=libxcrypt-compat \
-    --install=lm_sensors \
-    --install=make \
-    --install=mesa-libGLU \
-    --install=nerd-fonts \
-    --install=NetworkManager-tui \
-    --install=playerctl \
-    --install=pulseaudio-utils \
-    --install=python3-pip \
-    --install=rclone \
-    --install=restic \
-    --install=samba-dcerpc \
-    --install=samba-ldb-ldap-modules \
-    --install=samba-winbind-clients \
-    --install=samba-winbind-modules \
-    --install=samba \
-    --install=solaar \
-    --install=tailscale \
-    --install=tmux \
-    --install=udica \
-    --install=usbmuxd \
-    --install=vim \
-    --install=wireguard-tools \
-    --install=xprop \
-    --install=wl-clipboard \
     /tmp/akmods-zfs/*.rpm \
     /tmp/akmods/*kvmfr*.rpm \
     /tmp/akmods/*xpadneo*.rpm \
@@ -108,15 +110,6 @@ QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\
 depmod -a -v "$QUALIFIED_KERNEL"
 echo "zfs" >/usr/lib/modules-load.d/zfs.conf
 
-if [[ -n "${NVIDIA}" ]]; then
-    curl -Lo /tmp/nvidia-install.sh \
-        https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
-    chmod +x /tmp/nvidia-install.sh
-    IMAGE_NAME="base" RPMFUSION_MIRROR="" FEDORA_MAJOR_VERSION="${FEDORA_VERSION}" /tmp/nvidia-install.sh
-    rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
-    /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
-fi
-
 # Topgrade Install
 pip install --prefix=/usr topgrade
 
@@ -134,5 +127,14 @@ sed -i 's/max_mem_percent.*/max_mem_percent = 90.0/' /usr/etc/ublue-update/ublue
 sed -i 's/dbus_notify.*/dbus_notify = false/' /usr/etc/ublue-update/ublue-update.toml
 
 cp -r /usr/etc/ublue-update /etc/ublue-update
+
+if [[ -n "${NVIDIA}" ]]; then
+    curl -Lo /tmp/nvidia-install.sh \
+        https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
+    chmod +x /tmp/nvidia-install.sh
+    IMAGE_NAME="base" RPMFUSION_MIRROR="" FEDORA_MAJOR_VERSION="${FEDORA_VERSION}" /tmp/nvidia-install.sh
+    rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
+    /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
+fi
 
 chmod 0600 "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
