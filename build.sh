@@ -3,6 +3,7 @@
 set -eoux pipefail
 
 # Common
+mkdir -p /var/lib/alternatives
 /ctx/server-packages.sh
 /ctx/branding.sh
 /ctx/distrobox.sh
