@@ -16,12 +16,7 @@ case "${IMAGE}" in
     /ctx/flatpak.sh
     ;;
 "cosmic"*)
-    /ctx/config.sh
     /ctx/cosmic.sh
-    /ctx/bling.sh
-    /ctx/homebrew.sh
-    /ctx/desktop-packages.sh
-    /ctx/flatpak.sh
     ;;
 "bazzite"*)
     /ctx/desktop-packages.sh
@@ -31,6 +26,9 @@ esac
 
 # Clean Up
 mv /var/lib/alternatives /staged-alternatives
+rm -rf /tmp/* || true
+rm -rf /var/* || true
 ostree container commit
+mkdir -p /tmp
 mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives
 mkdir -p /var/tmp && chmod -R 1777 /var/tmp
