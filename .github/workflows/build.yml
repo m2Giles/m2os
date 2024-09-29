@@ -595,8 +595,8 @@ jobs:
           sudo buildah build \
             --format "docker" \
             --build-arg TAG=${{ env.image_version }} \
-            --build-arg IMAGE=${{ matrix.image }}
-            --file Containerfile.cosmic
+            --build-arg IMAGE=${{ matrix.image }} \
+            --file Containerfile.cosmic \
             --tag raw-img .
 
       - name: Remove old Images
