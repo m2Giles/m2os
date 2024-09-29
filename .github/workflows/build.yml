@@ -537,7 +537,8 @@ jobs:
           attempt_delay: 15000
           command: |
             set -eoux pipefail
-            image_version=${${{ matrix.image}}#"cosmic-"}
+            image="${{ matrix.image }}"
+            image_version=${image#"cosmic-"}
             KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/m2giles/m2os:${image_version} | jq -r '.Labels["ostree.linux"]')
             fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
             ver=$(skopeo inspect docker://ghcr.io/m2giles/m2os:"$image_version" | jq -r '.Labels["org.opencontainers.image.version"]')
