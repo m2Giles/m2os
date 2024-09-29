@@ -9,4 +9,4 @@ FROM ghcr.io/m2giles/m2os:${TAG}
 ARG IMAGE="cosmic-bluefin"
 
 RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
-    /ctx/build.sh
+    /ctx/cosmic.sh
