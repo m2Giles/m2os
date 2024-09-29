@@ -1,8 +1,8 @@
-FROM scratch AS ctx
-COPY / /
-
 ARG TAG="bluefin"
 ARG IMAGE="cosmic-bluefin"
+
+FROM scratch AS ctx
+COPY / /
 
 FROM ghcr.io/m2giles/m2os:${TAG}
 
