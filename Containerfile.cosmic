@@ -1,3 +1,6 @@
+FROM scratch AS ctx
+COPY / /
+
 ARG TAG="bluefin"
 ARG IMAGE="cosmic-bluefin"
 
