@@ -31,9 +31,6 @@ esac
 
 # Clean Up
 mv /var/lib/alternatives /staged-alternatives
-shopt -s extglob
-rm -rf /tmp/* || true
-rm -rf /var/!(cache)
 ostree container commit
 mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives
 mkdir -p /var/tmp && chmod -R 1777 /var/tmp
