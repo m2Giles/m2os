@@ -21,7 +21,7 @@ tee /etc/looking-glass-client.ini <<'EOF'
 shmFile=/dev/kvmfr0
 EOF
 
-mkdir -p /etc/kvmfr/selinux
+mkdir -p /etc/kvmfr/selinux/{mod,pp}
 tee /etc/kvmfr/selinux/kvmfr.te <<'EOF'
 module kvmfr 1.0;
 
