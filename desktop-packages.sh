@@ -52,11 +52,12 @@ EOF
 systemctl enable sunshine-workaround.service
 
 # Layered Applications
-rpm-ostree install \
-    breeze-cursor-theme \
-    code \
-    emacs \
-    sunshine
+LAYERED_PACKAGES=(breeze-cursor-theme code emacs sunshine)
+if [[ "${IMAGE}" =~ aurora ]]; then
+    LAYERED_PACKAGES+=(krdp)
+fi
+
+rpm-ostree install "${LAYERED_PACKAGES[@]}"
 
 # Zed because why not?
 curl -Lo /tmp/zed.tar.gz \

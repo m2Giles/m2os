@@ -14,6 +14,7 @@ case "${IMAGE}" in
 "bluefin"* | "aurora"*)
     /ctx/desktop-packages.sh
     /ctx/flatpak.sh
+    /ctx/steam.sh
     ;;
 "cosmic"*)
     /ctx/cosmic.sh
