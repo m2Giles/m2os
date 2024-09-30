@@ -35,6 +35,7 @@ module kvmfr 1.0;
  allow svirt_t device_t:chr_file { open read write map };
 EOF
 
+semanage fcontext -a -t svirt_tmpfs_t /dev/kvmfr0
 checkmodule -M -m -o /etc/kvmfr/selinux/mod/kvmfr.mod /etc/kvmfr/selinux/kvmfr.te
 semodule_package -o /etc/kvmfr/selinux/pp/kvmfr.pp -m /etc/kvmfr/selinux/mod/kvmfr.mod
 semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp
