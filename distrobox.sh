@@ -56,7 +56,7 @@ container_manager="podman"
 distrobox_sudo_program="sudo --askpass"
 EOF
 
-tee /usr/lib/systemd/system/distrbox-assemble@.service <<EOF
+tee /usr/lib/systemd/system/distrobox-assemble@.service <<EOF
 [Unit]
 Description=Distrobox Assemble %i
 Requires=network-online.target local-fs.target
@@ -68,7 +68,7 @@ Type=oneshot
 ExecStart=/usr/bin/distrobox-assemble create --file /etc/distrobox/distrobox.ini -n %i
 EOF
 
-tee /usr/lib/systemd/system/distrbox-autostart@.service <<EOF
+tee /usr/lib/systemd/system/distrobox-autostart@.service <<EOF
 [Unit]
 Description=Autostart distrobox %i
 Requires=local-fs.target
@@ -93,6 +93,11 @@ Environment=DISPLAY=:0
 Environment=WAYLAND_DISPLAY=wayland-0
 Environment=XDG_RUNTIME_DIR=/run/user/1000
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+EOF
+
+mkdir -p /usr/lib/tmpfiles.d
+tee /usr/lib/tmpfiles.d/incus.conf <<EOF
+d /var/lib/incus 0700 root root - -
 EOF
 
 # Groups
