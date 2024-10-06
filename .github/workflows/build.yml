@@ -232,8 +232,16 @@ jobs:
   push-ucore:
     uses: ./.github/workflows/build-ucore.yml
     secrets: inherit
+    permissions: 
+      contents: read
+      packages: write
+      id-token: write
   
   push-cosmic:
     uses: ./.github/workflows/build-cosmic.yml
     secrets: inherit
     needs: push-ublue
+    permissions: 
+      contents: read
+      packages: write
+      id-token: write
