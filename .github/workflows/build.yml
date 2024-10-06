@@ -125,7 +125,7 @@ jobs:
             --build-arg FEDORA_VERSION=${{ env.fedora_version }} \
             --build-arg KERNEL_FLAVOR=${{ env.kernel_flavor }} \
             --build-arg NVIDIA=${{ env.nvidia }} \
-            --target stage1
+            --target stage1 \
             --tag raw-img .
 
       - name: Remove old Images
