@@ -1,7 +1,6 @@
 name: Build m2os-ucore
 on:
     workflow_call:
-    workflow_dispatch:
 
 jobs:
   push-ucore:

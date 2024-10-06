@@ -2,7 +2,6 @@
 name: Build m2os-cosmic
 on:
     workflow_call:
-    workflow_dispatch:
 
 jobs:
   push-cosmic:
