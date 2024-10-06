@@ -63,41 +63,6 @@ jobs:
           pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
           registry: ghcr.io/ublue-os
 
-      - name: Verify Akmods Image
-        uses: EyeCantCU/cosign-action/verify@v0.2.2
-        with:
-          containers: akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
-          pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
-          registry: ghcr.io/ublue-os
-
-      - name: Verify Akmods-Nvidia Image
-        uses: EyeCantCU/cosign-action/verify@v0.2.2
-        with:
-          containers: akmods-nvidia:${{ env.kernel_flavor }}-${{ env.fedora_version }}
-          pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
-          registry: ghcr.io/ublue-os
-
-      - name: Verify Akmods-ZFS Image
-        uses: EyeCantCU/cosign-action/verify@v0.2.2
-        with:
-          containers: akmods-zfs:coreos-stable-${{ env.fedora_version }}
-          pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
-          registry: ghcr.io/ublue-os
-
-      - name: Verify Coreos Kernel-Cache Image
-        uses: EyeCantCU/cosign-action/verify@v0.2.2
-        with:
-          containers: coreos-stable-kernel:${{ env.fedora_version }}
-          pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
-          registry: ghcr.io/ublue-os
-
-      - name: Verify Config Image
-        uses: EyeCantCU/cosign-action/verify@v0.2.2
-        with:
-          containers: config:latest
-          pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
-          registry: ghcr.io/ublue-os
-
       - name: Pull Images
         uses: Wandalen/wretry.action@v3.5.0
         id: pull
