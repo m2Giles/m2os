@@ -1,4 +1,4 @@
-name: Build m2os-ucore
+name: Build m2os-bluefin-aurora-bazzite
 on:
     workflow_call:
     workflow_dispatch:
@@ -8,8 +8,8 @@ env:
   IMAGE_NAME: m2os
 
 jobs:
-  push-ucore:
-    name: Build Ucore Images
+  push-ublue:
+    name: Build Desktop Images
     runs-on: ubuntu-24.04
     continue-on-error: false
     permissions:
@@ -20,8 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - ucore
-          - ucore-nvidia
+          - bluefin
+          - bluefin-nvidia
+          - aurora
+          - aurora-nvidia
+          - bazzite-deck-gnome
+          - bazzite-gnome-nvidia
     steps:
       - name: Build Variables
         id: labels
@@ -33,15 +37,16 @@ jobs:
             set -eoux pipefail
             tag_version=stable
             nvidia=""
-            if [[ "${{ matrix.image }}" =~ nvidia ]]; then
-              tag_version=stable-nvidia-zfs
-            else
-              tag_version=stable-zfs
+            if [[ ${{ matrix.image }} =~ "bazzite" ]]; then
+              kernel_flavor=fsync
+              upstream_repo=bazzite
+              image="${{ matrix.image }}"
+            elif [[ "${{ matrix.image }}" =~ bluefin|aurora ]]; then
+              kernel_flavor=coreos-stable
+              upstream_repo=bluefin
+              image="${{ matrix.image }}"
             fi
-            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/ucore:${tag_version} | jq -r '.Labels["ostree.linux"]')
-            kernel_flavor=coreos-stable
-            upstream_repo=ucore
-            image=ucore
+            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${image}:${tag_version} | jq -r '.Labels["ostree.linux"]')
             fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
             ver=$(skopeo inspect docker://ghcr.io/ublue-os/${image}:"$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
             if [ -z "$ver" ] || [ "null" = "$ver" ]; then
@@ -72,12 +77,8 @@ jobs:
           attempt_delay: 15000
           command: |
             set -eoux pipefail
-            podman pull ghcr.io/ublue-os/akmods:${{ env.kernel_flavor }}-${{ env.fedora_version }}
-            podman pull ghcr.io/ublue-os/akmods-nvidia:${{ env.kernel_flavor }}-${{ env.fedora_version }}
-            podman pull ghcr.io/ublue-os/akmods-zfs:coreos-stable-${{ env.fedora_version }}
-            podman pull ghcr.io/ublue-os/coreos-stable-kernel:${{ env.fedora_version }}
-            podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
-            podman pull ghcr.io/ublue-os/config:latest
+            sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.6
 
       - name: Checkout Push to Registry Action
         uses: actions/checkout@v4
@@ -90,7 +91,13 @@ jobs:
         shell: bash
         run: |
           TIMESTAMP="$(date +%Y%m%d)"
-          tag=${{ matrix.image }}
+          if [[ "${{ matrix.image }}" =~ bazzite-deck ]]; then
+             tag="bazzite-deck"
+          elif [[ "${{ matrix.image }}" =~ bazzite ]]; then
+             tag="bazzite"
+          else
+             tag=${{ matrix.image }}
+          fi
           BUILD_TAGS+=("${tag}" "${tag}-${TIMESTAMP}")
           for TAG in "${BUILD_TAGS[@]}"; do
             echo "${TAG}"
@@ -98,37 +105,49 @@ jobs:
           echo "default_tag=${tag}" >> "$GITHUB_OUTPUT"
           echo "build_tags=${BUILD_TAGS[*]}" >> "$GITHUB_OUTPUT"
 
-      - name: Image Metadata
-        uses: docker/metadata-action@v5
-        id: meta
+      - name: Build Image
+        id: build_image
+        shell: bash
+        run: |
+          sudo buildah build \
+            --format "docker" \
+            --build-arg IMAGE=${{ env.image }} \
+            --build-arg TAG_VERSION=${{ env.tag_version }} \
+            --build-arg FEDORA_VERSION=${{ env.fedora_version }} \
+            --build-arg KERNEL_FLAVOR=${{ env.kernel_flavor }} \
+            --build-arg NVIDIA=${{ env.nvidia }} \
+            --target stage1 \
+            --tag raw-img .
+
+      - name: Remove old Images
+        run: |
+          set -eoux pipefail
+          sudo podman image rm ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+
+      - name: Rechunk Image
+        id: rechunk
+        uses: hhd-dev/rechunk@v0.8.6
         with:
-          images: |
-            ${{ env.IMAGE_NAME }}
+          ref: "raw-img"
+          prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
+          version: "${{ env.version }}"
+          rechunk: "ghcr.io/hhd-dev/rechunk:v0.8.6"
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends them for my uses.
             org.opencontainers.image.version=${{ env.version }}
             ostree.linux=${{ env.kernel_release }}
 
-      - name: Build Image
-        id: build_image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          containerfiles: |
-            ./Containerfile
-          image: ${{ env.IMAGE_NAME }}
-          tags: |
-            ${{ steps.generate_tags.outputs.build_tags }}
-          build-args: |
-            IMAGE=${{ env.image }}
-            TAG_VERSION=${{ env.tag_version }}
-            FEDORA_VERSION=${{ env.fedora_version }}
-            KERNEL_FLAVOR=${{ env.kernel_flavor }}
-            NVIDIA=${{ env.nvidia }}
-          labels: ${{ steps.meta.outputs.labels }}
-          extra-args: |
-            --target stage1
-          oci: false
+      - name: Load into Podman and Tag
+        shell: bash
+        run: |
+          set -eoux pipefail
+          IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
+          sudo rm -rf ${{ steps.rechunk.outputs.output }}
+          for tag in ${{ steps.generate_tags.outputs.build_tags }}; do
+            podman tag $IMAGE m2os:$tag
+          done
+          podman tag $IMAGE rechunked-img
 
       - name: Check Secureboot
         id: secureboot
@@ -139,7 +158,10 @@ jobs:
             sudo apt update
             sudo apt install sbsigntool curl openssl
           fi
-          podman run --rm "${{ env.IMAGE_NAME }}":$(echo "${{ steps.generate_tags.outputs.build_tags }}" | cut -d " " -f 1) /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
+          TMP=$(podman create rechunked-img bash)
+          podman cp $TMP:/usr/lib/modules/${{ env.kernel_release }}/vmlinuz .
+          podman rm $TMP
+          # podman run --rm rechunked-img /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           sbverify --list vmlinuz
           curl --retry 3 -Lo kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
           curl --retry 3 -Lo akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
