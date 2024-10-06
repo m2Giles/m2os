@@ -6,15 +6,6 @@ systemctl enable --global p11-kit-server.socket
 systemctl enable --global p11-kit-server.service
 
 mkdir -p /usr/share/user-tmpfiles.d
-tee /usr/share/user-tmpfiles.d/editor.conf <<EOF
-C %h/.config/environment.d/editor.conf - - - - /usr/share/ublue-os/etc/environment.d/default-editor.conf
-EOF
-
-mkdir -p /usr/share/ublue-os/etc/environment.d
-tee /usr/share/ublue-os/etc/environment.d/default-editor.conf <<EOF
-EDITOR=/usr/bin/vim
-VISUAL=/usr/bin/emacs
-EOF
 
 tee /usr/share/user-tmpfiles.d/discord-rpc.conf <<EOF
 L %t/discord-ipc-0 - - - - app/com.discordapp.Discord/discord-ipc-0

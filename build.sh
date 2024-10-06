@@ -13,14 +13,14 @@ mkdir -p /var/lib/alternatives
 case "${IMAGE}" in
 "bluefin"* | "aurora"*)
     /ctx/desktop-packages.sh
-    /ctx/flatpak.sh
     ;;
 "cosmic"*)
     /ctx/cosmic.sh
     ;;
 "bazzite"*)
     /ctx/desktop-packages.sh
-    /ctx/flatpak.sh
+    ;;
+"ucore"*)
     ;;
 esac
 
