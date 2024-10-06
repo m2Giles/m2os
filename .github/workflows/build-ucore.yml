@@ -2,6 +2,10 @@ name: Build m2os-ucore
 on:
     workflow_call:
 
+env:
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: m2os
+
 jobs:
   push-ucore:
     name: Build Ucore Images
@@ -156,6 +160,8 @@ jobs:
             KERNEL_FLAVOR=${{ env.kernel_flavor }}
             NVIDIA=${{ env.nvidia }}
           labels: ${{ steps.meta.outputs.labels }}
+          extra-args: |
+            --target stage1
           oci: false
 
       - name: Check Secureboot

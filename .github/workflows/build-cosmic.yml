@@ -3,6 +3,10 @@ name: Build m2os-cosmic
 on:
     workflow_call:
 
+env:
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: m2os
+
 jobs:
   push-cosmic:
     name: Build Cosmic Images

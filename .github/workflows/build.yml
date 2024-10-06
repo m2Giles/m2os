@@ -55,6 +55,7 @@ jobs:
               upstream_repo=bluefin
               image="${{ matrix.image }}"
             fi
+            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${image}:${tag_version} | jq -r '.Labels["ostree.linux"]')
             fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
             ver=$(skopeo inspect docker://ghcr.io/ublue-os/${image}:"$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
             if [ -z "$ver" ] || [ "null" = "$ver" ]; then
