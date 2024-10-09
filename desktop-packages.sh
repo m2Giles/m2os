@@ -52,7 +52,7 @@ EOF
 systemctl enable sunshine-workaround.service
 
 # Layered Applications
-LAYERED_PACKAGES=(breeze-cursor-theme code emacs sunshine)
+LAYERED_PACKAGES=(breeze-cursor-theme code emacs git-credential-libsecret git-credential-oauth sunshine)
 if [[ "${IMAGE}" =~ aurora ]]; then
     LAYERED_PACKAGES+=(krdp)
 fi
