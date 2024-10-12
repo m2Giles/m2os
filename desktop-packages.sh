@@ -51,8 +51,11 @@ EOF
 
 systemctl enable sunshine-workaround.service
 
+curl -Lo /etc/yum.repos.d/_copr_kylegospo-webapp-manager.repo \
+    https://copr.fedorainfracloud.org/coprs/kylegospo/webapp-manager/repo/fedora-"${FEDORA_VERSION}"/kylegospo-webapp-manager-fedora-"${FEDORA_VERSION}".repo
+
 # Layered Applications
-LAYERED_PACKAGES=(breeze-cursor-theme code emacs git-credential-libsecret git-credential-oauth sunshine)
+LAYERED_PACKAGES=(breeze-cursor-theme code emacs git-credential-libsecret git-credential-oauth sunshine webapp-manager)
 if [[ "${IMAGE}" =~ aurora ]]; then
     LAYERED_PACKAGES+=(krdp)
 fi

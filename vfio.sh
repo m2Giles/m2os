@@ -19,7 +19,7 @@ enabled=1
 enabled_metadata=1
 EOF
 
-if [[ ! "${IMAGE}" =~ cosmic|bazzite ]]; then
+if [[ ! "${IMAGE}" =~ bazzite ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods:coreos-stable-"${FEDORA_VERSION}"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
     AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
