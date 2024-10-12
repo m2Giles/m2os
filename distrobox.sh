@@ -56,18 +56,6 @@ container_manager="podman"
 distrobox_sudo_program="sudo --askpass"
 EOF
 
-tee /usr/lib/systemd/system/distrobox-assemble@.service <<EOF
-[Unit]
-Description=Distrobox Assemble %i
-Requires=network-online.target local-fs.target
-After=network-online.target local-fs.target
-
-[Service]
-User=1000
-Type=oneshot
-ExecStart=/usr/bin/distrobox-assemble create --file /etc/distrobox/distrobox.ini -n %i
-EOF
-
 tee /usr/lib/systemd/system/distrobox-autostart@.service <<EOF
 [Unit]
 Description=Autostart distrobox %i
@@ -77,7 +65,6 @@ After=local-fs.target
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStartPre=-/usr/bin/systemctl start distrobox-assemble@%i.service
 ExecStart=/usr/bin/distrobox-enter %i
 ExecStop=/usr/bin/podman stop -t 30 %i
 
