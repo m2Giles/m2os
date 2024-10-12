@@ -24,6 +24,6 @@ FROM ghcr.io/m2giles/m2os:${TAG} AS cosmic
 
 ARG IMAGE="cosmic-bluefin"
 
-RUN --mount=cache,dst=/var/cache/rpm-ostree \
+RUN --mount=type=cache,dst=/var/cache/rpm-ostree \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     /ctx/build.sh
