@@ -2,34 +2,44 @@
 
 set -eoux pipefail
 
-# Common
 mkdir -p /var/lib/alternatives
-/ctx/server-packages.sh
-/ctx/branding.sh
-/ctx/distrobox.sh
-/ctx/signing.sh
 
-# Individual Changes
+# Changes
 case "${IMAGE}" in
 "bluefin"* | "aurora"*)
+    /ctx/server-packages.sh
+    /ctx/branding.sh
+    /ctx/distrobox.sh
+    /ctx/signing.sh
     /ctx/desktop-packages.sh
+    /ctx/vfio.sh
     ;;
 "cosmic"*)
     /ctx/cosmic.sh
     ;;
 "bazzite"*)
+    /ctx/server-packages.sh
+    /ctx/branding.sh
+    /ctx/distrobox.sh
+    /ctx/signing.sh
     /ctx/desktop-packages.sh
+    /ctx/vfio.sh
     ;;
 "ucore"*)
+    /ctx/server-packages.sh
+    /ctx/branding.sh
+    /ctx/distrobox.sh
+    /ctx/signing.sh
     ;;
 esac
 
-/ctx/vfio.sh
-
 # Clean Up
+
+shopt -s extglob
 mv /var/lib/alternatives /staged-alternatives
 rm -rf /tmp/* || true
-rm -rf /var/* || true
+rm -rf /var/!(cache)
+rm -rf /var/cache/!(rpm-ostree)
 ostree container commit
 mkdir -p /tmp
 mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives

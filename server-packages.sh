@@ -50,3 +50,21 @@ fi
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
 echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
+
+# VFIO Kargs
+tee /usr/libexec/vfio-kargs.sh <<'EOF'
+#!/usr/bin/bash
+CPU_VENDOR=$(grep "vendor_id" "/proc/cpuinfo" | uniq | awk -F": " '{ print $2 }')
+if [[ "${CPU_VENDOR}" == "GenuineIntel" ]]; then
+    VENDOR_KARG="intel_iommu=on"
+elif [[ "${CPU_VENDOR}" == "AuthenticAMD" ]]; then
+    VENDOR_KARG="amd_iommu=on"
+fi
+rpm-ostree kargs \
+    --append-if-missing="${VENDOR_KARG}" \
+    --append-if-missing="iommu=pt" \
+    --append-if-missing="rd.driver.pre=vfio_pci" \
+    --append-if-missing="vfio_pci.disable_vga=1"
+EOF
+
+chmod +x /usr/libexec/vfio-kargs.sh

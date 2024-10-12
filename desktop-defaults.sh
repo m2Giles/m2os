@@ -2,7 +2,15 @@
 
 set -eoux pipefail
 
-# Autoload SSH Identities on Aurora
+mkdir -p /etc/xdg/autostart
+mkdir -p /etc/environment.d
+
+# Zed SSD
+tee /tmp/zed.conf <<EOF
+ZED_WINDOW_DECORATIONS=server
+EOF
+
+# Autoload SSH Identities
 tee /tmp/ssh-add-identities <<'EOF'
 #!/usr/bin/bash
 for IDENTITY in $(find ~/.ssh/*.pub -type f); do
@@ -15,6 +23,7 @@ for IDENTITY in $(find ~/.ssh/*.pub -type f); do
     fi
 done
 EOF
+chmod +x /tmp/ssh-add-identities
 
 tee /tmp/ssh-add-identities.desktop<<'EOF'
 [Desktop Entry]
@@ -26,13 +35,12 @@ X-KDE-AutostartScript=true
 OnlyShowIn=KDE
 EOF
 
+# Copy for AURORA
 if [[ ${IMAGE} =~ aurora ]]; then
     cp /tmp/ssh-add-identities /usr/libexec/
-    chmod +x /usr/libexec/ssh-add-identities
-    mkdir -p /etc/xdg/autostart
+    cp /tmp/zed.conf /etc/environment.d/
     cp /tmp/ssh-add-identities.desktop /etc/xdg/autostart/
 fi
-
 
 mkdir -p /usr/share/user-tmpfiles.d
 tee /usr/share/user-tmpfiles.d/editor.conf <<EOF
