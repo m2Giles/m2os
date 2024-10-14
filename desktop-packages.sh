@@ -2,6 +2,18 @@
 
 set -eoux pipefail
 
+# OBS-VKcapture
+curl -Lo /etc/yum.repos.d/_copr_kylegospo-obs-vkcapture.repo \
+    https://copr.fedorainfracloud.org/coprs/kylegospo/obs-vkcapture/repo/fedora-"$(rpm -E %fedora)"/kylegospo-obs-vkcapture-fedora-"$(rpm -E %fedora)".repo?arch=x86_64
+
+# Bazzite Repos
+curl -Lo /etc/yum.repos.d/_copr_kylegospo-bazzite.repo \
+    https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite/repo/fedora-"$(rpm -E %fedora)"/kylegospo-bazzite-fedora-"$(rpm -E %fedora)".repo 
+curl -Lo /etc/yum.repos.d/_copr_kylegospo-bazzite-multilib.repo \
+    https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite-multilib/repo/fedora-"$(rpm -E %fedora)"/kylegospo-bazzite-multilib-fedora-"$(rpm -E %fedora)".repo?arch=x86_64
+curl -Lo /etc/yum.repos.d/_copr_kylegospo-latencyflex.repo \
+    https://copr.fedorainfracloud.org/coprs/kylegospo/LatencyFleX/repo/fedora-"$(rpm -E %fedora)"/kylegospo-LatencyFleX-fedora-"$(rpm -E %fedora)".repo
+
 # VSCode because it's still better for a lot of things
 tee /etc/yum.repos.d/vscode.repo <<'EOF'
 [code]

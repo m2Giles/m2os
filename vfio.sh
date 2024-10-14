@@ -19,11 +19,23 @@ enabled=1
 enabled_metadata=1
 EOF
 
+VFIO_PACKAGES=()
+if [[ ! "{IMAGE}" =~ ucore ]]; then
+    VFIO_PACKAGES+=(
+        edk2-ovmf
+        libvirt
+        qemu
+        virt-manager
+    )
+fi
+
 if [[ ! "${IMAGE}" =~ bazzite ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods:coreos-stable-"${FEDORA_VERSION}"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
     AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
-    rpm-ostree install /tmp/rpms/kmods/*kvmfr*.rpm
+    VFIO_PACKAGES+=(
+        /tmp/rpms/kmods/*kvmfr*.rpm
+    )
 fi
 
 tee /usr/lib/dracut/dracut.conf.d/vfio.conf <<'EOF'

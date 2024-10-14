@@ -36,7 +36,6 @@ jobs:
   push-cosmic:
     uses: ./.github/workflows/build-cosmic.yml
     secrets: inherit
-    needs: push-ublue
     permissions: 
       contents: read
       packages: write

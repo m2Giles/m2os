@@ -36,16 +36,12 @@ jobs:
           command: |
             set -eoux pipefail
             tag_version=stable-daily
-            nvidia=""
+            image="${{ matrix.image }}"
             if [[ ${{ matrix.image }} =~ "bazzite" ]]; then
               tag_version=stable
-              kernel_flavor=fsync
               upstream_repo=bazzite
-              image="${{ matrix.image }}"
             elif [[ "${{ matrix.image }}" =~ bluefin|aurora ]]; then
-              kernel_flavor=coreos-stable
               upstream_repo=bluefin
-              image="${{ matrix.image }}"
             fi
             KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${image}:${tag_version} | jq -r '.Labels["ostree.linux"]')
             fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
@@ -54,12 +50,10 @@ jobs:
               echo "inspected image version must not be empty or null"
               exit 1
             fi
-            echo "nvidia=$nvidia" >> $GITHUB_ENV
             echo "version=$ver" >> $GITHUB_ENV
             echo "tag_version=$tag_version" >> $GITHUB_ENV
             echo "kernel_release=${KERNEL_RELEASE}" >> $GITHUB_ENV
             echo "fedora_version=${fedora_version}" >> $GITHUB_ENV
-            echo "kernel_flavor=${kernel_flavor}" >> $GITHUB_ENV
             echo "upstream_repo=${upstream_repo}" >> $GITHUB_ENV
             echo "image=${image}" >> $GITHUB_ENV
 
@@ -115,8 +109,6 @@ jobs:
             --build-arg IMAGE=${{ env.image }} \
             --build-arg TAG_VERSION=${{ env.tag_version }} \
             --build-arg FEDORA_VERSION=${{ env.fedora_version }} \
-            --build-arg KERNEL_FLAVOR=${{ env.kernel_flavor }} \
-            --build-arg NVIDIA=${{ env.nvidia }} \
             --target stage1 \
             --tag raw-img .
 

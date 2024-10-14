@@ -21,10 +21,8 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - cosmic-bluefin
-          - cosmic-bluefin-nvidia
-          - cosmic-aurora
-          - cosmic-aurora-nvidia
+          - cosmic
+          - cosmic-nvidia
     steps:
       - name: Build Variables
         id: labels
@@ -35,25 +33,23 @@ jobs:
           command: |
             set -eoux pipefail
             image="${{ matrix.image }}"
-            image_version=${image#"cosmic-"}
-            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/m2giles/m2os:${image_version} | jq -r '.Labels["ostree.linux"]')
+            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:stable-daily | jq -r '.Labels["ostree.linux"]')
             fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
-            ver=$(skopeo inspect docker://ghcr.io/m2giles/m2os:"$image_version" | jq -r '.Labels["org.opencontainers.image.version"]')
+            ver=$(skopeo inspect docker://ghcr.io/ublue-os/base-main:${fedora_version} | jq -r '.Labels["org.opencontainers.image.version"]')
             if [ -z "$ver" ] || [ "null" = "$ver" ]; then
               echo "inspected image version must not be empty or null"
               exit 1
             fi
             echo "version=$ver" >> $GITHUB_ENV
-            echo "image_version=$image_version" >> $GITHUB_ENV
             echo "kernel_release=${KERNEL_RELEASE}" >> $GITHUB_ENV
             echo "fedora_version=${fedora_version}" >> $GITHUB_ENV
 
       - name: Verify Base Image
         uses: EyeCantCU/cosign-action/verify@v0.2.2
         with:
-          containers: m2os:${{ env.image_version }}
-          pubkey: https://raw.githubusercontent.com/m2giles/m2os/main/cosign.pub
-          registry: ghcr.io/m2giles
+          containers: base-main:${{ env.fedora_version }}
+          pubkey: https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub
+          registry: ghcr.io/ublue-os
 
       - name: Pull Images
         uses: Wandalen/wretry.action@v3.5.0
@@ -63,7 +59,7 @@ jobs:
           attempt_delay: 15000
           command: |
             set -eoux pipefail
-            sudo podman pull ghcr.io/m2giles/m2os:${{ env.image_version }}
+            sudo podman pull ghcr.io/ublue-os/base-main:${{ env.fedora_version }}
             sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.6
 
       - name: Checkout Push to Registry Action
@@ -91,7 +87,7 @@ jobs:
         run: |
           sudo buildah build \
             --format "docker" \
-            --build-arg TAG=${{ env.image_version }} \
+            --build-arg FEDORA_VERSION=${{ env.fedora_version }} \
             --build-arg IMAGE=${{ matrix.image }} \
             --target cosmic \
             --tag raw-img .
@@ -99,7 +95,7 @@ jobs:
       - name: Remove old Images
         run: |
           set -eoux pipefail
-          sudo podman image rm ghcr.io/m2giles/m2os:${{ env.image_version }}
+          sudo podman image rm ghcr.io/ublue-os/base-main:${{ env.fedora_version }}
 
       - name: Rechunk Image
         id: rechunk
