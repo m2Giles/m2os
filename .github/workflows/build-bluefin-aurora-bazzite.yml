@@ -35,9 +35,10 @@ jobs:
           attempt_delay: 15000
           command: |
             set -eoux pipefail
-            tag_version=stable
+            tag_version=stable-daily
             nvidia=""
             if [[ ${{ matrix.image }} =~ "bazzite" ]]; then
+              tag_version=stable
               kernel_flavor=fsync
               upstream_repo=bazzite
               image="${{ matrix.image }}"
