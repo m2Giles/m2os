@@ -38,6 +38,8 @@ if [[ ! "${IMAGE}" =~ bazzite ]]; then
     )
 fi
 
+rpm-ostree install "${VFIO_PACKAGES[@]}"
+
 tee /usr/lib/dracut/dracut.conf.d/vfio.conf <<'EOF'
 add_drivers+=" vfio vfio_iommu_type1 vfio-pci "
 EOF
