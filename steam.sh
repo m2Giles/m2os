@@ -11,6 +11,7 @@ rpm-ostree override replace \
     --from repo=updates \
         systemd \
         systemd-libs \
+        systemd-pam \
         || true
 rpm-ostree override replace \
     --experimental \
