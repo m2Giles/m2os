@@ -9,6 +9,12 @@ sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates-archive.repo
 rpm-ostree override replace \
     --experimental \
     --from repo=updates \
+        systemd \
+        systemd-libs \
+        || true
+rpm-ostree override replace \
+    --experimental \
+    --from repo=updates \
         vulkan-loader \
         || true
 rpm-ostree override replace \
