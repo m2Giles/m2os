@@ -61,8 +61,12 @@ shopt -s extglob
 
 mv /var/lib/alternatives /staged-alternatives
 rm -rf /tmp/*
-rm -rf /var/!(cache)
-rm -rf /var/cache/!(rpm-ostree)
+if [[ ${CLEAN_CACHE} == "1" ]]; then
+    rm -rf /var/*
+else
+    rm -rf /var/!(cache)
+    rm -rf /var/cache/!(rpm-ostree)
+fi
 ostree container commit
 mkdir -p /tmp
 mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives
