@@ -23,7 +23,7 @@ if [[ ! "${IMAGE}" =~ bazzite ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods:coreos-stable-"${FEDORA_VERSION}"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
     AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
-    VFIO_PACKAGES+=(/tmp/rpms/kmods/*kvmfr*.rpm)
+    VFIO_PACKAGES=(/tmp/rpms/kmods/*kvmfr*.rpm)
     rpm-ostree install "${VFIO_PACKAGES[@]}"
 fi
 
