@@ -15,22 +15,21 @@ case "${IMAGE}" in
 "bluefin"* | "aurora"*)
     /ctx/desktop-packages.sh
     /ctx/steam.sh
-    /ctx/vfio.sh
     ;;
 "cosmic"*)
     /ctx/cosmic.sh
     /ctx/desktop-packages.sh
     /ctx/steam.sh
-    /ctx/vfio.sh
     ;;
 "bazzite"*)
     /ctx/desktop-packages.sh
-    /ctx/vfio.sh
     ;;
 "ucore"*)
-    /ctx/vfio.sh
     ;;
 esac
+
+# Common
+/ctx/vfio.sh
 
 # Clean Up
 repos=(
@@ -61,11 +60,10 @@ shopt -s extglob
 
 mv /var/lib/alternatives /staged-alternatives
 rm -rf /tmp/*
-if [[ ${CLEAN_CACHE} == "1" ]]; then
-    rm -rf /var/*
-else
-    rm -rf /var/!(cache)
-    rm -rf /var/cache/!(rpm-ostree)
+rm -rf /var/!(cache)
+rm -rf /var/cache/!(rpm-ostree)
+if [[ "${CLEAN_CACHE}" == "1" ]]; then
+    rm -rf /var/cache/rpm-ostree/*
 fi
 ostree container commit
 mkdir -p /tmp
