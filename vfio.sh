@@ -28,7 +28,6 @@ if [[ ! "${IMAGE}" =~ ucore ]]; then
         edk2-ovmf
         libvirt
         qemu
-        virt-manager
     )
 fi
 
