@@ -15,7 +15,7 @@ RUN --mount=type=cache,dst=/var/cache/rpm-ostree \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     /ctx/build.sh
 
-FROM ghcr.io/ublue-os/base-main:${FEDORA_VERSION} AS cosmic
+FROM ghcr.io/ublue-os/cosmic:${FEDORA_VERSION} AS cosmic
 
 ARG IMAGE="cosmic"
 ARG FEDORA_VERSION="40"
