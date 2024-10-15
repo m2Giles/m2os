@@ -20,7 +20,10 @@ enabled_metadata=1
 EOF
 
 VFIO_PACKAGES=()
+
 if [[ ! "{IMAGE}" =~ ucore ]]; then
+    sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates.repo
+    sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates-archive.repo
     VFIO_PACKAGES+=(
         edk2-ovmf
         libvirt
@@ -79,3 +82,6 @@ semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp
 /usr/libexec/rpm-ostree/wrapped/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible --zstd -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
 
 chmod 0600 /lib/modules/"$QUALIFIED_KERNEL"/initramfs.img
+
+sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/fedora-updates.repo
+sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/fedora-updates-archive.repo
