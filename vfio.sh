@@ -21,7 +21,7 @@ EOF
 
 VFIO_PACKAGES=()
 
-if [[ ! "{IMAGE}" =~ ucore ]]; then
+if [[ ! "${IMAGE}" =~ ucore ]]; then
     sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates.repo
     sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates-archive.repo
     VFIO_PACKAGES+=(
