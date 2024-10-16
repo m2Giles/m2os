@@ -34,6 +34,7 @@ curl -Lo /etc/yum.repos.d/tailscale.repo https://pkgs.tailscale.com/stable/fedor
 PACKAGES=(
     cosmic-desktop
     gnome-keyring
+    NetworkManager-openvpn
     NetworkManager-tui
     power-profiles-daemon
 )
@@ -45,6 +46,7 @@ PACKAGES+=(
     bcache-tools
     borgbackup
     bootc
+    cascadia-code-fonts
     evtest
     epson-inkjet-printer-escpr
     epson-inkjet-printer-escpr2
@@ -74,6 +76,7 @@ PACKAGES+=(
     opendyslexic-fonts
     playerctl
     printer-driver-brlaser
+    ptyxis
     pulseaudio-utils
     python3-pip
     rclone
@@ -97,11 +100,14 @@ PACKAGES+=(
     xprop
     wl-clipboard
     zsh
+)
+
+RPM_FUSION=(
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
     https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 )
 
-rpm-ostree install "${PACKAGES[@]}"
+rpm-ostree install "${RPM_FUSION[@]}"
 
 # FWUPD
 rpm-ostree override replace \
@@ -210,8 +216,16 @@ done
 sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 
 # Install
-rpm-ostree install "${KERNEL_RPMS[@]}" "${NVIDIA_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+rpm-ostree install "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${NVIDIA_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
 depmod -a -v "${QUALIFIED_KERNEL}"
+
+# Remove Unneeded
+UNINSTALL_PACKAGES=(
+    firefox
+    firefox-langpacks
+)
+
+rpm-ostree override remove ${UNINSTALL_PACKAGES[@]}
 
 # Disable Repo
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
@@ -244,8 +258,18 @@ curl -Lo /usr/share/bash-prexec https://raw.githubusercontent.com/rcaloras/bash-
 # Topgrade Install
 pip install --prefix=/usr topgrade
 
-systemctl enable cosmic-greeter
-systemctl enable power-profiles-daemon
+# Install ublue-update
+rpm-ostree install ublue-update
+mkdir -p /etc/ublue-update
+tee /etc/ublue-update/ublue-update.toml <<'EOF'
+[checks]
+    min_battery_percent = 20.0
+    max_cpu_load_percent = 50.0
+    max_mem_percent = 90.0
+    network_not_metered = true  # Abort if network connection is metered
+[notify]
+    dbus_notify = false
+EOF
 
 # Convince the installer we are in CI
 touch /.dockerenv
@@ -259,6 +283,18 @@ curl -Lo /tmp/brew-install https://raw.githubusercontent.com/Homebrew/install/HE
 chmod +x /tmp/brew-install
 /tmp/brew-install
 tar --zstd -cvf /usr/share/homebrew.tar.zst /home/linuxbrew/.linuxbrew
+mkdir -p /etc/security/limits.d
+tee /etc/security/limits.d/30-brew-limits.conf <<'EOF'
+#This file sets the resource limits for the users logged in via PAM,
+#more specifically, users logged in on via SSH or tty (console).
+#Limits related to terminals in Wayland/Xorg sessions depend on a
+#change to /etc/systemd/user.conf.
+#This does not affect resource limits of the system services.
+#This file overrides defaults set in /etc/security/limits.conf
+
+* soft nofile 4096
+root soft nofile 4096
+EOF
 
 # Brew Services
 curl -Lo /usr/lib/systemd/system/brew-setup.service \
@@ -307,6 +343,8 @@ fi
 EOF
 
 # Systemd
+systemctl enable cosmic-greeter
+systemctl enable power-profiles-daemon
 systemctl enable brew-setup.service
 systemctl enable brew-upgrade.timer
 systemctl enable brew-update.timer

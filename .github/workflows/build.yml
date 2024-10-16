@@ -40,3 +40,13 @@ jobs:
       contents: read
       packages: write
       id-token: write
+    
+  build-iso:
+    uses: ./.github/workflows/build-iso.yml
+    secrets: inherit
+    needs: [push-ublue, push-cosmic]
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write

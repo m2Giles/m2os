@@ -1,0 +1,121 @@
+name: Build ISOs
+on:
+    workflow_dispatch:
+    workflow_call:
+
+env:
+    IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+    IMAGE_NAME: m2os
+
+concurrency: 
+    group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+    cancel-in-progress: true
+
+jobs:
+    build-iso:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+            id-token: write
+        strategy:
+            fail-fast: false
+            matrix:
+                image_tag:
+                    - aurora
+                    - aurora-nvidia
+                    - bazzite
+                    - bazzite-nvidia
+                    - bluefin
+                    - bluefin-nvidia
+                    - cosmic
+                    - cosmic-nvidia
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            
+            - name: Flatpak Dependencies
+              id: flatpak-dependencies
+              env:
+                IMAGE_FULL: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image_tag }}
+              shell: bash
+              run: |
+                set -eoux pipefail
+                IMAGE="${IMAGE_FULL}"
+
+                # Create temporary directory
+                TEMP_FLATPAK_INSTALL_DIR=$(mktemp -d -p /tmp flatpak-XXXXXX)
+                FLATPAK_REFS_DIR=./flatpak-refs
+                FLATPAK_REFS_DIR_ABS=$(realpath "${FLATPAK_REFS_DIR}")
+                mkdir -p "${FLATPAK_REFS_DIR}"
+                if [[ "${IMAGE}" =~ bluefin ]]; then
+                    curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
+                        https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/bluefin_flatpaks/flatpaks
+                elif [[ "${IMAGE}" =~ aurora ]]; then
+                    curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
+                        https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/aurora_flatpaks/flatpaks
+                elif [[ "${IMAGE}" =~ bazzite ]]; then
+                    curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
+                        https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks
+                elif [[ "${IMAGE}" =~ cosmic ]]; then
+                    curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
+                        https://raw.githubusercontent.com/ublue-os/cosmic/refs/heads/main/flatpaks.txt
+                
+                # Read the list of Flatpak packages from the manifest
+                FLATPAK_REFS=()
+                while IFS= read -r line; do
+                  FLATPAK_REFS+=("$line")
+                done < "${FLATPAK_REFS_DIR}/flatpaks.txt"
+
+                echo "Flatpak refs: ${FLATPAK_REFS[@]}"
+
+                # Generate installation script
+                cat <<EOF > "${TEMP_FLATPAK_INSTALL_DIR}/install-flatpaks.sh"
+                mkdir -p /flatpak/flatpak /flatpak/triggers
+                mkdir /var/tmp
+                chmod -R 1777 /var/tmp
+                flatpak config --system --set languages "*"
+                flatpak remote-add --system flathub https://flathub.org/repo/flathub.flatpakrepo
+                flatpak install --system -y flathub ${FLATPAK_REFS[@]}
+                ostree refs --repo=\${FLATPAK_SYSTEM_DIR}/repo | grep '^deploy/' | grep -v 'org\.freedesktop\.Platform\.openh264' | sed 's/^deploy\///g' > /output/flatpaks-with-deps
+                EOF
+                docker run --rm --privileged \
+                  --entrypoint /bin/bash \
+                  -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
+                  -e FLATPAK_TRIGGERS_DIR=/flatpak/triggers \
+                  -v ${FLATPAK_REFS_DIR_ABS}:/output \
+                  -v ${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir \
+                  ${IMAGE} /temp_flatpak_install_dir/install-flatpaks.sh
+                docker rmi ${IMAGE}
+                cat ${FLATPAK_REFS_DIR}/flatpaks-with-deps
+
+                echo "FLATPAK_REFS_DIR=${FLATPAK_REFS_DIR}" >> $GITHUB_OUTPUT
+            
+            - name: Build ISOs
+              uses: jasonn3/build-container-installer@v1.2.2
+              id: build
+              with:
+                iso_name: ${{ matrix.image_tag }}.iso
+                arch: x86_64
+                image_name: ${{ env.IMAGE_NAME }}
+                image_repo: ${{ env.IMAGE_REGISTRY }}
+                # We cannot use Silverblue variant since we need the user creation options in anaconda
+                variant: "Kinoite"
+                version: 40
+                image_tag: ${{ matrix.image_tag }}
+                secure_boot_key_url: "https://github.com/ublue-os/akmods/raw/main/certs/public_key.der"
+                enrollment_password: "universalblue"
+                flatpak_remote_refs_dir: ${{ steps.flatpak-dependencies.outputs.FLATPAK_REFS_DIR }}
+                enable_flatpak_dependencies: false
+            
+            - name: Upload ISOs and Checksum to Job Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.image_tag }}
+                  path: |
+                      ${{ steps.build.outputs.iso_path }}
+                      ${{ steps.build.outputs.iso_path }}-CHECKSUM
+                  if-no-files-found: error
+                  retention-days: 0
+                  compression-level: 0
+                  overwrite: true

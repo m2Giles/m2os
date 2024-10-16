@@ -7,6 +7,8 @@ images := '(
     [bluefin-nvidia]="bluefin-nvidia"
     [cosmic]="cosmic"
     [cosmic-nvidia]="cosmic-nvidia"
+    [ucore]="stable-zfs"
+    [ucore-nvidia]="stable-nvidia-zfs"
 )'
 
 _default:
@@ -29,15 +31,23 @@ build image="bluefin":
     if [[ -z "$check" ]]; then
         exit 1
     fi
-    if [[ ! "{{ image }}" =~ cosmic ]]; then
-        buildah build --build-arg IMAGE={{ image }} --target stage1 --tag localhost/m2os:{{ image }}
+    if [[ ! "${image}" =~ cosmic ]]; then
+        buildah build --build-arg IMAGE=${check} --target stage1 --tag localhost/m2os:${image}
     else
-        buildah build --build-arg IMAGE={{ image }} --target cosmic --tag localhost/m2os:{{ image }}
+        buildah build --build-arg IMAGE=${check} --target cosmic --tag localhost/m2os:${image}
     fi
 
 # Clean Image
 clean image="":
-    podman rmi localhost/m2os:{{ image }}
+    #!/usr/bin/bash
+    set -eoux pipefail
+    declare -A images={{ images }}
+    image={{image}}
+    check=${images[$image]-}
+    if [[ -z "$check" ]]; then
+        exit 1
+    fi
+    podman rmi localhost/m2os:${image}
 
 # Clean All Images
 cleanall:
