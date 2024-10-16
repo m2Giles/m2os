@@ -3,7 +3,7 @@
 set -eoux pipefail
 
 # Get Kernel Version
-QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:$(rpm -E %fedora) | jq -r '.Labels["ostree.linux"]')
+QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:"$(rpm -E %fedora)" | jq -r '.Labels["ostree.linux"]')
 
 # Add Cosmic Repo
 curl -Lo /etc/yum.repos.d/_copr_ryanabx-cosmic.repo \
@@ -11,7 +11,7 @@ curl -Lo /etc/yum.repos.d/_copr_ryanabx-cosmic.repo \
 
 # Add Staging repo
 curl -Lo /etc/yum.repos.d/ublue-os-staging-fedora-"$(rpm -E %fedora)".repo \
-    https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-"$(rpm -E %fedora)"/ublue-os-staging-fedora-"$(rpm -E %fedora)".repo 
+    https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-"$(rpm -E %fedora)"/ublue-os-staging-fedora-"$(rpm -E %fedora)".repo
 
 # Add Nerd Fonts Repo
 curl -Lo /etc/yum.repos.d/_copr_che-nerd-fonts-"$(rpm -E %fedora)".repo \
@@ -103,8 +103,8 @@ PACKAGES+=(
 )
 
 RPM_FUSION=(
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-"$(rpm -E %fedora)".noarch.rpm
+    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-"$(rpm -E %fedora)".noarch.rpm
 )
 
 rpm-ostree install "${RPM_FUSION[@]}"
@@ -115,7 +115,7 @@ rpm-ostree override replace \
         fwupd fwupd-plugin-flashrom fwupd-plugin-modem-manager fwupd-plugin-uefi-capsule-data
 
 # Fetch Kernel
-skopeo copy docker://ghcr.io/ublue-os/coreos-stable-kernel:$(rpm -E %fedora)-${QUALIFIED_KERNEL} dir:/tmp/kernel-rpms
+skopeo copy docker://ghcr.io/ublue-os/coreos-stable-kernel:"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/kernel-rpms
 KERNEL_TARGZ=$(jq -r '.layers[].digest' < /tmp/kernel-rpms/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/kernel-rpms/"$KERNEL_TARGZ" -C /
 mv /tmp/rpms/* /tmp/kernel-rpms/
@@ -130,7 +130,7 @@ KERNEL_RPMS=(
 )
 
 # Fetch AKMODS
-skopeo copy docker://ghcr.io/ublue-os/akmods:coreos-stable-$(rpm -E %fedora)-${QUALIFIED_KERNEL} dir:/tmp/akmods
+skopeo copy docker://ghcr.io/ublue-os/akmods:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
 AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
 mv /tmp/rpms/* /tmp/akmods/
@@ -143,14 +143,14 @@ AKMODS_RPMS=(
 )
 
 # Fetch ZFS
-skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:coreos-stable-$(rpm -E %fedora)-${QUALIFIED_KERNEL} dir:/tmp/akmods-zfs
+skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
 ZFS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods-zfs/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
 mv /tmp/rpms/* /tmp/akmods-zfs/
 echo "zfs" > /usr/lib/modules-load.d/zfs.conf
 
 ZFS_RPMS=(
-    /tmp/akmods-zfs/kmods/zfs/kmod-zfs-${QUALIFIED_KERNEL}-*.rpm
+    /tmp/akmods-zfs/kmods/zfs/kmod-zfs-"${QUALIFIED_KERNEL}"-*.rpm
     /tmp/akmods-zfs/kmods/zfs/libnvpair3-*.rpm
     /tmp/akmods-zfs/kmods/zfs/libuutil3-*.rpm
     /tmp/akmods-zfs/kmods/zfs/libzfs5-*.rpm
@@ -225,7 +225,7 @@ UNINSTALL_PACKAGES=(
     firefox-langpacks
 )
 
-rpm-ostree override remove ${UNINSTALL_PACKAGES[@]}
+rpm-ostree override remove "${UNINSTALL_PACKAGES[@]}"
 
 # Disable Repo
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo

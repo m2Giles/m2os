@@ -69,3 +69,21 @@ chmod 0600 /lib/modules/"$QUALIFIED_KERNEL"/initramfs.img
 
 sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/fedora-updates.repo
 sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/fedora-updates-archive.repo
+
+# VFIO Kargs
+tee /usr/libexec/vfio-kargs.sh <<'EOF'
+#!/usr/bin/bash
+CPU_VENDOR=$(grep "vendor_id" "/proc/cpuinfo" | uniq | awk -F": " '{ print $2 }')
+if [[ "${CPU_VENDOR}" == "GenuineIntel" ]]; then
+    VENDOR_KARG="intel_iommu=on"
+elif [[ "${CPU_VENDOR}" == "AuthenticAMD" ]]; then
+    VENDOR_KARG="amd_iommu=on"
+fi
+rpm-ostree kargs \
+    --append-if-missing="${VENDOR_KARG}" \
+    --append-if-missing="iommu=pt" \
+    --append-if-missing="rd.driver.pre=vfio_pci" \
+    --append-if-missing="vfio_pci.disable_vga=1"
+EOF
+
+chmod +x /usr/libexec/vfio-kargs.sh

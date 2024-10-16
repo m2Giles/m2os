@@ -8,6 +8,11 @@ sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates-archive.repo
 rpm-ostree override replace \
     --experimental \
     --from repo=updates \
+        systemd-libs \
+        || true
+rpm-ostree override replace \
+    --experimental \
+    --from repo=updates \
         vulkan-loader \
         || true
 rpm-ostree override replace \
@@ -157,6 +162,3 @@ if grep -q "aurora" <<< "${IMAGE}"; then \
 rpm-ostree override remove \
     glibc32 \
     || true
-
-sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/fedora-updates.repo
-sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/fedora-updates-archive.repo

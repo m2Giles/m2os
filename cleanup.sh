@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+#shellcheck disable=SC2115
 
 set -eoux pipefail
 
@@ -12,15 +13,16 @@ repos=(
     _copr_kylegospo-webapp-manager.repo
     _copr_che-nerd-fonts.repo
     _copr_hikariknight-looking-glass-kvmfr.repo
-    tailscale.repo
     charm.repo
     docker-ce.repo
+    fedora-updates
+    fedora-updates-archive
     tailscale.repo
     ublue-os-bling-fedora-*.repo
     ublue-os-staging-fedora-*.repo
     vscode.repo
 )
-for repo in ${repos[@]}; do
+for repo in "${repos[@]}"; do
     if [[ -f "/etc/yum.repos.d/$repo" ]]; then
         sed -i 's@enabled=1@enabled=0@g' "/etc/yum.repos.d/$repo"
     fi
