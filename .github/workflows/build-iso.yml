@@ -4,7 +4,7 @@ on:
     workflow_call:
 
 env:
-    IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+    IMAGE_REGISTRY: ghcr.io/m2giles
     IMAGE_NAME: m2os
 
 concurrency: 
