@@ -15,8 +15,8 @@ repos=(
     _copr_hikariknight-looking-glass-kvmfr.repo
     charm.repo
     docker-ce.repo
-    fedora-updates
-    fedora-updates-archive
+    fedora-updates.repo
+    fedora-updates-archive.repo
     tailscale.repo
     ublue-os-bling-fedora-*.repo
     ublue-os-staging-fedora-*.repo
