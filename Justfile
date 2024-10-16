@@ -31,7 +31,9 @@ build image="bluefin":
     if [[ -z "$check" ]]; then
         exit 1
     fi
-    if [[ ! "${image}" =~ cosmic ]]; then
+    if [[ "${image}" =~ ucore ]]; then
+        buildah build --build-arg IMAGE=ucore-hci --build-arg TAG_VERSION=${check} --target stage1 --tag localhost/m2os:${image}
+    elif [[ ! "${image}" =~ cosmic ]]; then
         buildah build --build-arg IMAGE=${check} --target stage1 --tag localhost/m2os:${image}
     else
         buildah build --build-arg IMAGE=${check} --target cosmic --tag localhost/m2os:${image}

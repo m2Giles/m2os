@@ -63,7 +63,8 @@ jobs:
           attempt_delay: 15000
           command: |
             set -eoux pipefail
-            podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+            sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+            sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.6
 
       - name: Checkout Push to Registry Action
         uses: actions/checkout@v4
@@ -102,21 +103,45 @@ jobs:
 
       - name: Build Image
         id: build_image
-        uses: redhat-actions/buildah-build@v2
+        shell: bash
+        run: |
+          sudo buildah build \
+            --format "docker" \
+            --build-arg IMAGE=${{ env.image }} \
+            --build-arg TAG_VERSION=${{ env.tag_version }} \
+            --build-arg FEDORA_VERSION=${{ env.fedora_version }} \
+            --target stage1 \
+            --tag raw-img .
+
+      - name: Remove old Images
+        run: |
+          set -eoux pipefail
+          sudo podman image rm ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+
+      - name: Rechunk Image
+        id: rechunk
+        uses: hhd-dev/rechunk@v0.8.6
         with:
-          containerfiles: |
-            ./Containerfile
-          image: ${{ env.IMAGE_NAME }}
-          tags: |
-            ${{ steps.generate_tags.outputs.build_tags }}
-          build-args: |
-            IMAGE=${{ env.image }}
-            TAG_VERSION=${{ env.tag_version }}
-            FEDORA_VERSION=${{ env.fedora_version }}
-          labels: ${{ steps.meta.outputs.labels }}
-          extra-args: |
-            --target stage1
-          oci: false
+          ref: "raw-img"
+          prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
+          version: "${{ env.version }}"
+          rechunk: "ghcr.io/hhd-dev/rechunk:v0.8.6"
+          labels: |
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends them for my uses.
+            org.opencontainers.image.version=${{ env.version }}
+            ostree.linux=${{ env.kernel_release }}
+
+      - name: Load into Podman and Tag
+        shell: bash
+        run: |
+          set -eoux pipefail
+          IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
+          sudo rm -rf ${{ steps.rechunk.outputs.output }}
+          for tag in ${{ steps.generate_tags.outputs.build_tags }}; do
+            podman tag $IMAGE m2os:$tag
+          done
+          podman tag $IMAGE rechunked-img
 
       - name: Check Secureboot
         id: secureboot
