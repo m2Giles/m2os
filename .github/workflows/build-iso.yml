@@ -24,8 +24,6 @@ jobs:
                 image_tag:
                     - aurora
                     - aurora-nvidia
-                    - bazzite
-                    - bazzite-nvidia
                     - bluefin
                     - bluefin-nvidia
                     - cosmic
@@ -54,9 +52,6 @@ jobs:
                 elif [[ "${IMAGE}" =~ aurora ]]; then
                     curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
                         https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/aurora_flatpaks/flatpaks
-                elif [[ "${IMAGE}" =~ bazzite ]]; then
-                    curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
-                        https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks
                 elif [[ "${IMAGE}" =~ cosmic ]]; then
                     curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
                         https://raw.githubusercontent.com/ublue-os/cosmic/refs/heads/main/flatpaks.txt

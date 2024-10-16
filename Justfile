@@ -1,8 +1,8 @@
 images := '(
     [aurora]="aurora"
     [aurora-nvidia]="aurora-nvidia"
-    [bazzite-deck-gnome]="bazzite-deck-gnome"
-    [bazzite-gnome-nvidia]="bazzite-gnome-nvidia"
+    [bazzite]="bazzite-gnome-nvidia"
+    [bazzite-deck]="bazzite-deck-gnome"
     [bluefin]="bluefin"
     [bluefin-nvidia]="bluefin-nvidia"
     [cosmic]="cosmic"
@@ -33,6 +33,8 @@ build image="bluefin":
     fi
     if [[ "${image}" =~ ucore ]]; then
         buildah build --build-arg IMAGE=ucore-hci --build-arg TAG_VERSION=${check} --target stage1 --tag localhost/m2os:${image}
+    elif [[ "${image}" =~ bazzite ]]; then
+        buildah build --build-arg IMAGE=${check} --build-arg TAG_VERSION=stable --target stage1 --tag localhost/m2os:${image}
     elif [[ ! "${image}" =~ cosmic ]]; then
         buildah build --build-arg IMAGE=${check} --target stage1 --tag localhost/m2os:${image}
     else
