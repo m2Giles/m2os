@@ -60,6 +60,7 @@ jobs:
                 elif [[ "${IMAGE}" =~ cosmic ]]; then
                     curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt \
                         https://raw.githubusercontent.com/ublue-os/cosmic/refs/heads/main/flatpaks.txt
+                fi
                 
                 # Read the list of Flatpak packages from the manifest
                 FLATPAK_REFS=()
