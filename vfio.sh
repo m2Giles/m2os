@@ -29,7 +29,7 @@ VFIO_PACKAGES=(
     qemu
 )
 
-if [[ ! "$IMAGE" =~ ucore ]]; then
+if [[ ! "$IMAGE" =~ ucore|cosmic ]]; then
     VFIO_PACKAGES+=(virt-manager)
 fi
 
