@@ -34,11 +34,6 @@ jobs:
           - cosmic-nvidia
         tag_version:
           - ${{ inputs.tag_version }}
-        exclude:
-          - tag_version: beta
-            image: bazzite-deck-gnome
-          - tag_version: beta
-            image: bazzite-gnome-nvidia
 
     steps:
       - name: Build Variables
@@ -55,6 +50,10 @@ jobs:
 
             if [[ "$tag_version" == "stable" && ! "${image}" =~ bazzite ]]; then
               tag_version="${tag_version}-daily"
+            fi
+
+            if [[ "$tag_Version" == "beta" && ${image} =~ bazzite ]]; then
+              tag_version="unstable"
             fi
 
             if [[ ! "${image}" =~ cosmic ]]; then

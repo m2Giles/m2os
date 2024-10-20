@@ -47,3 +47,7 @@ cat <<<"$(jq ".\"image-name\" |= \"m2os\" |
     </usr/share/ublue-os/image-info.json)" \
 >/tmp/image-info.json
 cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
+
+if [[ "$IMAGE" =~ bazzite ]]; then
+    sed -i 's/image-branch/image-tag/' /usr/libexec/bazzite-fetch-image
+fi

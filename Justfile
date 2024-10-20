@@ -62,6 +62,9 @@ build-beta image="bluefin":
     "aurora"*|"bluefin"*)
         buildah build --build-arg BASE_IMAGE=${image} --build-arg IMAGE=${image}-beta --build-arg TAG_VERSION=beta --tag localhost/m2os:${image}-beta
         ;;
+    "bazzite"*)
+        buildah build --build-arg BASE_IMAGE=${check} --build-arg IMAGE=${image}-beta --build-arg TAG_VERSION=unstable --tag localhost/m2os:${image}-beta
+        ;;
     "cosmic"*)
         BETA=$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:beta | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')
         buildah build --build-arg BASE_IMAGE=base-main --build-arg IMAGE=${image}-beta --build-arg TAG_VERSION=${BETA} --tag localhost/m2os:${image}-beta
@@ -75,9 +78,13 @@ build-beta image="bluefin":
 clean image="":
     #!/usr/bin/bash
     set -eoux pipefail
-    declare -A images={{ images }}
+    declare -A images={{images}}
     image={{image}}
-    check=${images[$image]-}
+    check_image="$image"
+    if [[ "$check_image" =~ beta ]]; then
+        check_image=${check_image:0:-5}
+    fi
+    check=${images[$check_image]-}
     if [[ -z "$check" ]]; then
         exit 1
     fi
@@ -86,4 +93,9 @@ clean image="":
 # Clean All Images
 cleanall:
     #!/usr/bin/bash
-    declare -A images={{ images }}; for image in ${!images[@]}; do just clean $image; just clean ${image}-beta; done
+    declare -A images={{ images }}
+    for image in ${!images[@]}
+    do
+        podman rmi localhost/"$image"
+        podman rmi localhost/"$image"-beta
+    done
