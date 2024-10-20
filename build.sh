@@ -7,9 +7,12 @@ mkdir -p /var/lib/alternatives
 #Common
 /ctx/build-fix.sh
 /ctx/server-packages.sh
-/ctx/branding.sh
 /ctx/distrobox.sh
-/ctx/signing.sh
+
+if [[ "$(rpm -E %fedora)" == "41" ]]; then
+    export KERNEL_FLAVOR="main"
+    export BETA="-beta"
+fi
 
 # Changes
 case "${IMAGE}" in
@@ -31,6 +34,8 @@ esac
 
 # Common
 /ctx/vfio.sh
+/ctx/branding.sh
+/ctx/signing.sh
 
 # Clean Up
 /ctx/cleanup.sh

@@ -8,7 +8,7 @@ curl -Lo /etc/yum.repos.d/_copr_kylegospo-obs-vkcapture.repo \
 
 # Bazzite Repos
 curl -Lo /etc/yum.repos.d/_copr_kylegospo-bazzite.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite/repo/fedora-"$(rpm -E %fedora)"/kylegospo-bazzite-fedora-"$(rpm -E %fedora)".repo 
+    https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite/repo/fedora-"$(rpm -E %fedora)"/kylegospo-bazzite-fedora-"$(rpm -E %fedora)".repo
 curl -Lo /etc/yum.repos.d/_copr_kylegospo-bazzite-multilib.repo \
     https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite-multilib/repo/fedora-"$(rpm -E %fedora)"/kylegospo-bazzite-multilib-fedora-"$(rpm -E %fedora)".repo?arch=x86_64
 curl -Lo /etc/yum.repos.d/_copr_kylegospo-latencyflex.repo \
@@ -64,10 +64,19 @@ EOF
 systemctl enable sunshine-workaround.service
 
 curl -Lo /etc/yum.repos.d/_copr_kylegospo-webapp-manager.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/webapp-manager/repo/fedora-"${FEDORA_VERSION}"/kylegospo-webapp-manager-fedora-"${FEDORA_VERSION}".repo
+    https://copr.fedorainfracloud.org/coprs/kylegospo/webapp-manager/repo/fedora-"$(rpm -E %fedora)"/kylegospo-webapp-manager-fedora-"$(rpm -E %fedora)".repo
 
 # Layered Applications
-LAYERED_PACKAGES=(breeze-cursor-theme code emacs git-credential-libsecret git-credential-oauth sunshine webapp-manager)
+LAYERED_PACKAGES=(
+    breeze-cursor-theme
+    code
+    emacs
+    git-credential-libsecret
+    git-credential-oauth
+    sunshine
+    webapp-manager
+)
+
 if [[ "${IMAGE}" =~ aurora ]]; then
     LAYERED_PACKAGES+=(krdp)
 fi
@@ -81,8 +90,8 @@ mkdir -p /usr/lib/zed.app/
 tar -xvf /tmp/zed.tar.gz -C /usr/lib/zed.app/ --strip-components=1
 ln -s /usr/lib/zed.app/bin/zed /usr/bin/zed
 cp /usr/lib/zed.app/share/applications/zed.desktop /usr/share/applications/dev.zed.Zed.desktop
-sed -i "s|Icon=zed|Icon=/usr/lib/zed.app/share/icons/hicolor/512x512/apps/zed.png|g" /usr/share/applications/dev.zed.Zed.desktop
-sed -i "s|Exec=zed|Exec=/usr/lib/zed.app/libexec/zed-editor|g" /usr/share/applications/dev.zed.Zed.desktop
+sed -i "s@Icon=zed@Icon=/usr/lib/zed.app/share/icons/hicolor/512x512/apps/zed.png@g" /usr/share/applications/dev.zed.Zed.desktop
+sed -i "s@Exec=zed@Exec=/usr/lib/zed.app/libexec/zed-editor@g" /usr/share/applications/dev.zed.Zed.desktop
 
 # Call other Scripts
 /ctx/desktop-defaults.sh

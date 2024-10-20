@@ -2,8 +2,12 @@
 
 set -eoux pipefail
 
+if [[ -z "${KERNEL_FLAVOR:-}" ]]; then
+    KERNEL_FLAVOR=coreos-stable
+fi
+
 # Get Kernel Version
-QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:"$(rpm -E %fedora)" | jq -r '.Labels["ostree.linux"]')
+QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/"${KERNEL_FLAVOR}"-kernel:"$(rpm -E %fedora)" | jq -r '.Labels["ostree.linux"]')
 
 # Add Cosmic Repo
 curl -Lo /etc/yum.repos.d/_copr_ryanabx-cosmic.repo \
@@ -115,7 +119,7 @@ rpm-ostree override replace \
         fwupd fwupd-plugin-flashrom fwupd-plugin-modem-manager fwupd-plugin-uefi-capsule-data
 
 # Fetch Kernel
-skopeo copy docker://ghcr.io/ublue-os/coreos-stable-kernel:"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/kernel-rpms
+skopeo copy docker://ghcr.io/ublue-os/"${KERNEL_FLAVOR}"-kernel:"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/kernel-rpms
 KERNEL_TARGZ=$(jq -r '.layers[].digest' < /tmp/kernel-rpms/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/kernel-rpms/"$KERNEL_TARGZ" -C /
 mv /tmp/rpms/* /tmp/kernel-rpms/
@@ -130,7 +134,7 @@ KERNEL_RPMS=(
 )
 
 # Fetch AKMODS
-skopeo copy docker://ghcr.io/ublue-os/akmods:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
+skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
 AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
 mv /tmp/rpms/* /tmp/akmods/
@@ -143,22 +147,26 @@ AKMODS_RPMS=(
 )
 
 # Fetch ZFS
-skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
-ZFS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods-zfs/manifest.json | cut -d : -f 2)
-tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
-mv /tmp/rpms/* /tmp/akmods-zfs/
-echo "zfs" > /usr/lib/modules-load.d/zfs.conf
+if [[ "${KERNEL_FLAVOR}" == "coreos-stable" ]]; then
+    skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
+    ZFS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods-zfs/manifest.json | cut -d : -f 2)
+    tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
+    mv /tmp/rpms/* /tmp/akmods-zfs/
+    echo "zfs" > /usr/lib/modules-load.d/zfs.conf
 
-ZFS_RPMS=(
-    /tmp/akmods-zfs/kmods/zfs/kmod-zfs-"${QUALIFIED_KERNEL}"-*.rpm
-    /tmp/akmods-zfs/kmods/zfs/libnvpair3-*.rpm
-    /tmp/akmods-zfs/kmods/zfs/libuutil3-*.rpm
-    /tmp/akmods-zfs/kmods/zfs/libzfs5-*.rpm
-    /tmp/akmods-zfs/kmods/zfs/libzpool5-*.rpm
-    /tmp/akmods-zfs/kmods/zfs/python3-pyzfs-*.rpm
-    /tmp/akmods-zfs/kmods/zfs/zfs-*.rpm
-    pv
-)
+    ZFS_RPMS=(
+        /tmp/akmods-zfs/kmods/zfs/kmod-zfs-"${QUALIFIED_KERNEL}"-*.rpm
+        /tmp/akmods-zfs/kmods/zfs/libnvpair3-*.rpm
+        /tmp/akmods-zfs/kmods/zfs/libuutil3-*.rpm
+        /tmp/akmods-zfs/kmods/zfs/libzfs5-*.rpm
+        /tmp/akmods-zfs/kmods/zfs/libzpool5-*.rpm
+        /tmp/akmods-zfs/kmods/zfs/python3-pyzfs-*.rpm
+        /tmp/akmods-zfs/kmods/zfs/zfs-*.rpm
+        pv
+    )
+else
+    ZFS_RPMS=()
+fi
 
 # Nvidia Modprobe and Dracut
 echo "options nvidia NVreg_TemporaryFilePath=/var/tmp" >> /usr/lib/modprobe.d/nvidia-atomic.conf
@@ -175,7 +183,7 @@ echo 'force_drivers+=" nvidia nvidia-drm nvidia-modeset nvidia-peermem nvidia-uv
 # Fetch Nvidia or Delete Nvidia Configs
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
 
-    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
+    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia:${KERNEL_FLAVOR}-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
     NVIDIA_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods-rpms/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
     mv /tmp/rpms/* /tmp/akmods-rpms/
@@ -227,7 +235,7 @@ UNINSTALL_PACKAGES=(
 
 rpm-ostree override remove "${UNINSTALL_PACKAGES[@]}"
 
-# Disable Repo
+# Disable Repos
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 rpm-ostree uninstall rpmfusion-free-release rpmfusion-nonfree-release
 
@@ -310,7 +318,7 @@ curl -Lo /usr/lib/systemd/system/brew-upgrade.timer \
 
 echo 'd /var/home/linuxbrew 0755 1000 1000 - -' >> /usr/lib/tmpfiles.d/homebrew.conf
 
-if [ "$FEDORA_VERSION" -ge "40" ]; then
+if [ $(rpm -E %fedora) -eq "40" ]; then
     /usr/bin/bootupctl backend generate-update-metadata
 fi
 

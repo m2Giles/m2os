@@ -1,15 +1,19 @@
-name: Build m2os-ucore
+name: Build m2os-desktops
 on:
     workflow_call:
-    workflow_dispatch:
+      inputs:
+        tag_version:
+          description: "The Tag Version for the Build"
+          required: true
+          type: string
 
 env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   IMAGE_NAME: m2os
 
 jobs:
-  push-ucore:
-    name: Build Ucore Images
+  push-ublue:
+    name: Build Desktop Images
     runs-on: ubuntu-24.04
     continue-on-error: false
     permissions:
@@ -20,8 +24,22 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - stable-zfs
-          - stable-nvidia-zfs
+          - aurora
+          - aurora-nvidia
+          - bazzite-deck-gnome
+          - bazzite-gnome-nvidia
+          - bluefin
+          - bluefin-nvidia
+          - cosmic
+          - cosmic-nvidia
+        tag_version:
+          - ${{ inputs.tag_version }}
+        exclude:
+          - tag_version: beta
+            image: bazzite-deck-gnome
+          - tag_version: beta
+            image: bazzite-gnome-nvidia
+
     steps:
       - name: Build Variables
         id: labels
@@ -31,27 +49,58 @@ jobs:
           attempt_delay: 15000
           command: |
             set -eoux pipefail
-            tag_version=${{ matrix.image }}
-            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/ucore-hci:${tag_version} | jq -r '.Labels["ostree.linux"]')
-            upstream_repo=ucore
-            image=ucore-hci
-            fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
-            ver=$(skopeo inspect docker://ghcr.io/ublue-os/${image}:"$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
+            image="${{ matrix.image }}"
+            base_image=${{ matrix.image }}
+            tag_version=${{ matrix.tag_version }}
+
+            if [[ "$tag_version" == "stable" && ! "${image}" =~ bazzite ]]; then
+              tag_version="${tag_version}-daily"
+            fi
+
+            if [[ ! "${image}" =~ cosmic ]]; then
+              KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/"${base_image}:${tag_version}" | jq -r '.Labels["ostree.linux"]')
+              fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
+              ver=$(skopeo inspect docker://ghcr.io/ublue-os/"${base_image}:$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
+            fi
+
+            case "${image}" in
+            "bluefin"*|"aurora"*)
+              upstream_repo=bluefin
+              ;;
+            "bazzite"*)
+              upstream_repo=bazzite
+              ;;
+            "cosmic"*)
+              upstream_repo=main
+              base_image="base-main"
+              KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:${tag_version} | jq -r '.Labels["ostree.linux"]')
+              fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
+              tag_version="${fedora_version}"
+              ver=$(skopeo inspect docker://ghcr.io/ublue-os/${base_image}:${fedora_version} | jq -r '.Labels["org.opencontainers.image.version"]')
+              ;;
+            *)
+              echo "Invalid Choice. Exiting..."
+              exit 1
+              ;;
+            esac
+
             if [ -z "$ver" ] || [ "null" = "$ver" ]; then
               echo "inspected image version must not be empty or null"
               exit 1
             fi
+
             echo "version=$ver" >> $GITHUB_ENV
             echo "tag_version=$tag_version" >> $GITHUB_ENV
             echo "kernel_release=${KERNEL_RELEASE}" >> $GITHUB_ENV
             echo "fedora_version=${fedora_version}" >> $GITHUB_ENV
             echo "upstream_repo=${upstream_repo}" >> $GITHUB_ENV
             echo "image=${image}" >> $GITHUB_ENV
+            echo "base_image=${base_image}" >> $GITHUB_ENV
 
       - name: Verify Base Image
         uses: EyeCantCU/cosign-action/verify@v0.2.2
         with:
-          containers: ${{ env.image }}:${{ env.tag_version }}
+          containers: ${{ env.base_image }}:${{ env.tag_version }}
           pubkey: https://raw.githubusercontent.com/ublue-os/${{ env.upstream_repo }}/main/cosign.pub
           registry: ghcr.io/ublue-os
 
@@ -63,7 +112,7 @@ jobs:
           attempt_delay: 15000
           command: |
             set -eoux pipefail
-            sudo podman pull ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+            sudo podman pull ghcr.io/ublue-os/${{ env.base_image }}:${{ env.tag_version }}
             sudo podman pull ghcr.io/hhd-dev/rechunk:v0.8.6
 
       - name: Checkout Push to Registry Action
@@ -77,29 +126,29 @@ jobs:
         shell: bash
         run: |
           TIMESTAMP="$(date +%Y%m%d)"
-          if [[ "${{ env.tag_version }}" =~ nvidia ]]; then
-            tag="ucore-nvidia"
-          else
-            tag="ucore"
+          case "${{ env.image }}" in
+          "bazzite-deck"*)
+            tag="bazzite-deck"
+            ;;
+          "bazzite"*)
+            tag="bazzite"
+            ;;
+          *)
+            tag="${{ env.image }}"
+          esac
+
+          if [[ "${{ matrix.tag_version }}" == "beta" ]]; then
+            tag=${tag}-beta
           fi
+
           BUILD_TAGS+=("${tag}" "${tag}-${TIMESTAMP}")
+
           for TAG in "${BUILD_TAGS[@]}"; do
             echo "${TAG}"
           done
+
           echo "default_tag=${tag}" >> "$GITHUB_OUTPUT"
           echo "build_tags=${BUILD_TAGS[*]}" >> "$GITHUB_OUTPUT"
-
-      - name: Image Metadata
-        uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: |
-            ${{ env.IMAGE_NAME }}
-          labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends them for my uses.
-            org.opencontainers.image.version=${{ env.version }}
-            ostree.linux=${{ env.kernel_release }}
 
       - name: Build Image
         id: build_image
@@ -108,15 +157,14 @@ jobs:
           sudo buildah build \
             --format "docker" \
             --build-arg IMAGE=${{ env.image }} \
+            --build-arg BASE_IMAGE=${{ env.base_image }} \
             --build-arg TAG_VERSION=${{ env.tag_version }} \
-            --build-arg FEDORA_VERSION=${{ env.fedora_version }} \
-            --target stage1 \
             --tag raw-img .
 
       - name: Remove old Images
         run: |
           set -eoux pipefail
-          sudo podman image rm ghcr.io/ublue-os/${{ env.image }}:${{ env.tag_version }}
+          sudo podman image rm ghcr.io/ublue-os/${{ env.base_image }}:${{ env.tag_version }}
 
       - name: Rechunk Image
         id: rechunk
@@ -155,6 +203,7 @@ jobs:
           TMP=$(podman create rechunked-img bash)
           podman cp $TMP:/usr/lib/modules/${{ env.kernel_release }}/vmlinuz .
           podman rm $TMP
+          # podman run --rm rechunked-img /bin/bash -c "cat /usr/lib/modules/*/vmlinuz" > vmlinuz
           sbverify --list vmlinuz
           curl --retry 3 -Lo kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
           curl --retry 3 -Lo akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
