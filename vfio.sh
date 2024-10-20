@@ -23,13 +23,24 @@ enabled=1
 enabled_metadata=1
 EOF
 
+VFIO_PACKAGES=(
+    edk2-ovmf
+    libvirt
+    qemu
+)
+
+if [[ ! "$IMAGE" =~ ucore ]]; then
+    VFIO_PACKAGES+=(virt-manager)
+fi
+
 if [[ ! "${IMAGE}" =~ bazzite ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
     AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
-    VFIO_PACKAGES=(/tmp/rpms/kmods/*kvmfr*.rpm)
-    rpm-ostree install "${VFIO_PACKAGES[@]}"
+    VFIO_PACKAGES+=(/tmp/rpms/kmods/*kvmfr*.rpm)
 fi
+    
+rpm-ostree install "${VFIO_PACKAGES[@]}"
 
 tee /usr/lib/dracut/dracut.conf.d/vfio.conf <<'EOF'
 add_drivers+=" vfio vfio_iommu_type1 vfio-pci "
