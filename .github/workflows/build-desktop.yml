@@ -52,7 +52,7 @@ jobs:
               tag_version="${tag_version}-daily"
             fi
 
-            if [[ "$tag_Version" == "beta" && ${image} =~ bazzite ]]; then
+            if [[ "$tag_version" == "beta" && ${image} =~ bazzite ]]; then
               tag_version="unstable"
             fi
 
