@@ -23,14 +23,15 @@ enabled=1
 enabled_metadata=1
 EOF
 
-VFIO_PACKAGES=(
-    edk2-ovmf
-    libvirt
-    qemu
-)
+VFIO_PACKAGES=()
 
 if [[ ! "$IMAGE" =~ ucore|cosmic ]]; then
-    VFIO_PACKAGES+=(virt-manager)
+    VFIO_PACKAGES+=(
+        edk2-ovmf
+        libvirt
+        qemu
+        virt-manager
+    )
 fi
 
 if [[ ! "${IMAGE}" =~ bazzite ]]; then
