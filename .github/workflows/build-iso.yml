@@ -60,16 +60,16 @@ jobs:
                 mkdir -p "${FLATPAK_REFS_DIR}"
 
                 case "${IMAGE}" in
-                "aurora"*)
+                *"aurora"*)
                     FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/aurora_flatpaks/flatpaks"
                   ;;
-                "bazzite"*)
+                *"bazzite"*)
                     FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
                   ;;
-                "bluefin"*)
+                *"bluefin"*)
                     FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/bluefin_flatpaks/flatpaks"
                   ;;
-                "cosmic"*)
+                *"cosmic"*)
                     FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/cosmic/refs/heads/main/flatpaks.txt"
                   ;;
                 esac
