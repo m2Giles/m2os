@@ -42,7 +42,6 @@ jobs:
                 tee /tmp/lorax_templates/remove_root_password_prompt.tmpl <<'EOF'
                 append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"
                 EOF
-                curl -Lo ${{ github.workspace }}/bazzite.repo https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite/repo/fedora-${{ env.FEDORA_VERSION }}/kylegospo-bazzite-fedora-${{ env.FEDORA_VERSION }}.repo
             
             - name: Flatpak Dependencies
               id: flatpak-dependencies
@@ -122,7 +121,6 @@ jobs:
                 flatpak_remote_refs_dir: ${{ steps.flatpak-dependencies.outputs.FLATPAK_REFS_DIR }}
                 enable_flatpak_dependencies: false
                 additional_templates: '/tmp/lorax_templates/remove_root_password_prompt.tmpl'
-                repos: '${{ github.workspace }}/bazzite.repo /etc/yum.repos.d/fedora.repo /etc/yum.repos.d/fedora-updates.repo'
             
             - name: Upload ISOs and Checksum to Job Artifacts
               uses: actions/upload-artifact@v4

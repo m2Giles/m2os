@@ -147,7 +147,7 @@ rechunk image="bluefin":
             exit 1
         fi
     }
-    sudoif podman image scp ${SUDO_UID}@localhost::localhost/m2os:{{image}} root@localhost::localhost/m2os:{{image}}
+    sudoif podman image scp ${UID}@localhost::localhost/m2os:{{image}} root@localhost::localhost/m2os:{{image}}
     CREF=$(sudoif podman create localhost/m2os:{{image}} bash)
     MOUNT=$(sudoif podman mount $CREF)
     OUT_NAME="m2os_{{image}}"
@@ -190,11 +190,11 @@ rechunk image="bluefin":
         -u 0:0 \
         ghcr.io/hhd-dev/rechunk:latest \
         /sources/rechunk/3_chunk.sh
-    sudoif chown ${SUDO_UID}:${SUDO_GID} -R "${PWD}"/*
+    sudoif chown ${UID}:${GROUPS} -R "${PWD}"/*
     sudoif podman volume rm cache_ostree
     sudoif IMAGE=$(podman pull oci:${PWD}/m2os_{{image}})
-    sudoif podman tag $IMAGE m2os:{{image}}
-    sudoif podman images scp root@localhost::localhost/m2os:{{image}} ${SUDO_UID}@localhost::localhost/m2os:{{image}}
+    sudoif podman tag $IMAGE localhost/m2os:{{image}}
+    sudoif podman images scp root@localhost::localhost/m2os:{{image}} ${UID}@localhost::localhost/m2os:{{image}}
     sudoif podman rmi localhost/m2os:{{image}}
     sudoif podman rmi ghcr.io/hhd-dev/rechunk:latest
 
