@@ -38,8 +38,8 @@ jobs:
             - name: Setup Items
               shell: bash
               run: |
-                mkdir -p /tmp/lorax_templates
-                tee /tmp/lorax_templates/remove_root_password_prompt.tmpl <<'EOF'
+                mkdir -p ${PWD}/m2os_build/lorax_templates
+                tee ${PWD}/m2os_build/lorax_templates/remove_root_password_prompt.tmpl <<'EOF'
                 append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"
                 EOF
             
@@ -120,7 +120,7 @@ jobs:
                 iso_name: ${{ matrix.image_tag }}.iso
                 flatpak_remote_refs_dir: ${{ steps.flatpak-dependencies.outputs.FLATPAK_REFS_DIR }}
                 enable_flatpak_dependencies: false
-                additional_templates: '/tmp/lorax_templates/remove_root_password_prompt.tmpl'
+                additional_templates: '/github/workspace/m2os_build/lorax_templates/remove_root_password_prompt.tmpl'
             
             - name: Upload ISOs and Checksum to Job Artifacts
               uses: actions/upload-artifact@v4
