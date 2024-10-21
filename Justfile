@@ -74,7 +74,7 @@ build-beta image="bluefin":
     fi
     BUILD_ARGS=()
     BUILD_ARGS+=("--label" "org.opencontainers.image.title=m2os")
-    BUILD_ARGS+=("--label" "org.opencontainers.image.version=localbuild")
+    BUILD_ARGS+=("--label" "org.opencontainers.image.version=localbuild-$(date +%Y%m%d-%H:%M:%S)")
     BUILD_ARGS+=("--build-arg" "IMAGE=${image}")
     case "${image}" in
     "aurora"*|"bluefin"*)
@@ -151,11 +151,11 @@ rechunk image="bluefin":
     CREF=$(sudoif podman create localhost/m2os:{{image}} bash)
     MOUNT=$(sudoif podman mount $CREF)
     OUT_NAME="m2os_{{image}}"
-    LABELS=(
-        "org.opencontainers.image.title=m2os"
-        "org.opencontainers.image.version=localbuild"
-        "ostree.linux=$(skopeo inspect containers-storage:localhost/m2os:{{image}} | jq -r '.Labels["ostree.linux"]')"
-    )
+    LABELS="
+        org.opencontainers.image.title=m2os
+        org.opencontainers.image.version=localbuild-$(date +%Y%m%d-%H:%M:%S)
+        ostree.linux=$(skopeo inspect containers-storage:localhost/m2os:{{image}} | jq -r '.Labels["ostree.linux"]')
+        org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends them for my uses."
     sudoif podman run --rm \
         --security-opt label=disable \
         -v "$MOUNT":/var/tree \
@@ -182,7 +182,7 @@ rechunk image="bluefin":
         -v cache_ostree:/var/ostree \
         -e REPO=/var/ostree/repo \
         -e PREV_REF=ghcr.io/m2giles/m2os:{{image}} \
-        -e LABELS="${LABELS[@]}" \
+        -e LABELS="$LABELS" \
         -e OUT_NAME="$OUT_NAME" \
         -e VERSION_FN=/workspace/version.txt \
         -e OUT_REF="oci:$OUT_NAME" \
@@ -190,18 +190,19 @@ rechunk image="bluefin":
         -u 0:0 \
         ghcr.io/hhd-dev/rechunk:latest \
         /sources/rechunk/3_chunk.sh
-    sudoif chown ${UID}:${GROUPS} -R "${PWD}"/*
+    sudoif chown ${UID}:${GROUPS} -R "${PWD}"
     sudoif podman volume rm cache_ostree
-    sudoif IMAGE=$(podman pull oci:${PWD}/m2os_{{image}})
-    sudoif podman tag $IMAGE localhost/m2os:{{image}}
-    sudoif podman images scp root@localhost::localhost/m2os:{{image}} ${UID}@localhost::localhost/m2os:{{image}}
+    IMAGE=$(sudoif podman pull oci:${PWD}/m2os_{{image}})
+    sudoif podman tag ${IMAGE} localhost/m2os:{{image}}
+    sudoif podman image scp root@localhost::localhost/m2os:{{image}} ${UID}@localhost::localhost/m2os:{{image}}
     sudoif podman rmi localhost/m2os:{{image}}
     sudoif podman rmi ghcr.io/hhd-dev/rechunk:latest
+    sudoif chown ${UID}:${GROUPS} -R "${PWD}"/"${OUT_NAME}"
 
 # Build and Rechunk
 build-rechunk image="bluefin": (build image) (rechunk image)
 
 # Cleanup
 clean:
-    find ${PWD}/m2os_* -maxdepth 0 -exec rm -rf \; || continue
+    find ${PWD}/m2os_* -maxdepth 0 -exec rm -rf {} \; || true
     rm -rf previous.manifest.json 

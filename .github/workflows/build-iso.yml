@@ -43,6 +43,9 @@ jobs:
                 append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"
                 EOF
             
+            - name: Maximize Build Space
+              uses: ublue-os/remove-unwanted-software@v7
+            
             - name: Flatpak Dependencies
               id: flatpak-dependencies
               env:

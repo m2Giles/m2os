@@ -318,10 +318,6 @@ curl -Lo /usr/lib/systemd/system/brew-upgrade.timer \
 
 echo 'd /var/home/linuxbrew 0755 1000 1000 - -' >> /usr/lib/tmpfiles.d/homebrew.conf
 
-if [ $(rpm -E %fedora) -eq "40" ]; then
-    /usr/bin/bootupctl backend generate-update-metadata
-fi
-
 tee /etc/profile.d/brew-bash-completion.sh <<'EOF'
 #!/bin/sh
 # shellcheck shell=sh disable=SC1091,SC2039,SC2166

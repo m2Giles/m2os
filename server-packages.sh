@@ -45,6 +45,11 @@ fi
 
 rpm-ostree install "${SERVER_PACKAGES[@]}"
 
+# Bootupctl fix for ISO
+if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin ]]; then
+    /usr/bin/bootupctl backend generate-update-metadata
+fi
+
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
 echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
