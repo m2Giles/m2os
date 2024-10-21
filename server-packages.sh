@@ -46,7 +46,7 @@ fi
 rpm-ostree install "${SERVER_PACKAGES[@]}"
 
 # Bootupctl fix for ISO
-if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin ]]; then
+if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin|ucore ]]; then
     /usr/bin/bootupctl backend generate-update-metadata
 fi
 
