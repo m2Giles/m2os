@@ -78,44 +78,44 @@ jobs:
 
           curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt "${FLATPAK_LIST_URL}"
 
-          tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" <<'EOF'
-          app/com.discordapp.Discord/x86_64/stable
-          app/com.google.Chrome/x86_64/stable
-          app/com.microsoft.Edge/x86_64/stable
-          app/com.spotify.Client/x86_64/stable
-          app/org.gimp.GIMP/x86_64/stable
-          app/org.keepassxc.KeePassXC/x86_64/stable
-          app/org.libreoffice.LibreOffice/x86_64/stable
-          app/org.prismlauncher.PrismLauncher/x86_64/stable
-          EOF
+          ADDITIONAL_FLATPAKS=(
+            app/com.discordapp.Discord/x86_64/stable
+            app/com.google.Chrome/x86_64/stable
+            app/com.microsoft.Edge/x86_64/stable
+            app/com.spotify.Client/x86_64/stable
+            app/org.gimp.GIMP/x86_64/stable
+            app/org.keepassxc.KeePassXC/x86_64/stable
+            app/org.libreoffice.LibreOffice/x86_64/stable
+            app/org.prismlauncher.PrismLauncher/x86_64/stable
+          )
 
           if [[ "$IMAGE" =~ cosmic ]]; then
-            tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" << 'EOF'
-            app/org.gnome.World.PikaBackup/x86_64/stable
-            EOF
+            ADDITIONAL_FLATPAKS+=(
+              app/org.gnome.World.PikaBackup/x86_64/stable
+            )
           fi
 
           if [[ "$IMAGE" =~ aurora|bluefin|cosmic ]]; then
-            tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" << 'EOF'
-            app/com.github.Matoking.protontricks/x86_64/stable
-            app/io.github.fastrizwaan.WineZGUI/x86_64/stable
-            app/it.mijourus.gearlever/x86_64/stable
-            app/com.vysp3r.ProtonPlus/x86_65/stable
-            runtime/org.freedesktop.Platform.VulkanLayer.MangoHud/x86_64/23.08
-            runtime/org.freedesktop.Platform.VulkanLayer.vkBasalt/x86_64/23.08
-            runtime/org.freedesktop.Platform.VulkanLayer.OBSVkCapture/x86_64/23.08
-            runtime/com.obsproject.Studio.Plugin.OBSVkCapture/x86_64/stable
-            runtime/com.obsproject.Studio.Plugin.Gstreamer/x86_64/stable
-            runtime/com.obsproject.Studio.Plugin.GStreamerVaapi/x86_64/stable
-            runtime/org.gtk.Gtk3theme.adw-gtk3/x86_64/3.22
-            runtime/org.gtk.Gtk3theme.adw-gtk3-dark/x86_64/3.22
-            EOF
+            ADDITIONAL_FLATPAKS+=(
+              app/com.github.Matoking.protontricks/x86_64/stable
+              app/io.github.fastrizwaan.WineZGUI/x86_64/stable
+              app/it.mijourus.gearlever/x86_64/stable
+              app/com.vysp3r.ProtonPlus/x86_65/stable
+              runtime/org.freedesktop.Platform.VulkanLayer.MangoHud/x86_64/23.08
+              runtime/org.freedesktop.Platform.VulkanLayer.vkBasalt/x86_64/23.08
+              runtime/org.freedesktop.Platform.VulkanLayer.OBSVkCapture/x86_64/23.08
+              runtime/com.obsproject.Studio.Plugin.OBSVkCapture/x86_64/stable
+              runtime/com.obsproject.Studio.Plugin.Gstreamer/x86_64/stable
+              runtime/com.obsproject.Studio.Plugin.GStreamerVaapi/x86_64/stable
+              runtime/org.gtk.Gtk3theme.adw-gtk3/x86_64/3.22
+              runtime/org.gtk.Gtk3theme.adw-gtk3-dark/x86_64/3.22
+            )
           fi
 
           if [[ "$IMAGE" =~ bazzite ]]; then
-            tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" << 'EOF'
-            app/org.gnome.World.PikaBackup/x86_64/stable
-            EOF
+            ADDITIONAL_FLATPAKS+=(
+              app/org.gnome.World.PikaBackup/x86_64/stable
+            )
           fi
 
           # Read the list of Flatpak packages from the manifest
@@ -123,6 +123,7 @@ jobs:
           while IFS= read -r line; do
             FLATPAK_REFS+=("$line")
           done < "${FLATPAK_REFS_DIR}/flatpaks.txt"
+          FLATPAK_REFS+=("${ADDITIONAL_FLATPAKS[@]}")
 
           echo "Flatpak refs: ${FLATPAK_REFS[@]}"
 
