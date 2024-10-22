@@ -1,138 +1,178 @@
 name: Build ISOs
 on:
-    workflow_dispatch:
-    workflow_call:
+  workflow_dispatch:
+  workflow_call:
 
 env:
-    IMAGE_REGISTRY: ghcr.io/m2giles
-    IMAGE_NAME: m2os
-    FEDORA_VERSION: 40
+  IMAGE_REGISTRY: ghcr.io/m2giles
+  IMAGE_NAME: m2os
+  FEDORA_VERSION: 40
 
-concurrency: 
-    group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-    cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
-    build-iso:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            packages: write
-            id-token: write
-        strategy:
-            fail-fast: false
-            matrix:
-                image_tag:
-                    - aurora
-                    - aurora-nvidia
-                    - bazzite
-                    - bazzite-deck
-                    - bluefin
-                    - bluefin-nvidia
-                    - cosmic
-                    - cosmic-nvidia
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-            
-            - name: Setup Items
-              shell: bash
-              run: |
-                mkdir -p ${PWD}/m2os_build/lorax_templates
-                tee ${PWD}/m2os_build/lorax_templates/remove_root_password_prompt.tmpl <<'EOF'
-                append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"
-                EOF
-            
-            - name: Maximize Build Space
-              uses: ublue-os/remove-unwanted-software@v7
-            
-            - name: Flatpak Dependencies
-              id: flatpak-dependencies
-              env:
-                IMAGE_FULL: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image_tag }}
-              shell: bash
-              run: |
-                set -eoux pipefail
-                IMAGE="${IMAGE_FULL}"
+  build-iso:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image_tag:
+          - aurora
+          - aurora-nvidia
+          - bazzite
+          - bazzite-deck
+          - bluefin
+          - bluefin-nvidia
+          - cosmic
+          - cosmic-nvidia
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-                # Create temporary directory
-                TEMP_FLATPAK_INSTALL_DIR=$(mktemp -d -p /tmp flatpak-XXXXXX)
-                FLATPAK_REFS_DIR=./flatpak-refs
-                FLATPAK_REFS_DIR_ABS=$(realpath "${FLATPAK_REFS_DIR}")
-                mkdir -p "${FLATPAK_REFS_DIR}"
+      - name: Setup Items
+        shell: bash
+        run: |
+          mkdir -p ${PWD}/m2os_build/lorax_templates
+          tee ${PWD}/m2os_build/lorax_templates/remove_root_password_prompt.tmpl <<'EOF'
+          append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"
+          EOF
 
-                case "${IMAGE}" in
-                *"aurora"*)
-                    FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/aurora_flatpaks/flatpaks"
-                  ;;
-                *"bazzite"*)
-                    FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
-                  ;;
-                *"bluefin"*)
-                    FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/bluefin_flatpaks/flatpaks"
-                  ;;
-                *"cosmic"*)
-                    FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/cosmic/refs/heads/main/flatpaks.txt"
-                  ;;
-                esac
-                
-                curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt "${FLATPAK_LIST_URL}"
-                
-                # Read the list of Flatpak packages from the manifest
-                FLATPAK_REFS=()
-                while IFS= read -r line; do
-                  FLATPAK_REFS+=("$line")
-                done < "${FLATPAK_REFS_DIR}/flatpaks.txt"
+      - name: Maximize Build Space
+        uses: ublue-os/remove-unwanted-software@v7
 
-                echo "Flatpak refs: ${FLATPAK_REFS[@]}"
+      - name: Flatpak Dependencies
+        id: flatpak-dependencies
+        env:
+          IMAGE_FULL: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image_tag }}
+        shell: bash
+        run: |
+          set -eoux pipefail
+          IMAGE="${IMAGE_FULL}"
 
-                # Generate installation script
-                cat <<EOF > "${TEMP_FLATPAK_INSTALL_DIR}/install-flatpaks.sh"
-                mkdir -p /flatpak/flatpak /flatpak/triggers
-                mkdir /var/tmp
-                chmod -R 1777 /var/tmp
-                flatpak config --system --set languages "*"
-                flatpak remote-add --system flathub https://flathub.org/repo/flathub.flatpakrepo
-                flatpak install --system -y flathub ${FLATPAK_REFS[@]}
-                ostree refs --repo=\${FLATPAK_SYSTEM_DIR}/repo | grep '^deploy/' | grep -v 'org\.freedesktop\.Platform\.openh264' | sed 's/^deploy\///g' > /output/flatpaks-with-deps
-                EOF
-                docker run --rm --privileged \
-                  --entrypoint /bin/bash \
-                  -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
-                  -e FLATPAK_TRIGGERS_DIR=/flatpak/triggers \
-                  -v ${FLATPAK_REFS_DIR_ABS}:/output \
-                  -v ${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir \
-                  ${IMAGE} /temp_flatpak_install_dir/install-flatpaks.sh
-                docker rmi ${IMAGE}
-                cat ${FLATPAK_REFS_DIR}/flatpaks-with-deps
+          # Create temporary directory
+          TEMP_FLATPAK_INSTALL_DIR=$(mktemp -d -p /tmp flatpak-XXXXXX)
+          FLATPAK_REFS_DIR=./flatpak-refs
+          FLATPAK_REFS_DIR_ABS=$(realpath "${FLATPAK_REFS_DIR}")
+          mkdir -p "${FLATPAK_REFS_DIR}"
 
-                echo "FLATPAK_REFS_DIR=${FLATPAK_REFS_DIR}" >> $GITHUB_OUTPUT
-            
-            - name: Build ISOs
-              uses: jasonn3/build-container-installer@v1.2.2
-              id: build
-              with:
-                arch: x86_64
-                image_name: ${{ env.IMAGE_NAME }}
-                image_repo: ${{ env.IMAGE_REGISTRY }}
-                variant: "Kinoite"
-                version: ${{ env.FEDORA_VERSION }}
-                image_tag: ${{ matrix.image_tag }}
-                secure_boot_key_url: "https://github.com/ublue-os/akmods/raw/main/certs/public_key.der"
-                enrollment_password: "universalblue"
-                iso_name: ${{ matrix.image_tag }}.iso
-                flatpak_remote_refs_dir: ${{ steps.flatpak-dependencies.outputs.FLATPAK_REFS_DIR }}
-                enable_flatpak_dependencies: false
-                additional_templates: '/github/workspace/m2os_build/lorax_templates/remove_root_password_prompt.tmpl'
-            
-            - name: Upload ISOs and Checksum to Job Artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: ${{ matrix.image_tag }}
-                  path: |
-                      ${{ steps.build.outputs.iso_path }}
-                      ${{ steps.build.outputs.iso_path }}-CHECKSUM
-                  if-no-files-found: error
-                  retention-days: 0
-                  compression-level: 0
-                  overwrite: true
+          case "${IMAGE}" in
+          *"aurora"*)
+              FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/aurora_flatpaks/flatpaks"
+            ;;
+          *"bazzite"*)
+              FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
+            ;;
+          *"bluefin"*)
+              FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/bluefin_flatpaks/flatpaks"
+            ;;
+          *"cosmic"*)
+              FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/cosmic/refs/heads/main/flatpaks.txt"
+            ;;
+          esac
+
+          curl -Lo ${FLATPAK_REFS_DIR_ABS}/flatpaks.txt "${FLATPAK_LIST_URL}"
+
+          tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" <<'EOF'
+          app/com.discordapp.Discord/x86_64/stable
+          app/com.google.Chrome/x86_64/stable
+          app/com.microsoft.Edge/x86_64/stable
+          app/com.spotify.Client/x86_64/stable
+          app/org.gimp.GIMP/x86_64/stable
+          app/org.keepassxc.KeePassXC/x86_64/stable
+          app/org.libreoffice.LibreOffice/x86_64/stable
+          app/org.prismlauncher.PrismLauncher/x86_64/stable
+          EOF
+
+          if [[ "$IMAGE" =~ cosmic ]]; then
+            tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" << 'EOF'
+            app/org.gnome.World.PikaBackup/x86_64/stable
+            EOF
+          fi
+
+          if [[ "$IMAGE" =~ aurora|bluefin|cosmic ]]; then
+            tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" << 'EOF'
+            app/com.github.Matoking.protontricks/x86_64/stable
+            app/io.github.fastrizwaan.WineZGUI/x86_64/stable
+            app/it.mijourus.gearlever/x86_64/stable
+            app/com.vysp3r.ProtonPlus/x86_65/stable
+            runtime/org.freedesktop.Platform.VulkanLayer.MangoHud/x86_64/23.08
+            runtime/org.freedesktop.Platform.VulkanLayer.vkBasalt/x86_64/23.08
+            runtime/org.freedesktop.Platform.VulkanLayer.OBSVkCapture/x86_64/23.08
+            runtime/com.obsproject.Studio.Plugin.OBSVkCapture/x86_64/stable
+            runtime/com.obsproject.Studio.Plugin.Gstreamer/x86_64/stable
+            runtime/com.obsproject.Studio.Plugin.GStreamerVaapi/x86_64/stable
+            runtime/org.gtk.Gtk3theme.adw-gtk3/x86_64/3.22
+            runtime/org.gtk.Gtk3theme.adw-gtk3-dark/x86_64/3.22
+            EOF
+          fi
+
+          if [[ "$IMAGE" =~ bazzite ]]; then
+            tee -a "${FLATPAK_REFS_DIR_ABS}/flatpaks.txt" << 'EOF'
+            app/org.gnome.World.PikaBackup/x86_64/stable
+            EOF
+          fi
+
+          # Read the list of Flatpak packages from the manifest
+          FLATPAK_REFS=()
+          while IFS= read -r line; do
+            FLATPAK_REFS+=("$line")
+          done < "${FLATPAK_REFS_DIR}/flatpaks.txt"
+
+          echo "Flatpak refs: ${FLATPAK_REFS[@]}"
+
+          # Generate installation script
+          cat <<EOF > "${TEMP_FLATPAK_INSTALL_DIR}/install-flatpaks.sh"
+          mkdir -p /flatpak/flatpak /flatpak/triggers
+          mkdir /var/tmp
+          chmod -R 1777 /var/tmp
+          flatpak config --system --set languages "*"
+          flatpak remote-add --system flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --system -y flathub ${FLATPAK_REFS[@]}
+          ostree refs --repo=\${FLATPAK_SYSTEM_DIR}/repo | grep '^deploy/' | grep -v 'org\.freedesktop\.Platform\.openh264' | sed 's/^deploy\///g' > /output/flatpaks-with-deps
+          EOF
+          docker run --rm --privileged \
+            --entrypoint /bin/bash \
+            -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
+            -e FLATPAK_TRIGGERS_DIR=/flatpak/triggers \
+            -v ${FLATPAK_REFS_DIR_ABS}:/output \
+            -v ${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir \
+            ${IMAGE} /temp_flatpak_install_dir/install-flatpaks.sh
+          docker rmi ${IMAGE}
+          cat ${FLATPAK_REFS_DIR}/flatpaks-with-deps
+
+          echo "FLATPAK_REFS_DIR=${FLATPAK_REFS_DIR}" >> $GITHUB_OUTPUT
+
+      - name: Build ISOs
+        uses: jasonn3/build-container-installer@v1.2.2
+        id: build
+        with:
+          arch: x86_64
+          image_name: ${{ env.IMAGE_NAME }}
+          image_repo: ${{ env.IMAGE_REGISTRY }}
+          variant: "Kinoite"
+          version: ${{ env.FEDORA_VERSION }}
+          image_tag: ${{ matrix.image_tag }}
+          secure_boot_key_url: "https://github.com/ublue-os/akmods/raw/main/certs/public_key.der"
+          enrollment_password: "universalblue"
+          iso_name: ${{ matrix.image_tag }}.iso
+          flatpak_remote_refs_dir: ${{ steps.flatpak-dependencies.outputs.FLATPAK_REFS_DIR }}
+          enable_flatpak_dependencies: false
+          additional_templates: "/github/workspace/m2os_build/lorax_templates/remove_root_password_prompt.tmpl"
+
+      - name: Upload ISOs and Checksum to Job Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.image_tag }}
+          path: |
+            ${{ steps.build.outputs.iso_path }}
+            ${{ steps.build.outputs.iso_path }}-CHECKSUM
+          if-no-files-found: error
+          retention-days: 0
+          compression-level: 0
+          overwrite: true
