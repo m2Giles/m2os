@@ -2,8 +2,16 @@
 
 set -eoux pipefail
 
-sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates.repo
-sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/fedora-updates-archive.repo
+repos=(
+    fedora-updates.repo
+    fedora-updates-archive.repo
+)
+
+for repo in "${repos[@]}"; do
+    if [ $(grep -c "enabled=1" /etc/yum.repos.d/${repo}) -eq 0 ]; then
+        sed -i "0,/enabled=0/{s/enabled=0/enabled=1/}" /etc/yum.repos.d/${repo}
+    fi
+done
 
 rpm-ostree override replace \
     --experimental \
