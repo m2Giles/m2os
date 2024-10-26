@@ -2,7 +2,7 @@
 
 set -eoux pipefail
 
-sed -i "s@enabled=0@enabled=1@" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
+sed -i "0,/enabled=0/{s/enabled=0/enabled=1/}" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 
 STEAM_PACKAGES=(
     clinfo
