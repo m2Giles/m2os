@@ -5,7 +5,6 @@ set -eoux pipefail
 mkdir -p /var/lib/alternatives
 
 #Common
-/ctx/build-fix.sh
 /ctx/server-packages.sh
 /ctx/distrobox.sh
 
@@ -14,14 +13,15 @@ if [[ "$(rpm -E %fedora)" == "41" ]]; then
     export BETA="-beta"
 fi
 
+# Cosmic
+if [[ "${IMAGE}" =~ cosmic ]]; then
+    /ctx/cosmic.sh
+fi
+
 # Changes
 case "${IMAGE}" in
-"bluefin"* | "aurora"*)
-    /ctx/desktop-packages.sh
-    /ctx/steam.sh
-    ;;
-"cosmic"*)
-    /ctx/cosmic.sh
+"aurora"* | "bluefin"* | "cosmic"* )
+    /ctx/build-fix.sh
     /ctx/desktop-packages.sh
     /ctx/steam.sh
     ;;

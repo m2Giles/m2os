@@ -23,6 +23,7 @@ incus completion bash | tee /usr/share/bash-completion/completions/incus
 
 SERVER_PACKAGES=(
     bootc
+    just
     rclone
     sbsigntools
     socat
