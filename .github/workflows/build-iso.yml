@@ -42,6 +42,7 @@ jobs:
       - name: Setup Items
         shell: bash
         run: |
+          set -eoux pipefail
           rm -rf "${PWD}"/m2os_build/lorax_templates
           mkdir -p ${PWD}/m2os_build/lorax_templates
           tee ${PWD}/m2os_build/lorax_templates/remove_root_password_prompt.tmpl <<'EOF'
@@ -55,7 +56,7 @@ jobs:
             image_version=stable
           fi
 
-          if [[ "${image_version}" =~ stable && ! "${image_tag}" =~ bazzite ]];
+          if [[ "${image_version}" =~ stable && ! "${image_tag}" =~ bazzite ]]; then
             image_version=stable-daily
           elif [[ "${image_version}" =~ beta && "${image_tag}" =~ bazzite ]]; then
             image_version=unstable
@@ -66,9 +67,9 @@ jobs:
           fi
 
           if [[ "${image_tag}" =~ bazzite ]]; then
-            skopeo inspect docker://ghcr.io/ublue-os/bazzite:"${image_tag}" > /tmp/inspect.json
+            skopeo inspect docker://ghcr.io/ublue-os/bazzite:"${image_version}" > /tmp/inspect.json
           else
-            skopeo inspect docker://ghcr.io/ublue-os/bluefin:"${image_tag}" > /tmp/inspect.json
+            skopeo inspect docker://ghcr.io/ublue-os/bluefin:"${image_version}" > /tmp/inspect.json
           fi
 
           fedora_version=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect.json | grep -oP 'fc\K[0-9]+')
@@ -133,7 +134,7 @@ jobs:
               app/com.github.Matoking.protontricks/x86_64/stable
               app/io.github.fastrizwaan.WineZGUI/x86_64/stable
               app/it.mijorus.gearlever/x86_64/stable
-              app/com.vysp3r.ProtonPlus/x86_65/stable
+              app/com.vysp3r.ProtonPlus/x86_64/stable
               runtime/org.freedesktop.Platform.VulkanLayer.MangoHud/x86_64/23.08
               runtime/org.freedesktop.Platform.VulkanLayer.vkBasalt/x86_64/23.08
               runtime/org.freedesktop.Platform.VulkanLayer.OBSVkCapture/x86_64/23.08
