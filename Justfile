@@ -80,7 +80,23 @@ removeall:
 
 # Cleanup
 clean:
-    find ${PWD}/{{ repo_image_name }}_* -maxdepth 0 -exec rm -rf {} \; || true
+    #!/usr/bin/bash
+    set -euox pipefail
+    function sudoif(){
+        if [[ "${UID}" -eq 0 ]]; then
+            "$@"
+        elif [[ "$(command -v sudo)" && -n "${SSH_ASKPASS:-}" ]] && [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
+            /usr/bin/sudo --askpass "$@" || exit 1
+        elif [[ "$(command -v sudo)" ]]; then
+            /usr/bin/sudo "$@" || exit 1
+        else
+            exit 1
+        fi
+    }
+    touch {{ repo_image_name }}_
+    sudoif find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
+    sudoif find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
+    find {{ repo_image_name }}_* -maxdepth 0 -exec rm -rf {} \;
     rm -rf previous.manifest.json
 
 # Build Image
