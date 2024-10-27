@@ -28,13 +28,9 @@ for repo in "${repos[@]}"; do
         sed -i 's@enabled=1@enabled=0@g' "/etc/yum.repos.d/$repo"
     fi
 done
-
-shopt -s extglob
-
 mv /var/lib/alternatives /staged-alternatives
 rm -rf /tmp/*
-rm -rf /var/!(cache)
-rm -rf /var/cache/!(rpm-ostree)
+rm -rf /var/*
 ostree container commit
 mkdir -p /tmp
 mkdir -p /var/lib/ && mv /staged-alternatives /var/lib/alternatives
