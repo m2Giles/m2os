@@ -1,5 +1,6 @@
 repo_image_name := "m2os"
 repo_name := "m2giles"
+username := "m2"
 images := '(
     [aurora]="aurora"
     [aurora-nvidia]="aurora-nvidia"
@@ -29,6 +30,17 @@ fix:
 remove image="":
     #!/usr/bin/bash
     set -eou pipefail
+    function sudoif(){
+        if [[ "${UID}" -eq 0 ]]; then
+            "$@"
+        elif [[ "$(command -v sudo)" && -n "${SSH_ASKPASS:-}" ]] && [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
+            /usr/bin/sudo --askpass "$@" || exit 1
+        elif [[ "$(command -v sudo)" ]]; then
+            /usr/bin/sudo "$@" || exit 1
+        else
+            exit 1
+        fi
+    }
     declare -A images={{ images }}
     image={{ image }}
     check_image="$image"
@@ -40,16 +52,30 @@ remove image="":
         exit 1
     fi
     podman rmi localhost/{{ repo_image_name }}:${image}
+    sudoif podman rmi localhost/{{ repo_image_name }}:${image}
 
 # Remove All Images
 removeall:
     #!/usr/bin/bash
     set -euo pipefail
+    function sudoif(){
+        if [[ "${UID}" -eq 0 ]]; then
+            "$@"
+        elif [[ "$(command -v sudo)" && -n "${SSH_ASKPASS:-}" ]] && [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then
+            /usr/bin/sudo --askpass "$@" || exit 1
+        elif [[ "$(command -v sudo)" ]]; then
+            /usr/bin/sudo "$@" || exit 1
+        else
+            exit 1
+        fi
+    }
     declare -A images={{ images }}
     for image in ${!images[@]}
     do
         podman rmi localhost/{{ repo_image_name }}:"$image" || true
         podman rmi localhost/{{ repo_image_name }}:"$image"-beta || true
+        sudoif podman rmi localhost/{{ repo_image_name }}:"$image" || true
+        sudoif podman rmi localhost/{{ repo_image_name }}:"$image"-beta || true
     done
 
 # Cleanup
@@ -168,6 +194,10 @@ build-beta image="bluefin":
 rechunk image="bluefin":
     #!/usr/bin/bash
     set -eou pipefail
+    if [[ -n "${SUDO_COMMAND:-}" ]]; then
+        echo "Do not run this script with sudo..."
+        exit 1
+    fi
     function sudoif(){
         if [[ "${UID}" -eq 0 ]]; then
             "$@"
@@ -239,7 +269,7 @@ rechunk image="bluefin":
 # Build ISO
 build-iso image="bluefin" ghcr="":
     #!/usr/bin/bash
-    set -eoux pipefail
+    set -eou pipefail
     function sudoif(){
         if [[ "${UID}" -eq 0 ]]; then
             "$@"
@@ -251,15 +281,24 @@ build-iso image="bluefin" ghcr="":
             exit 1
         fi
     }
+    if [[ -n "${SUDO_COMMAND:-}" ]]; then
+        echo "Do not run this script with sudo..."
+        exit 1
+    fi
     mkdir -p {{ repo_image_name }}_build/{lorax_templates,flatpak-refs-{{ image }},output}
     echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
          > {{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
+    echo 'append usr/share/anaconda/interactive-defaults.ks "\\nuser --name={{ username }} --password=password --plaintext --groups=wheel"' \
+        > {{ repo_image_name }}_build/lorax_templates/set_default_user.tmpl
 
     # Build from GHCR or localhost
     if [[ "{{ ghcr }}" =~ true|yes|y|Yes|YES|Y|ghcr ]]; then
         IMAGE_FULL=ghcr.io/{{ repo_name }}/{{ repo_image_name }}:{{ image }}
         IMAGE_REPO=ghcr.io/{{ repo_name }}
         podman pull "${IMAGE_FULL}"
+        TEMPLATES=(
+            /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
+        )
     else
         IMAGE_FULL=localhost/{{ repo_image_name }}:{{ image }}
         IMAGE_REPO=localhost
@@ -267,9 +306,13 @@ build-iso image="bluefin" ghcr="":
         if [[ -z "$ID" ]]; then
             just build {{ image }}
         fi
+        TEMPLATES=(
+            /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
+            /github/workspace/{{ repo_image_name }}_build/lorax_templates/set_default_user.tmpl
+        )
     fi
     # Check if ISO already exists. Remove it.
-    if [[ -f "{{ repo_image_name }}_build/output/{{ image }}.iso" ]]; then
+    if [[ -f "{{ repo_image_name }}_build/output/{{ image }}.iso" || -f "{{ repo_image_name }}_build/output/{{ image }}.iso-CHECKSUM" ]]; then
         rm -f {{ repo_image_name }}_build/output/{{ image }}.iso*
     fi
     # Load image into rootful podman
@@ -357,7 +400,7 @@ build-iso image="bluefin" ghcr="":
     iso_build_args+=(--volume "/run/podman/podman.sock:/var/run/docker.sock")
     iso_build_args+=(--volume "${PWD}:/github/workspace/")
     iso_build_args+=(ghcr.io/jasonn3/build-container-installer:latest)
-    iso_build_args+=(ADDITIONAL_TEMPLATES="/github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl")
+    iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[*]}")
     iso_build_args+=(ARCH="x86_64")
     iso_build_args+=(ENROLLMENT_PASSWORD="universalblue")
     iso_build_args+=(FLATPAK_REMOTE_REFS_DIR="/github/workspace/${FLATPAK_REFS_DIR}")
@@ -367,9 +410,9 @@ build-iso image="bluefin" ghcr="":
     iso_build_args+=(IMAGE_SRC="docker-daemon:${IMAGE_FULL}")
     iso_build_args+=(IMAGE_TAG="{{ image }}")
     iso_build_args+=(ISO_NAME="/github/workspace/{{ repo_image_name }}_build/output/{{ image }}.iso")
-    iso_build_args+=(SECUREBOOT_KEY_URL="https://github.com/ublue-os/akmods/raw/main/certs/public_key.der")
+    iso_build_args+=(SECURE_BOOT_KEY_URL="https://github.com/ublue-os/akmods/raw/main/certs/public_key.der")
     iso_build_args+=(VARIANT="Kinoite")
-    iso_build_args+=(VERSION="$(skopeo inspect containers-storage:${IMAGE_FULL}| jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')")
+    iso_build_args+=(VERSION="$(skopeo inspect containers-storage:${IMAGE_FULL} | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')")
     iso_build_args+=(WEBUI="false")
     # Build ISO
     sudoif podman run --rm --privileged --pull=newer "${iso_build_args[@]}"
@@ -383,15 +426,25 @@ run-iso image="bluefin":
     if [[ ! -f "{{ repo_image_name }}_build/output/{{ image }}.iso" ]]; then
         just build-iso {{ image }}
     fi
+    port=8006;
+    while grep -q ${port} <<< $(ss -tunalp); do
+        port=$(( port + 1 ))
+    done
+    echo "Using Port: ${port}"
+    echo "Connect to http://localhost:${port}"
+    echo "If Localhost Build Default User: {{ username }}, Password: password"
+    (sleep 30 && xdg-open http://localhost:${port})&
     run_args=()
-    run_args+=(--rm --security-opt "label=disable")
-    run_args+=(--cap-add "NET_ADMIN")
-    run_args+=(--publish "127.0.0.1:8006:8006")
+    run_args+=(--rm --privileged)
+    run_args+=(--pull=newer)
+    run_args+=(--publish "127.0.0.1:${port}:8006")
     run_args+=(--env "CPU_CORES=4")
     run_args+=(--env "RAM_SIZE=8G")
     run_args+=(--env "DISK_SIZE=64G")
-    run_args+=(--env "BOOT_MODE=uefi")
+    run_args+=(--env "BOOT_MODE=windows_secure")
+    run_args+=(--env "TPM=Y")
+    run_args+=(--env "GPU=Y")
     run_args+=(--device=/dev/kvm)
-    run_args+=(--volume "${PWD}/{{ repo_image_name }}_build/output/{{ image }}.iso":"/boot.iso")
+    run_args+=(--volume "${PWD}/{{ repo_image_name }}_build/output/{{ image }}.iso":"/boot.iso":z)
     run_args+=(docker.io/qemux/qemu-docker)
     podman run "${run_args[@]}"

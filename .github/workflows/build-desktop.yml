@@ -8,7 +8,7 @@ on:
           type: string
 
 env:
-  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_REGISTRY: ghcr.io/m2giles
   IMAGE_NAME: m2os
 
 jobs:
@@ -73,7 +73,12 @@ jobs:
               upstream_repo=main
               base_image="base-main"
               fedora_version=$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:${tag_version} | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')
-              KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')
+              if [[ "${fedora_version}" == "40" ]]; then
+                kernel_version="coreos-stable"
+              elif [[ "${fedora_version}" == "41" ]]; then
+                kernel_version="main"
+              fi
+              KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${kernel_version}-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')
               tag_version="${fedora_version}"
               ver=$(skopeo inspect docker://ghcr.io/ublue-os/${base_image}:${fedora_version} | jq -r '.Labels["org.opencontainers.image.version"]')
               ;;
@@ -170,12 +175,12 @@ jobs:
         uses: hhd-dev/rechunk@v0.8.6
         with:
           ref: "raw-img"
-          prev-ref: "ghcr.io/m2giles/m2os:${{ steps.generate_tags.outputs.default_tag }}"
+          prev-ref: "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.generate_tags.outputs.default_tag }}"
           version: "${{ env.version }}"
           rechunk: "ghcr.io/hhd-dev/rechunk:v0.8.6"
           labels: |
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
-            org.opencontainers.image.description=m2os is my OCI image built from ublue projects. It mainly extends them for my uses.
+            org.opencontainers.image.description=${{ env.IMAGE_NAME }} is my OCI image built from ublue projects. It mainly extends them for my uses.
             org.opencontainers.image.version=${{ env.version }}
             ostree.linux=${{ env.kernel_release }}
 
@@ -186,7 +191,7 @@ jobs:
           IMAGE=$(podman pull ${{ steps.rechunk.outputs.ref }})
           sudo rm -rf ${{ steps.rechunk.outputs.output }}
           for tag in ${{ steps.generate_tags.outputs.build_tags }}; do
-            podman tag $IMAGE m2os:$tag
+            podman tag $IMAGE ${{ env.IMAGE_NAME }}:$tag
           done
           podman tag $IMAGE rechunked-img
 
@@ -229,7 +234,7 @@ jobs:
           attempt_limit: 3
           attempt_delay: 15000
           with: |
-            image: m2os
+            image: ${{ env.IMAGE_NAME }}
             tags: ${{ steps.generate_tags.outputs.build_tags }}
             registry: ${{ steps.registry_case.outputs.lowercase }}
             username: ${{ env.REGISTRY_USER }}
@@ -251,7 +256,7 @@ jobs:
       - name: Sign Container Image
         if: github.event_name != 'pull_request'
         run: |
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/m2os@${TAGS}
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}@${TAGS}
         env:
           TAGS: ${{ steps.push.outputs.outputs && fromJSON(steps.push.outputs.outputs).digest }}
           COSIGN_EXPERIMENTAL: false

@@ -28,6 +28,7 @@ SERVER_PACKAGES=(
     sbsigntools
     socat
     swtpm
+    udica
 )
 
 # Docker Packages
