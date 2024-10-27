@@ -38,36 +38,12 @@ enabled=1
 enabled_metadata=1
 EOF
 
-tee /usr/lib/systemd/system/sunshine-workaround.service <<'EOF'
-[Unit]
-Description=Workaround sunshine not having the correct caps
-ConditionFileIsExecutable=/usr/bin/sunshine
-After=local-fs.target
-
-[Service]
-Type=oneshot
-# Copy if it doesn't exist
-ExecStartPre=/usr/bin/bash -c "[ -x /usr/local/bin/.sunshine ] || /usr/bin/cp /usr/bin/sunshine /usr/local/bin/.sunshine"
-# This is faster than using .mount unit. Also allows for the previous line/cleanup
-ExecStartPre=/usr/bin/bash -c "/usr/bin/mount --bind /usr/local/bin/.sunshine /usr/bin/sunshine"
-# Fix caps
-ExecStart=/usr/bin/bash -c "/usr/sbin/setcap 'cap_sys_admin+p' $(/usr/bin/readlink -f $(/usr/bin/which sunshine))"
-# Clean-up after ourselves
-ExecStop=/usr/bin/umount /usr/bin/sunshine
-ExecStop=/usr/bin/rm /usr/local/bin/.sunshine
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl enable sunshine-workaround.service
-
 curl -Lo /etc/yum.repos.d/_copr_kylegospo-webapp-manager.repo \
     https://copr.fedorainfracloud.org/coprs/kylegospo/webapp-manager/repo/fedora-"$(rpm -E %fedora)"/kylegospo-webapp-manager-fedora-"$(rpm -E %fedora)".repo
 
 # Layered Applications
 LAYERED_PACKAGES=(
+    adw-gtk3-theme
     breeze-cursor-theme
     code
     emacs
@@ -88,9 +64,12 @@ curl -Lo /tmp/zed.tar.gz \
     https://zed.dev/api/releases/stable/latest/zed-linux-x86_64.tar.gz
 mkdir -p /usr/lib/zed.app/
 tar -xvf /tmp/zed.tar.gz -C /usr/lib/zed.app/ --strip-components=1
-ln -s /usr/lib/zed.app/bin/zed /usr/bin/zed
+chown 0:0 -R /usr/lib/zed.app
+ln -s /usr/lib/zed.app/bin/zed /usr/bin/zed-cli
 cp /usr/lib/zed.app/share/applications/zed.desktop /usr/share/applications/dev.zed.Zed.desktop
-sed -i "s@Icon=zed@Icon=/usr/lib/zed.app/share/icons/hicolor/512x512/apps/zed.png@g" /usr/share/applications/dev.zed.Zed.desktop
+mkdir -p /usr/share/icons/hicolor/1024x1024/apps
+cp {/usr/lib/zed.app,/usr}/share/icons/hicolor/512x512/apps/zed.png
+cp {/usr/lib/zed.app,/usr}/share/icons/hicolor/1024x1024/apps/zed.png
 sed -i "s@Exec=zed@Exec=/usr/lib/zed.app/libexec/zed-editor@g" /usr/share/applications/dev.zed.Zed.desktop
 
 # Call other Scripts
