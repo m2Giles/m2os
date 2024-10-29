@@ -13,15 +13,16 @@ if [[ "$(rpm -E %fedora)" == "41" ]]; then
     export BETA="-beta"
 fi
 
-# Cosmic
-if [[ "${IMAGE}" =~ cosmic ]]; then
-    /ctx/cosmic.sh
-fi
-
 # Changes
 case "${IMAGE}" in
-"aurora"* | "bluefin"* | "cosmic"* )
+"aurora"* | "bluefin"*)
     /ctx/build-fix.sh
+    /ctx/desktop-packages.sh
+    /ctx/steam.sh
+    ;;
+"cosmic"*)
+    /ctx/build-fix.sh
+    /ctx/cosmic.sh
     /ctx/desktop-packages.sh
     /ctx/steam.sh
     ;;
