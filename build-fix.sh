@@ -16,6 +16,12 @@ done
 rpm-ostree override replace \
     --experimental \
     --from repo=updates \
+        elfutils-libelf \
+        elfutils-libs \
+        || true
+rpm-ostree override replace \
+    --experimental \
+    --from repo=updates \
         systemd-libs \
         || true
 rpm-ostree override replace \
