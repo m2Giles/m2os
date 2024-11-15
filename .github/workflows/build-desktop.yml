@@ -79,7 +79,7 @@ jobs:
               fedora_version=$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:${tag_version} | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')
               if [[ "${tag_version}" == "stable" ]]; then
                 kernel_version="coreos-stable"
-              if [[ "${tag_version}" == "beta" ]]; then
+              elif [[ "${tag_version}" == "beta" ]]; then
                 kernel_version="coreos-testing"
               fi
               KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/${kernel_version}-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')
