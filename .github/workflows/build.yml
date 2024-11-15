@@ -14,10 +14,6 @@ permissions:
   packages: write
   id-token: write
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
   push-desktop-stable:
     uses: ./.github/workflows/build-desktop.yml
@@ -30,16 +26,37 @@ jobs:
     secrets: inherit
     with:
       tag_version: beta
+    
+  changelogs-desktop-stable-bluefin:
+    uses: ./.github/workflows/changelogs.yml
+    secrets: inherit
+    needs: push-desktop-stable
+    with:
+      target: stable
+
+  changelogs-desktop-stable-bazzite:
+    uses: ./.github/workflows/changelogs.yml
+    secrets: inherit
+    needs: push-desktop-stable
+    with:
+      target: bazzite
 
   push-server:
     uses: ./.github/workflows/build-server.yml
     secrets: inherit
     
+  changelogs-server-stable:
+    uses: ./.github/workflows/changelogs.yml
+    secrets: inherit
+    needs: push-desktop-stable
+    with:
+      target: ucore
+
   build-iso:
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
     needs: push-desktop-stable
-    if: (github.event_name == 'schedule' && github.event.schedule != '41 6 * * 1,2,3,4,5,6') || github.event_name == 'workflow_dispatch' 
+    if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       image_version: stable
   
@@ -47,6 +64,6 @@ jobs:
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
     needs: push-desktop-beta
-    if: (github.event_name == 'schedule' && github.event.schedule != '41 6 * * 1,2,3,4,5,6') || github.event_name == 'workflow_dispatch' 
+    if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       image_version: beta

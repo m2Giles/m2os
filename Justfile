@@ -464,3 +464,9 @@ run-iso image="bluefin":
     run_args+=(--volume "${PWD}/{{ repo_image_name }}_build/output/{{ image }}.iso":"/boot.iso":z)
     run_args+=(docker.io/qemux/qemu-docker)
     podman run "${run_args[@]}"
+
+# Test Changelogs
+changelogs branch="stable":
+    #!/usr/bin/bash
+    set -eoux pipefail
+    python3 changelogs.py {{ branch }} ./output.env ./changelog.md --workdir . --pretty "m2os daily build"

@@ -13,7 +13,7 @@ env:
   IMAGE_NAME: m2os
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.image_version }}.iso
   cancel-in-progress: true
 
 jobs:

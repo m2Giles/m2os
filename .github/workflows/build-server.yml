@@ -3,6 +3,10 @@ on:
     workflow_call:
     workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-server
+  cancel-in-progress: true
+
 env:
   IMAGE_REGISTRY: ghcr.io/m2giles
   IMAGE_NAME: m2os
