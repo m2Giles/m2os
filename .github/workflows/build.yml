@@ -29,6 +29,8 @@ jobs:
     
   changelogs-desktop-stable-bluefin:
     uses: ./.github/workflows/changelogs.yml
+    permissions: 
+      contents: write
     secrets: inherit
     needs: push-desktop-stable
     with:
@@ -36,6 +38,8 @@ jobs:
 
   changelogs-desktop-stable-bazzite:
     uses: ./.github/workflows/changelogs.yml
+    permissions: 
+      contents: write
     secrets: inherit
     needs: push-desktop-stable
     with:
