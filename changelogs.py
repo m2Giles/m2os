@@ -27,6 +27,7 @@ RETRIES = 3
 RETRY_WAIT = 5
 FEDORA_PATTERN = re.compile(r"\.fc\d\d")
 START_PATTERN = lambda img: re.compile(rf"{img}-[0-9]+")
+STRIP_PATTERN = lambda strip: re.sub(r"[a-z]+-","", re.sub(r"[a-z]+-","", strip))
 
 PATTERN_ADD = "\n| ✨ | {name} | | {version} |"
 PATTERN_CHANGE = "\n| 🔄 | {name} | {prev} | {new} |"
@@ -56,9 +57,6 @@ From previous m2os version `{prev}` there have been the following changes. **One
 | Name | Version |
 | --- | --- |
 | **Kernel** | {pkgrel:kernel} |
-| **Gnome** | {pkgrel:gnome-control-center-filesystem} |
-| **KDE** | {pkgrel:plasma-desktop} |
-| **Cosmic** | {pkgrel:cosmic-session} |
 | **Mesa** | {pkgrel:mesa-filesystem} |
 | **Podman** | {pkgrel:podman} |
 | **Docker** | {pkgrel:docker-ce} |
@@ -81,8 +79,6 @@ This is an automatically generated changelog for release `{curr}`."""
 
 BLACKLIST_VERSIONS = [
     "kernel",
-    "gnome-control-center-filesystem",
-    "plasma-desktop",
     "mesa-filesystem",
     "podman",
     "docker-ce",
@@ -358,21 +354,23 @@ def generate_changelog(
         for curr in curr_tags:
             curr_pretty = re.sub(r"\.\d{1,2}$", "", curr)
             # Remove target- from curr
-            curr_pretty = re.sub(rf"^[a-z]+-", "", curr_pretty)
-            pretty = target.capitalize() + " (F" + curr_pretty
+            curr_pretty = STRIP_PATTERN(curr_pretty)
+            if target == "stable":
+                target = "Desktop"
+            pretty = target.capitalize() + " (" + curr_pretty
             if finish and target != "stable":
                 pretty += ", #" + finish[:7]
             pretty += ")"
 
-    title = CHANGELOG_TITLE.format_map(defaultdict(str, tag=curr_tags[0][7:], pretty=pretty))
+    title = CHANGELOG_TITLE.format_map(defaultdict(str, tag=STRIP_PATTERN(curr_tags[0]), pretty=pretty))
 
     changelog = CHANGELOG_FORMAT
 
     changelog = (
         changelog.replace("{handwritten}", handwritten if handwritten else HANDWRITTEN_PLACEHOLDER)
         .replace("{target}", target)
-        .replace("{prev}", prev_tags[0][7:])
-        .replace("{curr}", curr_tags[0][7:])
+        .replace("{prev}", STRIP_PATTERN(prev_tags[0]))
+        .replace("{curr}", STRIP_PATTERN(curr_tags[0]))
     )
 
     for pkg, v in versions.items():
@@ -426,8 +424,8 @@ def main():
         images.append(image[0])
     manifests = get_manifests(images)
     prev, curr = get_tags(target, manifests)
-    print(f"Previous tag: {prev[0][7:]}")
-    print(f" Current tag: {curr[0][7:]}")
+    print(f"Previous tag: {STRIP_PATTERN(prev[0])}")
+    print(f" Current tag: {STRIP_PATTERN(curr[0])}")
 
     prev_manifests = get_manifests(prev)
     title, changelog = generate_changelog(
@@ -440,13 +438,13 @@ def main():
     )
 
     print(f"Changelog:\n# {title}\n{changelog}")
-    print(f"\nOutput:\nTITLE=\"{title}\"\nTAG={curr[0][7:]}")
+    print(f"\nOutput:\nTITLE=\"{title}\"\nTAG={STRIP_PATTERN(curr[0])}")
 
     with open(args.changelog, "w") as f:
         f.write(changelog)
 
     with open(args.output, "w") as f:
-        f.write(f'TITLE="{title}"\nTAG={curr[0][7:]}\n')
+        f.write(f'TITLE="{title}"\nTAG={STRIP_PATTERN(curr[0])}\n')
 
 
 if __name__ == "__main__":

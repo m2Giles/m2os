@@ -42,7 +42,7 @@ SERVER_PACKAGES+=(
 
 if [[ ${IMAGE} =~ ucore ]]; then
     rpm-ostree override remove \
-        containerd moby-engine runc
+        containerd docker-cli moby-engine runc
 fi
 
 rpm-ostree install "${SERVER_PACKAGES[@]}"

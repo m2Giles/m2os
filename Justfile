@@ -466,7 +466,7 @@ run-iso image="bluefin":
     podman run "${run_args[@]}"
 
 # Test Changelogs
-changelogs branch="stable":
+changelogs branch="stable" handwritten="":
     #!/usr/bin/bash
     set -eoux pipefail
-    python3 changelogs.py {{ branch }} ./output.env ./changelog.md --workdir . --pretty "m2os daily build"
+    python3 changelogs.py {{ branch }} ./output.env ./changelog.md --workdir . --pretty "{{ handwritten }}"
