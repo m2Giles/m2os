@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_tag: ${{ fromJson(inputs.images) }}
+        image_tag: ["${{ fromJson(inputs.images) }}"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
