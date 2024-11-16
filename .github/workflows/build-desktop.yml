@@ -10,9 +10,11 @@ on:
           description: "The Tag Version for the Build"
           required: true
           type: string
+        image_flavor:
+          type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.tag_version }}-${{ github.job }}
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.tag_version }}-${{ inputs.image_flavor }}
   cancel-in-progress: true
 
 env:

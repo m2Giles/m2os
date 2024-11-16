@@ -21,6 +21,7 @@ jobs:
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       tag_version: stable
+      image_flavor: desktop
 
   push-desktop-bazzite:
     uses: ./.github/workflows/build-desktop.yml
@@ -28,6 +29,7 @@ jobs:
     with:
       images: '["bazzite", "bazzite-deck"]'
       tag_version: stable
+      image_flavor: bazzite
 
   changelogs-desktop-bluefin:
     uses: ./.github/workflows/changelogs.yml
@@ -62,6 +64,7 @@ jobs:
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       image_version: stable
+      image_flavor: desktop
 
   build-iso-bazzite:
     uses: ./.github/workflows/build-iso.yml
@@ -71,3 +74,4 @@ jobs:
     with:
       images: '["bazzite", "bazzite-deck"]'
       image_version: stable
+      image_flavor: bazzite
