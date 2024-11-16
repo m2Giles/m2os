@@ -12,16 +12,12 @@ gpgcheck=1
 gpgkey=https://download.docker.com/linux/fedora/gpg
 EOF
 
-# Get Incus Client
-curl -Lo /usr/bin/incus \
-    "https://github.com/lxc/incus/releases/latest/download/bin.linux.incus.$(uname -m)"
-
-chmod +x /usr/bin/incus
-
-mkdir -p /var/roothome/
-incus completion bash | tee /usr/share/bash-completion/completions/incus
+# Incus COPR Repo
+curl -Lo /etc/yum.repos.d/ganto-lxc4-fedora.repo \
+    https://copr.fedorainfracloud.org/coprs/ganto/lxc4/repo/fedora-"$(rpm -E %fedora)"/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
 
 SERVER_PACKAGES=(
+    binutils
     bootc
     just
     rclone
@@ -29,6 +25,13 @@ SERVER_PACKAGES=(
     socat
     swtpm
     udica
+    zstd
+)
+
+# Incus Packages
+SERVER_PACKAGES+=(
+    distrobuilder
+    incus
 )
 
 # Docker Packages
@@ -55,3 +58,16 @@ fi
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d
 echo "net.ipv4.ip_forward = 1" >/usr/lib/sysctl.d/docker-ce.conf
+
+# Incus UI
+curl -Lo /tmp/incus-ui-canonical.deb \
+    https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/"$(curl https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/ | grep -E incus-ui-canonical | cut -d '"' -f 2 | sort -r | head -1)"
+
+ar -x --output=/tmp /tmp/incus-ui-canonical.deb
+tar --zstd -xvf /tmp/data.tar.zst
+sed -i 's@\[Service\]@\[Service\]\nEnvironment=INCUS_UI=/opt/incus/ui/@g' /usr/lib/systemd/system/incus.service
+
+# Groups
+groupmod -g 250 incus-admin
+groupmod -g 251 incus
+groupmod -g 252 docker

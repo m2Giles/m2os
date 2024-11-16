@@ -57,9 +57,10 @@ From previous m2os version `{prev}` there have been the following changes. **One
 | Name | Version |
 | --- | --- |
 | **Kernel** | {pkgrel:kernel} |
-| **Mesa** | {pkgrel:mesa-filesystem} |
+| **Mesa** | {pkgrel:mesa-dri-drivers} |
 | **Podman** | {pkgrel:podman} |
 | **Docker** | {pkgrel:docker-ce} |
+| **Incus** | {pkgrel:incus} |
 
 {changes}
 
@@ -79,9 +80,10 @@ This is an automatically generated changelog for release `{curr}`."""
 
 BLACKLIST_VERSIONS = [
     "kernel",
-    "mesa-filesystem",
+    "mesa-dri-drivers",
     "podman",
     "docker-ce",
+    "incus"
 ]
 
 
@@ -208,8 +210,6 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
             if t == "main" and "main" not in image_flavor:
                 continue
             if t == "nvidia" and "nvidia" not in image_flavor:
-                continue
-            if t == "deck" and "deck" not in image_flavor:
                 continue
             if t == "aurora" and image != "aurora":
                 continue

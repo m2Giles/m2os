@@ -97,7 +97,7 @@ clean:
     sudoif find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
     sudoif find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
     find {{ repo_image_name }}_* -maxdepth 0 -exec rm -rf {} \;
-    rm -rf previous.manifest.json
+    rm -f output.env changelog.md version.txt previous.manifest.json
 
 # Build Image
 build image="bluefin" target="":
@@ -149,10 +149,11 @@ build image="bluefin" target="":
         BUILD_ARGS+=("--build-arg" "TAG_VERSION=${fedora_version}")
         ;;
     "ucore"*)
-        podman pull ghcr.io/ublue-os/ucore-hcr:"${check}"
-        skopeo inspect containers-storage:ghcr.io/ublue-os/ucore-hci:${check} > /tmp/inspect-{{ image }}.json
+        podman pull ghcr.io/ublue-os/ucore:"${check}"
+        fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/ucore:${check} | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+        skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} > /tmp/inspect-{{ image }}.json
         BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
-        BUILD_ARGS+=("--build-arg" "BASE_IMAGE=ucore-hci")
+        BUILD_ARGS+=("--build-arg" "BASE_IMAGE=ucore")
         BUILD_ARGS+=("--build-arg" "TAG_VERSION=${check}")
         ;;
     esac
@@ -178,15 +179,15 @@ build-beta image="bluefin":
     case "${image}" in
     "aurora"*|"bluefin"*)
         podman pull ghcr.io/ublue-os/"${image}":beta
-        skopeo inspect containers-storage:ghcr.io/ublue-os/"${image}":beta > /tmp/inspect-{{ image }}.json
-        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
+        podman inspect containers-storage:ghcr.io/ublue-os/"${image}":beta > /tmp/inspect-{{ image }}.json
+        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.[].["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
         BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${image}")
         BUILD_ARGS+=("--build-arg" "TAG_VERSION=beta")
         ;;
     "bazzite"*)
         podman pull ghcr.io/ublue-os/"${check}":unstable
-        skopeo inspect containers-storage:ghcr.io/ublue-os/"${check}":unstable > /tmp/inspect-{{ image }}.json
-        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
+        podman inspect ghcr.io/ublue-os/"${check}":unstable > /tmp/inspect-{{ image }}.json
+        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.[].["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
         BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${check}")
         BUILD_ARGS+=("--build-arg" "TAG_VERSION=unstable")
         ;;
@@ -233,10 +234,11 @@ rechunk image="bluefin":
     CREF=$(sudoif podman create localhost/{{ repo_image_name }}:{{ image }} bash)
     MOUNT=$(sudoif podman mount $CREF)
     OUT_NAME="{{ repo_image_name }}_{{ image }}"
+    VERSION="{{ image }}-$(date +%Y%m%d)"
     LABELS="
         org.opencontainers.image.title={{ repo_image_name }}
-        org.opencontainers.image.version=localbuild-$(date +%Y%m%d-%H:%M:%S)
-        ostree.linux=$(skopeo inspect containers-storage:localhost/{{ repo_image_name }}:{{ image }} | jq -r '.Labels["ostree.linux"]')
+        org.opencontainers.image.revision=$(git rev-parse HEAD)
+        ostree.linux=$(podman inspect localhost/{{ repo_image_name }}:{{ image }} | jq -r '.[].["Config"]["Labels"]["ostree.linux"]')
         org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
     sudoif podman run --rm \
         --security-opt label=disable \
@@ -267,6 +269,7 @@ rechunk image="bluefin":
         --env PREV_REF=ghcr.io/{{ repo_name }}/{{ repo_image_name }}:{{ image }} \
         --env LABELS="$LABELS" \
         --env OUT_NAME="$OUT_NAME" \
+        --env VERSION="$VERSION" \
         --env VERSION_FN=/workspace/version.txt \
         --env OUT_REF="oci:$OUT_NAME" \
         --env GIT_DIR="/var/git" \

@@ -14,22 +14,24 @@ case "${IMAGE}" in
     /ctx/build-fix.sh
     /ctx/desktop-packages.sh
     /ctx/steam.sh
+    /ctx/vfio.sh
     ;;
 "cosmic"*)
     /ctx/build-fix.sh
     /ctx/cosmic.sh
     /ctx/desktop-packages.sh
     /ctx/steam.sh
+    /ctx/vfio.sh
     ;;
 "bazzite"*)
     /ctx/desktop-packages.sh
+    /ctx/vfio.sh
     ;;
 "ucore"*)
     ;;
 esac
 
 # Common
-/ctx/vfio.sh
 /ctx/branding.sh
 /ctx/signing.sh
 

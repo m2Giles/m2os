@@ -12,6 +12,9 @@ on:
           - stable
           - bazzite
           - ucore
+      handwritten:
+        description: "Handwritten Notes"
+        type: string
 
 name: Generate Release
 jobs:
@@ -28,7 +31,7 @@ jobs:
         run: |
           python3 ./changelogs.py \
             "${{ inputs.target }}" \
-            ./output.env ./changelog.md --workdir . --handwritten "m2os daily build"
+            ./output.env ./changelog.md --workdir . --handwritten "${{ inputs.handwritten }}"
           source ./output.env
           echo "title=${TITLE}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT

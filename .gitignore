@@ -2,3 +2,4 @@ m2os_*
 previous.manifest*
 changelog.md
 output.env
+version.txt

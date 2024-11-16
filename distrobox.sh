@@ -81,13 +81,3 @@ Environment=WAYLAND_DISPLAY=wayland-0
 Environment=XDG_RUNTIME_DIR=/run/user/1000
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 EOF
-
-mkdir -p /usr/lib/tmpfiles.d
-tee /usr/lib/tmpfiles.d/incus.conf <<EOF
-d /var/lib/incus 0700 root root - -
-EOF
-
-# Groups
-groupadd -g 250 incus-admin
-groupadd -g 251 incus
-groupmod -g 252 docker
