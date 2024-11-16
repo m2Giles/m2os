@@ -45,16 +45,16 @@ jobs:
   #   with:
   #     target: bazzite
 
-  push-server:
-    uses: ./.github/workflows/build-server.yml
-    secrets: inherit
+  # push-server:
+  #   uses: ./.github/workflows/build-server.yml
+  #   secrets: inherit
     
-  changelogs-server-stable:
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: push-server
-    with:
-      target: ucore
+  # changelogs-server-stable:
+  #   uses: ./.github/workflows/changelogs.yml
+  #   secrets: inherit
+  #   needs: push-server
+  #   with:
+  #     target: ucore
 
   build-iso-bluefin:
     uses: ./.github/workflows/build-iso.yml
