@@ -36,10 +36,10 @@ jobs:
           command: |
             set -eoux pipefail
             tag_version=${{ matrix.image }}
-            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/ucore-hci:${tag_version} | jq -r '.Labels["ostree.linux"]')
+            fedora_version=$(skopeo inspect docker://ghcr.io/ublue-os/ucore:${tag_version} | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')
+            KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')
             upstream_repo=ucore
-            base_image=ucore-hci
-            fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
+            base_image=ucore
             ver=$(skopeo inspect docker://ghcr.io/ublue-os/${base_image}:"$tag_version" | jq -r '.Labels["org.opencontainers.image.version"]')
             if [ -z "$ver" ] || [ "null" = "$ver" ]; then
               echo "inspected image version must not be empty or null"
