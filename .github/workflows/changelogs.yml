@@ -27,7 +27,7 @@ jobs:
         id: generate-release
         run: |
           python3 ./changelogs.py \
-            "${{ github.event.inputs.target }}" \
+            "${{ inputs.target }}" \
             ./output.env ./changelog.md --workdir . --handwritten "m2os daily build"
           source ./output.env
           echo "title=${TITLE}" >> $GITHUB_OUTPUT

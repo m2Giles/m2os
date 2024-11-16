@@ -2,6 +2,10 @@ name: Build m2os-desktops
 on:
     workflow_call:
       inputs:
+        images:
+          description: "Images for the build"
+          required: true
+          type: string
         tag_version:
           description: "The Tag Version for the Build"
           required: true
@@ -27,17 +31,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - aurora
-          - aurora-nvidia
-          - bazzite-deck-gnome
-          - bazzite-gnome-nvidia
-          - bluefin
-          - bluefin-nvidia
-          - cosmic
-          - cosmic-nvidia
-        tag_version:
-          - ${{ inputs.tag_version }}
+        image: ${{ fromJson(inputs.images) }}
+        tag_version: ${{ inputs.tag_version }}
 
     steps:
       - name: Build Variables

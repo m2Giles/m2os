@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   workflow_call:
     inputs:
+      images:
+        description: "The images to build"
+        required: true
+        type: string
       image_version:
         description: "The Image Version: stable, beta..."
         required: false
@@ -26,15 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_tag:
-          - aurora
-          - aurora-nvidia
-          - bazzite
-          - bazzite-deck
-          - bluefin
-          - bluefin-nvidia
-          - cosmic
-          - cosmic-nvidia
+        image_tag: ${{ fromJson(inputs.images) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
