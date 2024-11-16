@@ -12,7 +12,7 @@ on:
           type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.tag_version }}-${{ inputs.images }}
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.tag_version }}-${{ github.job }}
   cancel-in-progress: true
 
 env:
