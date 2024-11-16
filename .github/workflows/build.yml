@@ -23,13 +23,13 @@ jobs:
       tag_version: stable
       image_flavor: desktop
 
-  push-desktop-bazzite:
-    uses: ./.github/workflows/build-desktop.yml
-    secrets: inherit
-    with:
-      images: '["bazzite", "bazzite-deck"]'
-      tag_version: stable
-      image_flavor: bazzite
+  # push-desktop-bazzite:
+  #   uses: ./.github/workflows/build-desktop.yml
+  #   secrets: inherit
+  #   with:
+  #     images: '["bazzite", "bazzite-deck"]'
+  #     tag_version: stable
+  #     image_flavor: bazzite
 
   changelogs-desktop-bluefin:
     uses: ./.github/workflows/changelogs.yml
@@ -38,12 +38,12 @@ jobs:
     with:
       target: stable
 
-  changelogs-desktop-stable-bazzite:
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: push-desktop-bazzite
-    with:
-      target: bazzite
+  # changelogs-desktop-stable-bazzite:
+  #   uses: ./.github/workflows/changelogs.yml
+  #   secrets: inherit
+  #   needs: push-desktop-bazzite
+  #   with:
+  #     target: bazzite
 
   push-server:
     uses: ./.github/workflows/build-server.yml
@@ -66,12 +66,12 @@ jobs:
       image_version: stable
       image_flavor: desktop
 
-  build-iso-bazzite:
-    uses: ./.github/workflows/build-iso.yml
-    secrets: inherit
-    needs: push-desktop-bazzite
-    if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
-    with:
-      images: '["bazzite", "bazzite-deck"]'
-      image_version: stable
-      image_flavor: bazzite
+  # build-iso-bazzite:
+  #   uses: ./.github/workflows/build-iso.yml
+  #   secrets: inherit
+  #   needs: push-desktop-bazzite
+  #   if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
+  #   with:
+  #     images: '["bazzite", "bazzite-deck"]'
+  #     image_version: stable
+  #     image_flavor: bazzite
