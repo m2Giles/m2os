@@ -78,6 +78,7 @@ jobs:
               base_image="base-main"
               KERNEL_RELEASE=$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:"${tag_version}" | jq -r '.Labels["ostree.linux"]')
               fedora_version=$(echo $KERNEL_RELEASE | grep -oP 'fc\K[0-9]+')
+              tag_version="$fedora_version"
               ver=$(skopeo inspect docker://ghcr.io/ublue-os/${base_image}:${fedora_version} | jq -r '.Labels["org.opencontainers.image.version"]')
               ;;
             *)
