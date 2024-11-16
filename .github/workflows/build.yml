@@ -9,7 +9,7 @@ on:
   merge_group:
   workflow_dispatch:
 
-permissions: 
+permissions:
   contents: write
   packages: write
   id-token: write
@@ -27,7 +27,7 @@ jobs:
     uses: ./.github/workflows/build-desktop.yml
     secrets: inherit
     with:
-      images: '["bazzite", "bazzite-deck"]'
+      images: '["bazzite-gnome-nvidia", "bazzite-deck-gnome"]'
       tag_version: stable
       image_flavor: bazzite
 
@@ -48,7 +48,7 @@ jobs:
   push-server:
     uses: ./.github/workflows/build-server.yml
     secrets: inherit
-    
+
   changelogs-server-stable:
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
