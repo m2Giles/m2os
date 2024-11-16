@@ -8,11 +8,6 @@ mkdir -p /var/lib/alternatives
 /ctx/server-packages.sh
 /ctx/distrobox.sh
 
-if [[ "$(rpm -E %fedora)" == "41" ]]; then
-    export KERNEL_FLAVOR="main"
-    export BETA="-beta"
-fi
-
 # Changes
 case "${IMAGE}" in
 "aurora"* | "bluefin"*)

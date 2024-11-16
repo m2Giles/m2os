@@ -21,12 +21,6 @@ jobs:
     with:
       tag_version: stable
 
-  push-desktop-beta:
-    uses: ./.github/workflows/build-desktop.yml
-    secrets: inherit
-    with:
-      tag_version: beta
-    
   changelogs-desktop-stable-bluefin:
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
@@ -59,11 +53,3 @@ jobs:
     if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       image_version: stable
-  
-  build-iso-beta:
-    uses: ./.github/workflows/build-iso.yml
-    secrets: inherit
-    needs: push-desktop-beta
-    if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
-    with:
-      image_version: beta
