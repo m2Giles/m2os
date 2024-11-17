@@ -117,7 +117,9 @@ build image="bluefin":
     esac
     BUILD_ARGS+=("--label" "org.opencontainers.image.version={{ image }}-${fedora_version}.$(date +%Y%m%d)")
     buildah build --format docker --label "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses." ${BUILD_ARGS[@]} .
-    just rechunk {{ image }}
+    if [[ "${UID}" -gt "0" ]]; then
+        just rechunk {{ image }}
+    fi
 
 # Rechunk Image
 [private]
@@ -200,14 +202,11 @@ rechunk image="bluefin":
     sudoif find {{ repo_image_name }}_{{ image }}* -type f -exec chmod 0644 {} \; || true
     if [[ "${UID}" -gt "0" ]]; then
         sudoif chown -R ${UID}:${GROUPS} "${PWD}"
-        just load-image {{ image }}
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
         sudoif chown -R ${SUDO_UID}:${SUDO_GID} "${PWD}"
-        sudo -u "${SUDO_USER}" just load-image {{ image }}
     fi
 
     sudoif podman volume rm cache_ostree
-    sudoif rm -rf {{ repo_image_name }}_{{ image }}
 
 # Load Image into Podman and Tag
 [private]
@@ -218,6 +217,7 @@ load-image image="bluefin":
     podman tag ${IMAGE} localhost/{{ repo_image_name }}:{{ image }}
     VERSION=$(podman inspect $IMAGE | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
     podman tag ${IMAGE} localhost/{{ repo_image_name }}:${VERSION}
+    rm -rf {{ repo_image_name }}_{{ image }}
 
 # Get Tags
 get-tags image="bluefin":

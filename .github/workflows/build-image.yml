@@ -53,11 +53,20 @@ jobs:
         uses: ublue-os/remove-unwanted-software@v7
 
       - name: Build Image
-        id: build_image
         shell: bash
         run: |
           sudo just build ${{ matrix.image }}
+
+      - name: Rechunk Image
+        shell: bash
+        run: |
+          sudo just rechunk ${{ matrix.image }}
         
+      - name: Load and Tag Image
+        shell: bash
+        run: |
+          just load-image ${{ matrix.image }}
+
       - name: Get Tags
         id: get_tags
         shell: bash
