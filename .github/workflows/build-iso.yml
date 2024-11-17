@@ -20,6 +20,7 @@ concurrency:
 
 jobs:
   build-iso:
+    name: Build ${{ inputs.image_flavor }} ISOs (${{ matrix.image }})
     runs-on: ubuntu-latest
     permissions:
       contents: read

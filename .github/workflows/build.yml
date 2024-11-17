@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   push-desktop-bluefin:
+    name: Desktop Images
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
@@ -23,6 +24,7 @@ jobs:
       image_flavor: Desktop
 
   push-desktop-bazzite:
+    name: Bazzite Images
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
@@ -30,13 +32,15 @@ jobs:
       image_flavor: Bazzite
 
   changelogs-desktop-bluefin:
+    name: Desktop Changelogs
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
     needs: push-desktop-bluefin
     with:
       target: stable
 
-  changelogs-desktop-stable-bazzite:
+  changelogs-desktop-bazzite:
+    name: Bazzite Changelogs
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
     needs: push-desktop-bazzite
@@ -44,6 +48,7 @@ jobs:
       target: bazzite
 
   push-server:
+    name: Server Images
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
@@ -51,6 +56,7 @@ jobs:
       image_flavor: Server
 
   changelogs-server-stable:
+    name: Server Changelogs
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
     needs: push-server
@@ -58,6 +64,7 @@ jobs:
       target: ucore
 
   build-iso-bluefin:
+    name: Desktop ISOs
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
     needs: push-desktop-bluefin
@@ -67,6 +74,7 @@ jobs:
       image_flavor: Desktop
 
   build-iso-bazzite:
+    name: Bazzite ISOs
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
     needs: push-desktop-bazzite
