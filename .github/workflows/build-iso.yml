@@ -106,7 +106,7 @@ jobs:
           echo "|[${{ matrix.image }}](${{ steps.upload.outputs.artifact-url }})|" > url-${upload}-${{ matrix.image }}.txt
           echo "url=${upload}" >> $GITHUB_OUTPUT
       
-      - name: Upload ISO URL
+      - name: Upload ISO URL for Changelogs
         id: upload-url
         uses: actions/upload-artifact@v4
         with:

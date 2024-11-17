@@ -55,6 +55,17 @@ jobs:
           echo "title=${TITLE}" >> $GITHUB_OUTPUT
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
+      - name: Upload Changelogs as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelogs-${{ inputs.target }}
+          path:
+            ./changelog.md
+          if-no-files-found: error
+          retention-days: 0
+          compression-level: 0
+          overwrite: true
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         if: contains(fromJson('["workflow_dispatch", "merge_group"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
