@@ -67,7 +67,7 @@ jobs:
       - name: Build ISO
         shell: bash
         run: |
-          sudo just build-iso ${{ matrix.image }}
+          sudo just build-iso ${{ matrix.image }} 1
           echo "ISO_UPLOAD_DIR=${PWD}/${IMAGE_NAME}_build/output" >> $GITHUB_ENV
 
       - name: Upload ISOs and Checksum to Job Artifacts
