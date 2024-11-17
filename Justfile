@@ -362,6 +362,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     -v ${FLATPAK_REFS_DIR_ABS}:/output \
     -v ${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir \
     ${IMAGE_FULL} /temp_flatpak_install_dir/install-flatpaks.sh
+
+    VERSION="$(sudoif podman inspect ${IMAGE_FULL} | jq -r '.[]["Config"]["Labels"]["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
     if [[ "{{ ghcr }}" == "1" && "{{ clean }}" == "1" ]]; then
         sudoif podman rmi ${IMAGE_FULL}
     fi
@@ -388,7 +390,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(ISO_NAME="/github/workspace/{{ repo_image_name }}_build/output/{{ image }}.iso")
     iso_build_args+=(SECURE_BOOT_KEY_URL="https://github.com/ublue-os/akmods/raw/main/certs/public_key.der")
     iso_build_args+=(VARIANT="Kinoite")
-    iso_build_args+=(VERSION="$(sudoif podman inspect ${IMAGE_FULL} | jq -r '.[]["Config"]["Labels"]["ostree.linux"]' | grep -oP 'fc\K[0-9]+')")
+    iso_build_args+=(VERSION="$VERSION")
     iso_build_args+=(WEB_UI="false")
     # Build ISO
     sudoif podman run --rm --privileged --pull=newer --security-opt label=disable "${iso_build_args[@]}"
