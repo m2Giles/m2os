@@ -38,10 +38,10 @@ jobs:
         if: contains(fromJson('["stable", "bazzite"]'), inputs.target)
         shell: bash
         run: |
-          for artifact in $(find url-${{ inputs.target }}-*.zip);
+          touch url.md
+          for artifact in $(find url-${{ inputs.target }}-*);
           do
-            unzip $artifact
-            cat ${artifact:0:-4} >> url.md 
+            cat $artifact >> url.md 
           done
           echo "urlmd=url.md" >> $GITHUB_OUTPUT
 
