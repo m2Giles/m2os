@@ -396,10 +396,10 @@ build-iso image="bluefin" ghcr="0" clean="0":
     sudoif podman run --rm --privileged --pull=newer --security-opt label=disable "${iso_build_args[@]}"
     if [[ "${UID}" -gt "0" ]]; then
         sudoif chown -R ${UID}:${GROUPS} "${PWD}"
+        sudoif podman rmi "${IMAGE_FULL}"
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
         sudoif chown -R ${SUDO_UID}:${SUDO_GID} "${PWD}"
     fi
-    sudoif podman rmi "${IMAGE_FULL}"
 
 # Run ISO
 [group('ISO')]
