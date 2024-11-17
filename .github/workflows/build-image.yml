@@ -19,7 +19,7 @@ env:
 
 jobs:
   build-image:
-    name: Build Ucore Images
+    name: Build ${{ inputs.image_flavor }} Images
     runs-on: ubuntu-24.04
     continue-on-error: false
     permissions:

@@ -78,8 +78,8 @@ build image="bluefin":
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     case "{{ image }}" in
     "aurora"*|"bluefin"*)
-        just verify-container {{ image }}:stable-daily
-        podman pull ghcr.io/ublue-os/{{ image }}:stable-daily
+        just verify-container ${check}:stable-daily
+        podman pull ghcr.io/ublue-os/${check}:stable-daily
         podman inspect ghcr.io/ublue-os/${check}:stable-daily > /tmp/inspect-"{{ image }}".json
         fedora_version="$(jq -r '.[]["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
         BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.[]["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
@@ -87,7 +87,7 @@ build image="bluefin":
         BUILD_ARGS+=("--build-arg" "TAG_VERSION=stable-daily")
         ;;
     "bazzite"*)
-        just verify-container ${image}:stable
+        just verify-container ${check}:stable
         podman pull ghcr.io/ublue-os/${check}:stable
         podman inspect ghcr.io/ublue-os/${check}:stable > /tmp/inspect-{{ image }}.json
         fedora_version="$(jq -r '.[]["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"

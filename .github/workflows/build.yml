@@ -20,14 +20,14 @@ jobs:
     secrets: inherit
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
-      image_flavor: desktop
+      image_flavor: Desktop
 
   push-desktop-bazzite:
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
       images: '["bazzite", "bazzite-deck"]'
-      image_flavor: bazzite
+      image_flavor: Bazzite
 
   changelogs-desktop-bluefin:
     uses: ./.github/workflows/changelogs.yml
@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
     with:
       images: '["ucore", "ucore-nvidia"]'
-      image_flavor: server
+      image_flavor: Server
 
   changelogs-server-stable:
     uses: ./.github/workflows/changelogs.yml
@@ -64,7 +64,7 @@ jobs:
     if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
-      image_flavor: desktop
+      image_flavor: Desktop
 
   build-iso-bazzite:
     uses: ./.github/workflows/build-iso.yml
@@ -73,4 +73,4 @@ jobs:
     if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["bazzite", "bazzite-deck"]'
-      image_flavor: bazzite
+      image_flavor: Bazzite
