@@ -1,3 +1,4 @@
+name: Generate Release
 on:
   workflow_call:
     inputs:
@@ -16,7 +17,6 @@ on:
         description: "Handwritten Notes"
         type: string
 
-name: Generate Release
 jobs:
   generate-release:
     runs-on: ubuntu-latest

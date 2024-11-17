@@ -67,11 +67,11 @@ jobs:
       - name: Build ISO
         shell: bash
         run: |
-          sudo just build-iso ${{ matrix.image }} 1
-          echo "ISO_UPLOAD_DIR=${PWD}/${IMAGE_NAME}_build/output" >> $GITHUB_ENV
+          sudo just build-iso ${{ matrix.image }} 1 1
 
       - name: Upload ISOs and Checksum to Job Artifacts
         uses: actions/upload-artifact@v4
+        if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
         with:
           name: ${{ matrix.image }}
           path: |

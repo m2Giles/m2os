@@ -230,7 +230,7 @@ get-tags image="bluefin":
 
 # Build ISO
 [group('ISO')]
-build-iso image="bluefin" ghcr="0":
+build-iso image="bluefin" ghcr="0" clean="0":
     #!/usr/bin/bash
     set -eou pipefail
     function sudoif(){
@@ -362,6 +362,9 @@ build-iso image="bluefin" ghcr="0":
     -v ${FLATPAK_REFS_DIR_ABS}:/output \
     -v ${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir \
     ${IMAGE_FULL} /temp_flatpak_install_dir/install-flatpaks.sh
+    if [[ "{{ ghcr }}" == "1" && "{{ clean }}" == "1" ]]; then
+        sudoif podman rmi ${IMAGE_FULL}
+    fi
     # list Flatpaks
     cat ${FLATPAK_REFS_DIR}/flatpaks-with-deps
     #ISO Container Args

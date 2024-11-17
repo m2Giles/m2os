@@ -68,7 +68,6 @@ jobs:
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
     needs: build-image-desktop
-    if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       image_flavor: Desktop
@@ -78,7 +77,6 @@ jobs:
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
     needs: build-image-bazzite
-    if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["bazzite", "bazzite-deck"]'
       image_flavor: Bazzite
