@@ -78,47 +78,50 @@ build image="bluefin":
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     case "{{ image }}" in
     "aurora"*|"bluefin"*)
-        just verify-container ${check}:stable-daily
-        podman pull ghcr.io/ublue-os/${check}:stable-daily
-        podman inspect ghcr.io/ublue-os/${check}:stable-daily > /tmp/inspect-"{{ image }}".json
-        fedora_version="$(jq -r '.[]["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
-        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.[]["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
-        BUILD_ARGS+=("--build-arg" "BASE_IMAGE={{ image }}")
-        BUILD_ARGS+=("--build-arg" "TAG_VERSION=stable-daily")
+        BASE_IMAGE=${check}
+        TAG_VERSION=stable-daily
+        just verify-container ${BASE_IMAGE}:${TAG_VERSION}
+        skopeo inspect docker://ghcr.io/ublue-os/${BASE_IMAGE}:${TAG_VERSION} > /tmp/inspect-"{{ image }}".json
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
+        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
         ;;
     "bazzite"*)
+        BASE_IMAGE=${check}
+        TAG_VERSION=stable
         just verify-container ${check}:stable
-        podman pull ghcr.io/ublue-os/${check}:stable
-        podman inspect ghcr.io/ublue-os/${check}:stable > /tmp/inspect-{{ image }}.json
-        fedora_version="$(jq -r '.[]["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
-        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.[]["Config"]["Labels"]["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
-        BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${check}")
-        BUILD_ARGS+=("--build-arg" "TAG_VERSION=stable")
+        skopeo inspect docker://ghcr.io/ublue-os/${check}:stable > /tmp/inspect-{{ image }}.json
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
+        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
         ;;
     "cosmic"*)
         just verify-container bluefin:stable-daily
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:stable-daily | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         just verify-container base-main:${fedora_version}
         just verify-container coreos-stable-kernel:${fedora_version}
-        podman pull ghcr.io/ublue-os/base-main:"${fedora_version}"
+        BASE_IMAGE=base-main
+        TAG_VERSION=${fedora_version}
+        just verify-container ${BASE_IMAGE}:${TAG_VERSION}
         BUILD_ARGS+=("--label" "ostree.linux=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')")
-        BUILD_ARGS+=("--build-arg" "BASE_IMAGE=base-main")
-        BUILD_ARGS+=("--build-arg" "TAG_VERSION=${fedora_version}")
         ;;
     "ucore"*)
-        just verify-container ucore:${check}
-        podman pull ghcr.io/ublue-os/ucore:"${check}"
+        BASE_IMAGE=ucore
+        TAG_VERSION=${check}
+        just verify-container ${BASE_IMAGE}:${TAG_VERSION}
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/ucore:${check} | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         just verify-container coreos-stable-kernel:${fedora_version}
         BUILD_ARGS+=("--label" "ostree.linux=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')")
-        BUILD_ARGS+=("--build-arg" "BASE_IMAGE=ucore")
-        BUILD_ARGS+=("--build-arg" "TAG_VERSION=${check}")
         ;;
     esac
+    BUILD_ARGS+=("--build-arg" "BASE_IMAGE=$BASE_IMAGE")
+    BUILD_ARGS+=("--build-arg" "TAG_VERSION=$TAG_VERSION")
     BUILD_ARGS+=("--label" "org.opencontainers.image.version={{ image }}-${fedora_version}.$(date +%Y%m%d)")
+    podman pull ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     buildah build --format docker --label "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses." ${BUILD_ARGS[@]} .
+
     if [[ "${UID}" -gt "0" ]]; then
         just rechunk {{ image }}
+    else
+        podman rmi ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     fi
 
 # Rechunk Image
