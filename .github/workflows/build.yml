@@ -3,9 +3,6 @@ on:
   schedule:
     - cron: "41 6 * * 0" # 6:41 UTC Sunday
     - cron: "41 6 * * 1,2,3,4,5,6" # 6:41 UTC Monday-Saturday
-  push:
-    branches:
-      - main
   merge_group:
   workflow_dispatch:
 
@@ -15,7 +12,7 @@ permissions:
   id-token: write
 
 jobs:
-  push-desktop-bluefin:
+  build-image-desktop:
     name: Desktop Images
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
@@ -23,7 +20,7 @@ jobs:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       image_flavor: Desktop
 
-  push-desktop-bazzite:
+  build-image-bazzite:
     name: Bazzite Images
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
@@ -31,23 +28,7 @@ jobs:
       images: '["bazzite", "bazzite-deck"]'
       image_flavor: Bazzite
 
-  changelogs-desktop-bluefin:
-    name: Desktop Changelogs
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: push-desktop-bluefin
-    with:
-      target: stable
-
-  changelogs-desktop-bazzite:
-    name: Bazzite Changelogs
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: push-desktop-bazzite
-    with:
-      target: bazzite
-
-  push-server:
+  build-image-server:
     name: Server Images
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
@@ -55,19 +36,35 @@ jobs:
       images: '["ucore", "ucore-nvidia"]'
       image_flavor: Server
 
+  changelogs-desktop:
+    name: Desktop Changelogs
+    uses: ./.github/workflows/changelogs.yml
+    secrets: inherit
+    needs: build-image-desktop
+    with:
+      target: stable
+
+  changelogs-bazzite:
+    name: Bazzite Changelogs
+    uses: ./.github/workflows/changelogs.yml
+    secrets: inherit
+    needs: build-image-bazzite
+    with:
+      target: bazzite
+
   changelogs-server-stable:
     name: Server Changelogs
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
-    needs: push-server
+    needs: build-image-server
     with:
       target: ucore
 
-  build-iso-bluefin:
+  build-iso-desktop:
     name: Desktop ISOs
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
-    needs: push-desktop-bluefin
+    needs: build-image-desktop
     if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
@@ -77,7 +74,7 @@ jobs:
     name: Bazzite ISOs
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
-    needs: push-desktop-bazzite
+    needs: build-image-bazzite
     if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["bazzite", "bazzite-deck"]'

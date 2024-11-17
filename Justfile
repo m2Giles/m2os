@@ -73,9 +73,6 @@ build image="bluefin":
         exit 1
     fi
     BUILD_ARGS=()
-    BUILD_ARGS+=("--label" "org.opencontainers.image.title={{ repo_image_name }}")
-    BUILD_ARGS+=("--build-arg" "IMAGE={{ image }}")
-    BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     case "{{ image }}" in
     "aurora"*|"bluefin"*)
         BASE_IMAGE=${check}
@@ -83,25 +80,22 @@ build image="bluefin":
         just verify-container ${BASE_IMAGE}:${TAG_VERSION}
         skopeo inspect docker://ghcr.io/ublue-os/${BASE_IMAGE}:${TAG_VERSION} > /tmp/inspect-"{{ image }}".json
         fedora_version="$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
-        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
         ;;
     "bazzite"*)
         BASE_IMAGE=${check}
         TAG_VERSION=stable
-        just verify-container ${check}:stable
-        skopeo inspect docker://ghcr.io/ublue-os/${check}:stable > /tmp/inspect-{{ image }}.json
+        just verify-container ${BASE_IMAGE}:${TAG_VERSION}
+        skopeo inspect docker://ghcr.io/ublue-os/${BASE_IMAGE}:${TAG_VERSION} > /tmp/inspect-"{{ image }}".json
         fedora_version="$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
-        BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
         ;;
     "cosmic"*)
         just verify-container bluefin:stable-daily
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:stable-daily | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        just verify-container base-main:${fedora_version}
         just verify-container coreos-stable-kernel:${fedora_version}
         BASE_IMAGE=base-main
         TAG_VERSION=${fedora_version}
         just verify-container ${BASE_IMAGE}:${TAG_VERSION}
-        BUILD_ARGS+=("--label" "ostree.linux=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')")
+        skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} > /tmp/inspect-"{{ image }}".json
         ;;
     "ucore"*)
         BASE_IMAGE=ucore
@@ -109,12 +103,16 @@ build image="bluefin":
         just verify-container ${BASE_IMAGE}:${TAG_VERSION}
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/ucore:${check} | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         just verify-container coreos-stable-kernel:${fedora_version}
-        BUILD_ARGS+=("--label" "ostree.linux=$(skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} | jq -r '.Labels["ostree.linux"]')")
+        skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} > /tmp/inspect-"{{ image }}".json
         ;;
     esac
+    BUILD_ARGS+=("--label" "org.opencontainers.image.title={{ repo_image_name }}")
+    BUILD_ARGS+=("--label" "org.opencontainers.image.version={{ image }}-${fedora_version}.$(date +%Y%m%d)")
+    BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
+    BUILD_ARGS+=("--build-arg" "IMAGE={{ image }}")
     BUILD_ARGS+=("--build-arg" "BASE_IMAGE=$BASE_IMAGE")
     BUILD_ARGS+=("--build-arg" "TAG_VERSION=$TAG_VERSION")
-    BUILD_ARGS+=("--label" "org.opencontainers.image.version={{ image }}-${fedora_version}.$(date +%Y%m%d)")
+    BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     podman pull ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     buildah build --format docker --label "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses." ${BUILD_ARGS[@]} .
 
@@ -220,6 +218,7 @@ load-image image="bluefin":
     podman tag ${IMAGE} localhost/{{ repo_image_name }}:{{ image }}
     VERSION=$(podman inspect $IMAGE | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
     podman tag ${IMAGE} localhost/{{ repo_image_name }}:${VERSION}
+    podman images
     rm -rf {{ repo_image_name }}_{{ image }}
 
 # Get Tags

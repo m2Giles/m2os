@@ -1,4 +1,4 @@
-name: Build m2os-server
+name: Build m2os
 on:
   workflow_call:
     inputs:
@@ -90,7 +90,7 @@ jobs:
       - name: Push to GHCR
         uses: Wandalen/wretry.action@v3.7.0
         id: push
-        if: github.event_name != 'pull_request'
+        if: contains(fromJson('["workflow_dispatch", "merge_group"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
         env:
           REGISTRY_USER: ${{ github.actor }}
           REGISTRY_PASSWORD: ${{ github.token }}
@@ -109,14 +109,14 @@ jobs:
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
-        if: github.event_name != 'pull_request'
+        if: contains(fromJson('["workflow_dispatch", "merge_group"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sign Container Image
-        if: github.event_name != 'pull_request'
+        if: contains(fromJson('["workflow_dispatch", "merge_group"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
         run: |
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}@${TAGS}
         env:
