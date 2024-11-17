@@ -90,7 +90,7 @@ jobs:
           compression-level: 0
           overwrite: true
         env:
-          ISO_UPLOAD_DIR: ${{ github.workspace }}/${{ env.IMAGE_NAME }}_build/ouput
+          ISO_UPLOAD_DIR: ${{ github.workspace }}/${{ env.IMAGE_NAME }}_build/ouput/
         
       - name: Make URL Artifact
         shell: bash
