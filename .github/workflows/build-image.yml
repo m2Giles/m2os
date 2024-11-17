@@ -1,4 +1,4 @@
-name: Build m2os
+name: Build m2os Images
 on:
   workflow_call:
     inputs:
