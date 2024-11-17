@@ -16,19 +16,17 @@ permissions:
 
 jobs:
   push-desktop-bluefin:
-    uses: ./.github/workflows/build-desktop.yml
+    uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
-      tag_version: stable
       image_flavor: desktop
 
   push-desktop-bazzite:
-    uses: ./.github/workflows/build-desktop.yml
+    uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
-      images: '["bazzite-gnome-nvidia", "bazzite-deck-gnome"]'
-      tag_version: stable
+      images: '["bazzite", "bazzite-deck"]'
       image_flavor: bazzite
 
   changelogs-desktop-bluefin:
@@ -46,8 +44,11 @@ jobs:
       target: bazzite
 
   push-server:
-    uses: ./.github/workflows/build-server.yml
+    uses: ./.github/workflows/build-image.yml
     secrets: inherit
+    with:
+      images: '["ucore", "ucore-nvidia"]'
+      image_flavor: server
 
   changelogs-server-stable:
     uses: ./.github/workflows/changelogs.yml
@@ -63,7 +64,6 @@ jobs:
     if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
-      image_version: stable
       image_flavor: desktop
 
   build-iso-bazzite:
@@ -73,5 +73,4 @@ jobs:
     if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
     with:
       images: '["bazzite", "bazzite-deck"]'
-      image_version: stable
       image_flavor: bazzite

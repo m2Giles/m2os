@@ -1,0 +1,131 @@
+name: Build m2os-server
+on:
+  workflow_call:
+    inputs:
+      images:
+        description: "Images for the build"
+        required: true
+        type: string
+      image_flavor:
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.image_flavor }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_REGISTRY: ghcr.io/m2giles
+  IMAGE_NAME: m2os
+
+jobs:
+  build-image:
+    name: Build Ucore Images
+    runs-on: ubuntu-24.04
+    continue-on-error: false
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJson(inputs.images) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      
+      - name: Install Just
+        shell: bash
+        run: |
+          set -eoux pipefail
+          JUST_VERSION=$(curl -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
+          curl -sSLO https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
+          tar -zxvf just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -C /tmp just
+          sudo mv /tmp/just /usr/local/bin/just
+          rm -f just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
+        
+      - name: Check Just Syntax
+        shell: bash
+        run: |
+          just check
+
+      - name: Maximize Build Space
+        uses: ublue-os/remove-unwanted-software@v7
+
+      - name: Build Image
+        id: build_image
+        shell: bash
+        run: |
+          sudo just build ${{ matrix.image }}
+        
+      - name: Get Tags
+        id: get_tags
+        shell: bash
+        run: |
+          tags=$(just get-tags ${{ matrix.image }})
+          echo "tags=$tags" >> $GITHUB_OUTPUT 
+          echo $GITHUB_OUTPUT
+
+      - name: Check Secureboot
+        id: secureboot
+        shell: bash
+        run: |
+          just secureboot ${{ matrix.image }}
+
+      - name: Lowercase Registry
+        id: registry_case
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ env.IMAGE_REGISTRY }}
+
+      - name: Push to GHCR
+        uses: Wandalen/wretry.action@v3.7.0
+        id: push
+        if: github.event_name != 'pull_request'
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
+        with:
+          action: redhat-actions/push-to-registry@v2
+          attempt_limit: 3
+          attempt_delay: 15000
+          with: |
+            image: ${{ env.IMAGE_NAME }}
+            tags: ${{ steps.get_tags.outputs.tags }}
+            registry: ${{ steps.registry_case.outputs.lowercase }}
+            username: ${{ env.REGISTRY_USER }}
+            password: ${{ env.REGISTRY_PASSWORD }}
+            extra-args: |
+              --disable-content-trust
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sign Container Image
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}@${TAGS}
+        env:
+          TAGS: ${{ steps.push.outputs.outputs && fromJSON(steps.push.outputs.outputs).digest }}
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+        
+  check:
+      name: Check all builds successful
+      if: ${{ !cancelled() }}
+      runs-on: ubuntu-latest
+      needs: [build-image]
+      steps:
+        - name: Exit on failure
+          if: ${{ needs.build-image.result == 'failure' }}
+          shell: bash
+          run: exit 1
+        - name: Exit
+          shell: bash
+          run: exit 0
+            

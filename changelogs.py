@@ -39,7 +39,7 @@ OTHER_NAMES = {
     "aurora": "### [Aurora Images](https://getaurora.dev/)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "bluefin": "### [Bluefin Images](https://projectbluefin.io/)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "cosmic": "### Cosmic Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
-    "bazzite": "### Bazzite Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
+    "bazzite": "### [Bazzite Images](https://bazzite.gg)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "ucore": "### Ucore Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "nvidia": "### Nvidia Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
 }
@@ -47,7 +47,7 @@ OTHER_NAMES = {
 COMMITS_FORMAT = "### Commits\n| Hash | Subject |\n| --- | --- |{commits}\n\n"
 COMMIT_FORMAT = "\n| **[{short}](https://github.com/m2giles/m2os/commit/{githash})** | {subject} |"
 
-CHANGELOG_TITLE = "m2os: {pretty}"
+CHANGELOG_TITLE = "m2os {pretty}"
 CHANGELOG_FORMAT = """\
 {handwritten}
 
@@ -63,17 +63,6 @@ From previous m2os version `{prev}` there have been the following changes. **One
 | **Incus** | {pkgrel:incus} |
 
 {changes}
-
-### How to rebase
-For current users, type the following to rebase to this version:
-#### For this branch (if latest):
-```bash
-sudo bootc switch ghcr.io/m2giles/m2os:<image> --enforce-container-sigpolicy 
-```
-
-### Documentation
-Be sure to read the [documentation](https://docs.projectbluefin.io/) for more information
-on how to use your cloud native system.
 """
 HANDWRITTEN_PLACEHOLDER = """\
 This is an automatically generated changelog for release `{curr}`."""
