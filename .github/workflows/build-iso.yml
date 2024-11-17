@@ -1,6 +1,18 @@
 name: Build m2os ISOs
 on:
   workflow_dispatch:
+    inputs:
+      images:
+        description: "The images to build"
+        type: choice
+        options:
+          - '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
+          - '["bazzite", "bazzite-deck"]'
+          - '["bazzite", "bazzite-deck", "aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
+      image_flavor:
+        type: string
+        default: "Manual Build"
+
   workflow_call:
     inputs:
       images:
