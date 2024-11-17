@@ -42,22 +42,6 @@ jobs:
       images: '["ucore", "ucore-nvidia"]'
       image_flavor: Server
 
-  changelogs-desktop:
-    name: Desktop Changelogs
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: build-image-desktop
-    with:
-      target: stable
-
-  changelogs-bazzite:
-    name: Bazzite Changelogs
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: build-image-bazzite
-    with:
-      target: bazzite
-
   changelogs-server-stable:
     name: Server Changelogs
     uses: ./.github/workflows/changelogs.yml

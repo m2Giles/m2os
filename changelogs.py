@@ -62,8 +62,8 @@ From previous m2os version `{prev}` there have been the following changes. **One
 | **Docker** | {pkgrel:docker-ce} |
 | **Incus** | {pkgrel:incus} |
 
-{changes}
-"""
+{changes}"""
+
 HANDWRITTEN_PLACEHOLDER = """\
 This is an automatically generated changelog for release `{curr}`."""
 
@@ -317,6 +317,7 @@ def get_commits(prev_manifests, manifests, workdir: str):
 
 def generate_changelog(
     handwritten: str | None,
+    urlmd: str | None,
     target: str,
     pretty: str | None,
     workdir: str,
@@ -361,6 +362,9 @@ def generate_changelog(
         .replace("{prev}", STRIP_PATTERN(prev_tags[0]))
         .replace("{curr}", STRIP_PATTERN(curr_tags[0]))
     )
+    if urlmd:
+        f = open(urlmd, "r")
+        changelog = f"{changelog}### ISO Downloads\n| Image |\n| --- |\n{f.read()}"
 
     for pkg, v in versions.items():
         if pkg not in prev_versions or prev_versions[pkg] == v:
@@ -395,6 +399,7 @@ def main():
     parser.add_argument("target", help="Target tag")
     parser.add_argument("output", help="Output environment file")
     parser.add_argument("changelog", help="Output changelog file")
+    parser.add_argument("--urlmd", help="md file of urls")
     parser.add_argument("--pretty", help="Subject for the changelog")
     parser.add_argument("--workdir", help="Git directory for commits")
     parser.add_argument("--handwritten", help="Handwritten changelog")
@@ -419,6 +424,7 @@ def main():
     prev_manifests = get_manifests(prev)
     title, changelog = generate_changelog(
         args.handwritten,
+        args.urlmd,
         target,
         args.pretty,
         args.workdir,
