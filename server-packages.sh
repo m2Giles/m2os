@@ -102,10 +102,6 @@ setw -g automatic-rename on
 set -g base-index 1
 setw -g pane-base-index 1
 
-# Switch Panes
-bind-key l select-pane -t :.+
-bind-key h select-pane -t :.-
-
 # Split and create Panes Commands
 bind-key '\' split-window -h
 bind-key '-' split-window -v
@@ -122,32 +118,4 @@ bind-key 6 if-shell 'tmux select-window -t :6' '' 'new-window -t :6'
 bind-key 7 if-shell 'tmux select-window -t :7' '' 'new-window -t :7'
 bind-key 8 if-shell 'tmux select-window -t :8' '' 'new-window -t :8'
 bind-key 9 if-shell 'tmux select-window -t :9' '' 'new-window -t :9'
-
-# Resize Panes
-bind-key -n M-H resize-pane -L 2
-bind-key -n M-L resize-pane -R 2
-bind-key -n M-K resize-pane -U 2
-bind-key -n M-J resize-pane -D 2
-
-# window separators
-set-option -wg window-status-separator ""
-
-# monitor window changes
-set-option -wg monitor-activity on
-set-option -wg monitor-bell on
-
-# set statusbar update interval
-set-option -g status-interval 1
-
-### theme settings ###
-
-# window separators
-set-option -wg window-status-separator ""
-
-# monitor window changes
-set-option -wg monitor-activity on
-set-option -wg monitor-bell on
-
-# set statusbar update interval
-set-option -g status-interval 1
 EOF

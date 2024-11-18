@@ -2,6 +2,10 @@
 
 set -eoux pipefail
 
+# Ublue Staging
+curl -Lo /etc/yum.repos.d/ublue-os-staging-$(rpm -E %fedora).repo \
+    https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-"$(rpm -E %fedora)"/ublue-os-staging-fedora-$(rpm -E %fedora).repo
+
 # OBS-VKcapture
 curl -Lo /etc/yum.repos.d/_copr_kylegospo-obs-vkcapture.repo \
     https://copr.fedorainfracloud.org/coprs/kylegospo/obs-vkcapture/repo/fedora-"$(rpm -E %fedora)"/kylegospo-obs-vkcapture-fedora-"$(rpm -E %fedora)".repo?arch=x86_64
@@ -46,6 +50,7 @@ LAYERED_PACKAGES=(
     adw-gtk3-theme
     breeze-cursor-theme
     code
+    devpod
     emacs
     git-credential-libsecret
     git-credential-oauth

@@ -1,3 +1,4 @@
+import argparse
 from itertools import product
 import subprocess
 import json
@@ -137,10 +138,16 @@ def get_tags(target: str, manifests: dict[str, Any]):
                 if tag.endswith(".0"):
                     continue
                 if re.match(START_PATTERN(img[0]), tag):
-                    tags.add(tag)
+                    version = re.sub(START_PATTERN(img[0]), "", tag)
+                    for check_img in imgs:
+                        if f"{check_img[0]}-{version}" not in manifest["RepoTags"]:
+                            continue
+                    else:
+                        tags.add(tag)
+
 
         tags = list(sorted(tags))
-        if not len(tags) > 2:
+        if not len(tags) >= 2:
             print("No current and previous tags found")
             exit(1)
         prev_tags.append(tags[-2]), curr_tags.append(tags[-1])
@@ -330,6 +337,9 @@ def generate_changelog(
 
     prev_tags, curr_tags = get_tags(target, manifests)
 
+    if target == "stable":
+        target = "Desktop"
+
     if not pretty:
         # Generate pretty version since we dont have it
         try:
@@ -345,9 +355,7 @@ def generate_changelog(
             curr_pretty = re.sub(r"\.\d{1,2}$", "", curr)
             # Remove target- from curr
             curr_pretty = STRIP_PATTERN(curr_pretty)
-            if target == "stable":
-                target = "Desktop"
-            pretty = target.capitalize() + " (" + curr_pretty
+            pretty = target.capitalize() + " (F" + curr_pretty
             if finish and target != "stable":
                 pretty += ", #" + finish[:7]
             pretty += ")"
@@ -359,12 +367,12 @@ def generate_changelog(
     changelog = (
         changelog.replace("{handwritten}", handwritten if handwritten else HANDWRITTEN_PLACEHOLDER)
         .replace("{target}", target)
-        .replace("{prev}", STRIP_PATTERN(prev_tags[0]))
-        .replace("{curr}", STRIP_PATTERN(curr_tags[0]))
+        .replace("{prev}", f"{target.lower()}-{STRIP_PATTERN(prev_tags[0])}")
+        .replace("{curr}", f"{target.lower()}-{STRIP_PATTERN(curr_tags[0])}")
     )
     if urlmd:
-        f = open(urlmd, "r")
-        changelog = f"{changelog}### ISO Downloads\n| Image |\n| --- |\n{f.read()}"
+        with open(urlmd, "r") as f:
+            changelog = f"{changelog}### ISO Downloads\n| Image |\n| --- |\n{f.read()}"
 
     for pkg, v in versions.items():
         if pkg not in prev_versions or prev_versions[pkg] == v:
@@ -393,8 +401,6 @@ def generate_changelog(
 
 
 def main():
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument("target", help="Target tag")
     parser.add_argument("output", help="Output environment file")
@@ -418,8 +424,8 @@ def main():
         images.append(image[0])
     manifests = get_manifests(images)
     prev, curr = get_tags(target, manifests)
-    print(f"Previous tag: {STRIP_PATTERN(prev[0])}")
-    print(f" Current tag: {STRIP_PATTERN(curr[0])}")
+    print(f"Previous tag date: {STRIP_PATTERN(prev[0])}")
+    print(f" Current tag date: {STRIP_PATTERN(curr[0])}")
 
     prev_manifests = get_manifests(prev)
     title, changelog = generate_changelog(
@@ -432,14 +438,17 @@ def main():
         manifests,
     )
 
+    if target == "stable":
+        target = "Desktop"
+
     print(f"Changelog:\n# {title}\n{changelog}")
-    print(f"\nOutput:\nTITLE=\"{title}\"\nTAG={STRIP_PATTERN(curr[0])}")
+    print(f"\nOutput:\nTITLE=\"{title}\"\nTAG=\"{target.lower()}-{STRIP_PATTERN(curr[0])}\"")
 
     with open(args.changelog, "w") as f:
         f.write(changelog)
 
     with open(args.output, "w") as f:
-        f.write(f'TITLE="{title}"\nTAG={STRIP_PATTERN(curr[0])}\n')
+        f.write(f'TITLE="{title}"\nTAG="{target.lower()}-{STRIP_PATTERN(curr[0])}"\n')
 
 
 if __name__ == "__main__":
