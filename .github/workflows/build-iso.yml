@@ -76,6 +76,7 @@ jobs:
         shell: bash
         run: |
           sudo just build-iso ${{ matrix.image }} 1 1
+          tree "${{ env.IMAGE_NAME }}_build/output"
 
       - name: Upload ISOs and Checksum to Job Artifacts
         id: upload
@@ -84,8 +85,8 @@ jobs:
         with:
           name: ${{ matrix.image }}
           path: |
-            "${{ github.workspace }}/${{ env.IMAGE_NAME }}_build/output/${{ matrix.image }}.iso"
-            "${{ github.workspace }}/${{ env.IMAGE_NAME }}_build/output/${{ matrix.image }}.iso-CHECKSUM"
+            "${{ env.IMAGE_NAME }}_build/output/${{ matrix.image }}.iso"
+            "${{ env.IMAGE_NAME }}_build/output/${{ matrix.image }}.iso-CHECKSUM"
           if-no-files-found: error
           retention-days: 0
           compression-level: 0
