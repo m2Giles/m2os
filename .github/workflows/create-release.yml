@@ -24,6 +24,7 @@ jobs:
           pattern: changelogs-*
           merge-multiple: true
           run-id: ${{ inputs.run-id || github.run_id }}
+          github-token: ${{ github.token }}
         
       - name: Prepare Release
         id: prepare-release
@@ -31,6 +32,7 @@ jobs:
         run: |
           set -eoux pipefail
           cat changelog*.md > changelog.md
+          cat changelog.md
           last_tag=$(git tag --list m2os-* | sort -r | head -1)
           date_extract="$(echo ${last_tag:-} | cut -d "-" -f 2 | cut -d "." -f 1)"
           date_version="$(echo ${last_tag:-} | cut -d "." -f 2)"
@@ -41,6 +43,17 @@ jobs:
           fi
           echo "title=$tag (#$(git rev-parse --short HEAD))" >> $GITHUB_OUTPUT
           echo "tag=$tag" >> $GITHUB_OUTPUT
+
+      - name: Upload Changelogs as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-changelog
+          path:
+            ./changelog.md
+          if-no-files-found: error
+          retention-days: 0
+          compression-level: 0
+          overwrite: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
