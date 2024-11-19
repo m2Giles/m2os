@@ -38,6 +38,7 @@ jobs:
         if: contains(fromJson('["stable", "bazzite"]'), inputs.target)
         shell: bash
         run: |
+          set -eoux pipefail
           touch url.md
           for artifact in $(find url-${{ inputs.target }}-*);
           do
@@ -48,19 +49,18 @@ jobs:
       - name: Generate Release Text
         id: generate-release
         run: |
+          set -eoux pipefail
           python3 ./changelogs.py \
             "${{ inputs.target }}" \
-            ./output.env ./changelog.md --workdir . --handwritten "${{ inputs.handwritten }}" --urlmd "${{ steps.merge-artifacts.outputs.urlmd }}"
-          source ./output.env
-          echo "title=${TITLE}" >> $GITHUB_OUTPUT
-          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+            ./output-${{ inputs.target }}.env ./changelog-${{ inputs.target }}.md --workdir . --handwritten "${{ inputs.handwritten }}" --urlmd "${{ steps.merge-artifacts.outputs.urlmd }}"
+          source ./output-${{ inputs.target }}.env
 
       - name: Upload Changelogs as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: changelogs-${{ inputs.target }}
           path:
-            ./changelog.md
+            ./changelog-${{ inputs.target }}.md
           if-no-files-found: error
           retention-days: 0
           compression-level: 0

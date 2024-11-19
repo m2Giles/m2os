@@ -1,5 +1,7 @@
 m2os_*
 previous.manifest*
+changelog-*.md
 changelog.md
+output-*.env
 output.env
 version.txt

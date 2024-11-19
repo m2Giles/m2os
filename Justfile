@@ -436,7 +436,7 @@ run-iso image="bluefin":
 changelogs branch="stable" urlmd="" handwritten="":
     #!/usr/bin/bash
     set -eoux pipefail
-    python3 changelogs.py {{ branch }} ./output.env ./changelog.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
+    python3 changelogs.py {{ branch }} ./output-{{ branch }}.env ./changelog-{{ branch }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
 [group('Utility')]

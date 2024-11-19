@@ -15,11 +15,14 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout 
+        uses: actions/checkout@v4
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: changelogs**
-          merge-multiple: false
+          pattern: changelogs-*
+          merge-multiple: true
           run-id: ${{ inputs.run-id || github.run_id }}
         
       - name: Prepare Release
@@ -27,7 +30,7 @@ jobs:
         shell: bash
         run: |
           set -eoux pipefail
-          cat changelogs-*/changelog.md >> changelog.md
+          cat changelog*.md > changelog.md
           last_tag=$(git tag --list m2os-* | sort -r | head -1)
           date_extract="$(echo ${last_tag:-} | cut -d "-" -f 2 | cut -d "." -f 1)"
           date_version="$(echo ${last_tag:-} | cut -d "." -f 2)"
