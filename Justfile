@@ -60,7 +60,7 @@ clean:
     sudoif find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
     sudoif find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
     find {{ repo_image_name }}_* -maxdepth 0 -exec rm -rf {} \;
-    rm -f output.env changelog.md version.txt previous.manifest.json
+    rm -f output*.env changelog*.md version.txt previous.manifest.json
 
 # Build Image
 [group('Image')]
@@ -225,7 +225,7 @@ load-image image="bluefin":
 get-tags image="bluefin":
     #!/usr/bin/bash
     set -eou pipefail
-    VERSION=$(podman inspect m2os:{{ image }} | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
+    VERSION=$(podman inspect {{ repo_image_name }}:{{ image }} | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
     echo "{{ image }} $VERSION"
 
 # Build ISO
@@ -252,6 +252,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
         exit 1
     fi
 
+    # Verify ISO Build Container
+    just verify-container "build-container-installer" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
+
     mkdir -p {{ repo_image_name }}_build/{lorax_templates,flatpak-refs-{{ image }},output}
     echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
          > {{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
@@ -260,6 +263,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     if [[ "{{ ghcr }}" == "1" ]]; then
         IMAGE_FULL=ghcr.io/{{ repo_name }}/{{ repo_image_name }}:{{ image }}
         IMAGE_REPO=ghcr.io/{{ repo_name }}
+        # Verify Container for ISO
+        just verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
         podman pull "${IMAGE_FULL}"
         TEMPLATES=(
             /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
@@ -473,7 +478,7 @@ verify-container container="" registry="ghcr.io/ublue-os" key="":
 
     # Public Key for Container Verification
     key={{ key }}
-    if [[ -z "${key:-}" ]]; then
+    if [[ -z "${key:-}" && "{{ registry}}" == "ghcr.io/ublue-os" ]]; then
         key="https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub"
     fi
 
@@ -527,3 +532,24 @@ secureboot image="bluefin":
         podman rm -f "${temp_name}"
     fi
     exit "$returncode"
+
+# Merge Changelogs
+merge-changelog:
+    #!/usr/bin/bash
+    set -eou pipefail
+    rm -f changelog.md
+    cat changelog*.md > changelog.md
+    last_tag=$(git tag --list {{ repo_image_name }}-* | sort -r | head -1)
+    date_extract="$(echo ${last_tag:-} | cut -d "-" -f 2 | cut -d "." -f 1)"
+    date_version="$(echo ${last_tag:-} | cut -d "." -f 2)"
+    if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
+        tag="{{ repo_image_name }}-${date_extract:-}.$(( ${date_version:-} + 1 ))"
+    else
+        tag="{{ repo_image_name }}-$(date +%Y%m%d).0"
+    fi
+    cat << EOF
+    {
+        "title": "$tag (#$(git rev-parse --short HEAD))",
+        "tag": "$tag"
+    }
+    EOF

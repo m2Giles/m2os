@@ -25,24 +25,32 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
+
+      - name: Install Just
+        shell: bash
+        run: |
+          set -eoux pipefail
+          JUST_VERSION=$(curl -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
+          curl -sSLO https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
+          tar -zxvf just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -C /tmp just
+          sudo mv /tmp/just /usr/local/bin/just
+          rm -f just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
+        
+      - name: Check Just Syntax
+        shell: bash
+        run: |
+          just check
         
       - name: Prepare Release
         id: prepare-release
         shell: bash
         run: |
           set -eoux pipefail
-          cat changelog*.md > changelog.md
+          output=$(just merge-changelog)
           cat changelog.md
-          last_tag=$(git tag --list m2os-* | sort -r | head -1)
-          date_extract="$(echo ${last_tag:-} | cut -d "-" -f 2 | cut -d "." -f 1)"
-          date_version="$(echo ${last_tag:-} | cut -d "." -f 2)"
-          if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
-            tag="m2os-${date_extract:-}.$(( ${date_version:-} + 1 ))"
-          else
-            tag="m2os-$(date +%Y%m%d).0"
-          fi
-          echo "title=$tag (#$(git rev-parse --short HEAD))" >> $GITHUB_OUTPUT
-          echo "tag=$tag" >> $GITHUB_OUTPUT
+          jq -r <<< $output
+          echo "title=$(jq -r '."title"' <<< $output)" >> $GITHUB_OUTPUT
+          echo "tag=$(jq -r '."tag"' <<< $output)" >> $GITHUB_OUTPUT
 
       - name: Upload Changelogs as Artifact
         uses: actions/upload-artifact@v4
