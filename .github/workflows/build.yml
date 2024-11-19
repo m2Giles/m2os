@@ -67,3 +67,8 @@ jobs:
     with:
       images: '["bazzite", "bazzite-deck"]'
       image_flavor: Bazzite
+
+  create-release:
+    name: Create Release
+    needs: [build-iso-desktop, build-iso-bazzite, changelogs-server-stable]
+    uses: ./.github/workflows/create-release.yml

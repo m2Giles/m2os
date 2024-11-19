@@ -1,0 +1,49 @@
+name: Create Release
+on:
+    workflow_call:
+    workflow_dispatch:
+        inputs:
+            run-id:
+                type: string
+                required: true
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: changelogs-*
+          merge-multiple: false
+          run-id: ${{ inputs.run-id || github.run_id}}
+        
+      - name: Prepare Release
+        id: prepare-release
+        shell: bash
+        run: |
+          set -eoux pipefail
+          cat changelogs-*/changelog.md >> changelog.md
+          last_tag=$(git tag --list m2os-* | sort -r | head -1)
+          date_extract="$(echo ${last_tag:-} | cut -d "-" -f 2 | cut -d "." -f 1)"
+          date_version="$(echo ${last_tag:-} | cut -d "." -f 2)"
+          if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
+            tag="m2os-${date_extract:-}.$(( ${date_version:-} + 1 ))"
+          else
+            tag="m2os-$(date +%Y%m%d).0"
+          fi
+          echo "title=$tag (#$(git rev-parse --short HEAD))" >> $GITHUB_OUTPUT
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: contains(fromJson('["workflow_dispatch", "merge_group"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
+        with:
+          name: ${{ steps.prepare-release.outputs.title }}
+          tag_name: ${{ steps.prepare-release.outputs.tag }}
+          body_path: ./changelog.md
+          make_latest: true
