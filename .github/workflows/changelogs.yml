@@ -1,4 +1,4 @@
-name: Generate Release
+name: Generate Release Text
 on:
   workflow_call:
     inputs:

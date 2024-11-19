@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
         inputs:
             run-id:
-                type: string
+                type: number
                 required: true
 
 permissions:
@@ -20,7 +20,7 @@ jobs:
         with:
           pattern: changelogs-*
           merge-multiple: false
-          run-id: ${{ inputs.run-id || github.run_id}}
+          run-id: ${{ inputs.run-id || github.run_id }}
         
       - name: Prepare Release
         id: prepare-release
