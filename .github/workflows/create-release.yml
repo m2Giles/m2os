@@ -18,7 +18,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: changelogs-*
+          pattern: changelogs**
           merge-multiple: false
           run-id: ${{ inputs.run-id || github.run_id }}
         
