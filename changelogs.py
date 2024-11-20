@@ -372,7 +372,7 @@ def generate_changelog(
     )
     if urlmd:
         with open(urlmd, "r") as f:
-            changelog = f"{changelog}### ISO Downloads\n| Image |\n| --- |\n{f.read()}"
+            changelog = f"{changelog}### ISO Downloads\n| Image |\n| --- |\n{f.read()}\n\n"
 
     for pkg, v in versions.items():
         if pkg not in prev_versions or prev_versions[pkg] == v:
@@ -445,7 +445,7 @@ def main():
     print(f"\nOutput:\nTITLE=\"{title}\"\nTAG=\"{target.lower()}-{STRIP_PATTERN(curr[0])}\"")
 
     with open(args.changelog, "w") as f:
-        f.write(changelog)
+        f.write(f'# {title}\n{changelog}')
 
     with open(args.output, "w") as f:
         f.write(f'TITLE="{title}"\nTAG="{target.lower()}-{STRIP_PATTERN(curr[0])}"\n')
