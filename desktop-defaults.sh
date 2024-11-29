@@ -52,3 +52,11 @@ tee /usr/share/ublue-os/etc/environment.d/default-editor.conf <<EOF
 EDITOR=/usr/bin/vim
 VISUAL=/usr/bin/emacs
 EOF
+
+if [[ "${IMAGE}" =~ bazzite|bluefin ]]; then
+    tee /usr/share/glib-2.0/schemas/zz1-m2os-modifications.gschema.override << 'EOF'
+[org.gnome.desktop.interface]
+color-scheme='prefer-dark'
+gtk-theme='adw-gtk3'
+EOF
+fi

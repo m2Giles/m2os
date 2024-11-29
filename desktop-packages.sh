@@ -3,20 +3,15 @@
 set -eoux pipefail
 
 # Ublue Staging
-curl -Lo /etc/yum.repos.d/ublue-os-staging-$(rpm -E %fedora).repo \
-    https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-"$(rpm -E %fedora)"/ublue-os-staging-fedora-$(rpm -E %fedora).repo
+dnf5 -y copr enable ublue-os/staging
 
 # OBS-VKcapture
-curl -Lo /etc/yum.repos.d/_copr_kylegospo-obs-vkcapture.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/obs-vkcapture/repo/fedora-"$(rpm -E %fedora)"/kylegospo-obs-vkcapture-fedora-"$(rpm -E %fedora)".repo?arch=x86_64
+dnf5 -y copr enable kylegospo/obs-vkcapture
 
 # Bazzite Repos
-curl -Lo /etc/yum.repos.d/_copr_kylegospo-bazzite.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite/repo/fedora-"$(rpm -E %fedora)"/kylegospo-bazzite-fedora-"$(rpm -E %fedora)".repo
-curl -Lo /etc/yum.repos.d/_copr_kylegospo-bazzite-multilib.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/bazzite-multilib/repo/fedora-"$(rpm -E %fedora)"/kylegospo-bazzite-multilib-fedora-"$(rpm -E %fedora)".repo?arch=x86_64
-curl -Lo /etc/yum.repos.d/_copr_kylegospo-latencyflex.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/LatencyFleX/repo/fedora-"$(rpm -E %fedora)"/kylegospo-LatencyFleX-fedora-"$(rpm -E %fedora)".repo
+dnf5 -y copr enable kylegospo/bazzite
+dnf5 -y copr enable kylegospo/bazzite-multilib
+dnf5 -y copr enable kylegospo/LatencyFleX
 
 # VSCode because it's still better for a lot of things
 tee /etc/yum.repos.d/vscode.repo <<'EOF'
@@ -29,21 +24,10 @@ gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 EOF
 
 # Sunshine
-tee /etc/yum.repos.d/_copr_matte-schwartz-sunshine.repo <<'EOF'
-[copr:copr.fedorainfracloud.org:matte-schwartz:sunshine]
-name=Copr repo for sunshine owned by matte-schwartz
-baseurl=https://download.copr.fedorainfracloud.org/results/matte-schwartz/sunshine/fedora-$releasever-$basearch/
-type=rpm-md
-skip_if_unavailable=True
-gpgcheck=1
-gpgkey=https://download.copr.fedorainfracloud.org/results/matte-schwartz/sunshine/pubkey.gpg
-repo_gpgcheck=0
-enabled=1
-enabled_metadata=1
-EOF
+dnf5 -y copr enable matte-schwartz/sunshine
 
-curl -Lo /etc/yum.repos.d/_copr_kylegospo-webapp-manager.repo \
-    https://copr.fedorainfracloud.org/coprs/kylegospo/webapp-manager/repo/fedora-"$(rpm -E %fedora)"/kylegospo-webapp-manager-fedora-"$(rpm -E %fedora)".repo
+# Webapp Manager
+dnf5 -y copr enable kylegospo/webapp-manager
 
 # Layered Applications
 LAYERED_PACKAGES=(
@@ -63,7 +47,7 @@ if [[ "${IMAGE}" =~ aurora ]]; then
     LAYERED_PACKAGES+=(krdp)
 fi
 
-rpm-ostree install "${LAYERED_PACKAGES[@]}"
+dnf5 install -y "${LAYERED_PACKAGES[@]}"
 
 # Zed because why not?
 curl -Lo /tmp/zed.tar.gz \

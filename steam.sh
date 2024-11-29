@@ -33,7 +33,7 @@ STEAM_PACKAGES=(
     wine-pulseaudio.x86_64
 )
 
-rpm-ostree install "${STEAM_PACKAGES[@]}"
+dnf5 install -y "${STEAM_PACKAGES[@]}"
 
 ln -sf wine32 /usr/bin/wine
 ln -sf wine32-preloader /usr/bin/wine-preloader

@@ -4,8 +4,6 @@
 set -eoux pipefail
 
 repos=(
-    _copr_kylegospo-bazzite.repo
-    _copr_kylegospo-bazzite-multilib.repo
     _copr_ublue-os-akmods.repo
     _copr_ublue-os-staging.repo
     _copr_kylegospo-latencyflex.repo
@@ -23,11 +21,20 @@ repos=(
     vscode.repo
 )
 
+coprs=($(find /etc/yum.repos.d/_copr*.repo))
+
 for repo in "${repos[@]}"; do
     if [[ -f "/etc/yum.repos.d/$repo" ]]; then
         sed -i 's@enabled=1@enabled=0@g' "/etc/yum.repos.d/$repo"
     fi
 done
+
+for copr in "${coprs[@]}"; do
+    sed -i 's@enabled=1@enabled=0@g' "$copr"
+done
+
+sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr*.repo
+
 mv /var/lib/alternatives /staged-alternatives
 rm -rf /tmp/*
 rm -rf /var/*
