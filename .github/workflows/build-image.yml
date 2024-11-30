@@ -16,6 +16,7 @@ concurrency:
 env:
   IMAGE_REGISTRY: ghcr.io/m2giles
   IMAGE_NAME: m2os
+  SET_X: 1
 
 jobs:
   build-image:
@@ -56,22 +57,16 @@ jobs:
         shell: bash
         run: |
           sudo just build ${{ matrix.image }}
-        env:
-          SET_X: 1
 
       - name: Rechunk Image
         shell: bash
         run: |
           sudo just rechunk ${{ matrix.image }}
-        env:
-          SET_X: 1
         
       - name: Load and Tag Image
         shell: bash
         run: |
           just load-image ${{ matrix.image }}
-        env:
-          SET_X: 1
 
       - name: Get Tags
         id: get_tags
@@ -80,16 +75,12 @@ jobs:
           tags=$(just get-tags ${{ matrix.image }})
           echo "tags=$tags" >> $GITHUB_OUTPUT 
           echo $GITHUB_OUTPUT
-        env:
-          SET_X: 1
 
       - name: Check Secureboot
         id: secureboot
         shell: bash
         run: |
           just secureboot ${{ matrix.image }}
-        env:
-          SET_X: 1
 
       - name: Lowercase Registry
         id: registry_case

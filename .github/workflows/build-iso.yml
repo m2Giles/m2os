@@ -78,8 +78,6 @@ jobs:
         run: |
           sudo just build-iso ${{ matrix.image }} 1 1
           tree "./${{ env.IMAGE_NAME }}_build/output/"
-        env:
-          SET_X: 1
 
       - name: Upload ISOs and Checksum to Job Artifacts
         id: upload

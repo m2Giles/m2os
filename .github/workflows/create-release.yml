@@ -10,6 +10,9 @@ on:
 permissions:
   contents: write
 
+env:
+  SET_X: 1
+
 jobs:
   create-release:
     name: Create Release
@@ -54,8 +57,6 @@ jobs:
           for k in $(jq 'keys[]' <<< "$output" | tr -d \"); do
             echo "$k=$(jq -r ".$k" <<< "$ouptut")" >> $GITHUB_OUTPUT
           done
-        env:
-          SET_X: 1
 
       - name: Upload Changelogs as Artifact
         uses: actions/upload-artifact@v4
