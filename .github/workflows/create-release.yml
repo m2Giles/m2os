@@ -56,7 +56,7 @@ jobs:
           cat changelog.md
           jq -r <<< "$output"
           for k in $(jq 'keys[]' <<< "$output" | tr -d \"); do
-            echo "$k=$(jq -r ".$k" <<< "$ouptut")" >> $GITHUB_OUTPUT
+            echo "$k=$(jq -r ".$k" <<< "$output")" >> $GITHUB_OUTPUT
           done
 
       - name: Upload Changelogs as Artifact
