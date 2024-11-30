@@ -14,7 +14,7 @@ images := '(
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
 export SUDOIF := if `id -u` == "0" { "" } else { "sudo" }
-export SET_X := if `id -u` == "0" { "1" } else { `echo ${SET_X:-}` }
+export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 
 [private]
 default:
@@ -496,13 +496,13 @@ merge-changelog:
     set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
     cat changelog*.md > changelog.md
-    last_tag=$(git tag --list {{ repo_image_name }}-* | sort -r | head -1)
-    date_extract="$(echo ${last_tag:-} | cut -d "-" -f 2 | cut -d "." -f 1)"
-    date_version="$(echo ${last_tag:-} | cut -d "." -f 2)"
+    last_tag=$(git tag --list {{ repo_image_name }}-* | sort -V | tail -1)
+    date_extract="$(echo ${last_tag:-} | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
+    date_version="$(echo ${last_tag:-} | grep -oP '\.\K[0-9]+$' || true)"
     if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
         tag="{{ repo_image_name }}-${date_extract:-}.$(( ${date_version:-} + 1 ))"
     else
-        tag="{{ repo_image_name }}-$(date +%Y%m%d).0"
+        tag="{{ repo_image_name }}-$(date +%Y%m%d)"
     fi
     cat << EOF
     {
