@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set -eoux pipefail
+set ${SET_X:+-x} -eou pipefail
 
 if [[ -z "${KERNEL_FLAVOR:-}" ]]; then
     KERNEL_FLAVOR=coreos-stable

@@ -56,7 +56,7 @@ clean:
 [group('Image')]
 build image="bluefin":
     #!/usr/bin/bash
-    set -eoux pipefail
+    set ${SET_X:+-x} -eou pipefail
     declare -A images={{ images }}
     check=${images[{{ image }}]-}
     if [[ -z "$check" ]]; then
@@ -102,6 +102,7 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "IMAGE={{ image }}")
     BUILD_ARGS+=("--build-arg" "BASE_IMAGE=$BASE_IMAGE")
     BUILD_ARGS+=("--build-arg" "TAG_VERSION=$TAG_VERSION")
+    BUILD_ARGS+=("--build-arg" "SET_X=${SET_X:-}")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     podman pull ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     buildah build --format docker --label "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses." ${BUILD_ARGS[@]} .
@@ -116,7 +117,7 @@ build image="bluefin":
 [private]
 rechunk image="bluefin":
     #!/usr/bin/bash
-    set -eoux pipefail
+    set ${SET_X:+-x} -eou pipefail
     ID=$(podman images --filter reference=localhost/{{ repo_image_name }}:{{ image }} --format "'{{ '{{.ID}}' }}'")
 
     if [[ -z "$ID" ]]; then
@@ -192,7 +193,7 @@ rechunk image="bluefin":
 [private]
 load-image image="bluefin":
     #!/usr/bin/bash
-    set -eou pipefail
+    set ${SET_X:+-x} -eou pipefail
     IMAGE=$(podman pull oci:${PWD}/{{ repo_image_name }}_{{ image }})
     podman tag ${IMAGE} localhost/{{ repo_image_name }}:{{ image }}
     VERSION=$(podman inspect $IMAGE | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
@@ -203,7 +204,7 @@ load-image image="bluefin":
 # Get Tags
 get-tags image="bluefin":
     #!/usr/bin/bash
-    set -eou pipefail
+    set ${SET_X:+-x} -eou pipefail
     VERSION=$(podman inspect {{ repo_image_name }}:{{ image }} | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
     echo "{{ image }} $VERSION"
 
@@ -211,7 +212,7 @@ get-tags image="bluefin":
 [group('ISO')]
 build-iso image="bluefin" ghcr="0" clean="0":
     #!/usr/bin/bash
-    set -eou pipefail
+    set ${SET_X:+-x} -eou pipefail
     # Validate
     declare -A images={{ images }}
     check=${images[{{ image }}]-}
@@ -377,7 +378,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
 [group('ISO')]
 run-iso image="bluefin":
     #!/usr/bin/bash
-    set -eou pipefail
+    set ${SET_X:+-x} -eou pipefail
     if [[ ! -f "{{ repo_image_name }}_build/output/{{ image }}.iso" ]]; then
         just build-iso {{ image }}
     fi
@@ -407,14 +408,14 @@ run-iso image="bluefin":
 [group('Changelogs')]
 changelogs branch="stable" urlmd="" handwritten="":
     #!/usr/bin/bash
-    set -eoux pipefail
+    set ${SET_X:+-x} -eou pipefail
     python3 changelogs.py {{ branch }} ./output-{{ branch }}.env ./changelog-{{ branch }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
 [group('Utility')]
 verify-container container="" registry="ghcr.io/ublue-os" key="":
     #!/usr/bin/bash
-    set -eoux pipefail
+    set ${SET_X:+-x} -eou pipefail
 
     # Get Cosign if Needed
     if [[ ! $(command -v cosign) ]]; then
@@ -447,7 +448,7 @@ verify-container container="" registry="ghcr.io/ublue-os" key="":
 [group('Utility')]
 secureboot image="bluefin":
     #!/usr/bin/bash
-    set -eoux pipefail
+    set ${SET_X:+-x} -eou pipefail
 
     # Get the vmlinuz to check
     kernel_release=$(podman inspect "{{ repo_image_name }}":"{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
@@ -491,7 +492,7 @@ secureboot image="bluefin":
 # Merge Changelogs
 merge-changelog:
     #!/usr/bin/bash
-    set -eou pipefail
+    set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
     cat changelog*.md > changelog.md
     last_tag=$(git tag --list {{ repo_image_name }}-* | sort -r | head -1)

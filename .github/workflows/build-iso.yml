@@ -30,6 +30,7 @@ on:
 env:
   IMAGE_REGISTRY: ghcr.io/m2giles
   IMAGE_NAME: m2os
+  SET_X: 1
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.image_flavor }}.iso

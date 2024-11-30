@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set -eoux pipefail
+set ${SET_X:+-x} -eou pipefail
 
 if [[ "${IMAGE}" =~ cosmic|ucore ]]; then
     tee /usr/share/ublue-os/image-info.json <<'EOF'

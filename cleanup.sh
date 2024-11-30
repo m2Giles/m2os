@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 #shellcheck disable=SC2115
 
-set -eoux pipefail
+set ${SET_X:+-x} -eou pipefail
 
 repos=(
     _copr_ublue-os-akmods.repo

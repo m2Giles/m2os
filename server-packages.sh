@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set -eoux pipefail
+set ${SET_X:+-x} -eou pipefail
 
 # Docker Repo
 tee /etc/yum.repos.d/docker-ce.repo <<'EOF'
