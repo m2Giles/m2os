@@ -12,13 +12,11 @@ mkdir -p /var/lib/alternatives
 # Changes
 case "${IMAGE}" in
 "aurora"* | "bluefin"*)
-    /ctx/build-fix.sh
     /ctx/desktop-packages.sh
     /ctx/steam.sh
     /ctx/vfio.sh
     ;;
 "cosmic"*)
-    /ctx/build-fix.sh
     /ctx/cosmic.sh
     /ctx/desktop-packages.sh
     /ctx/steam.sh
