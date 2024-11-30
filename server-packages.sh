@@ -30,7 +30,18 @@ SERVER_PACKAGES=(
 
 # Incus Packages
 SERVER_PACKAGES+=(
+    edk2-ovmf
+    genisoimage
     incus
+    incus-agent
+    incus-client
+    qemu-char-spice
+    qemu-device-display-virtio-vga
+    qemu-device-display-virtio-gpu
+    qemu-device-usb-redirect
+    qemu-img
+    qemu-kvm-core
+    swtpm
 )
 
 # Docker Packages
