@@ -19,6 +19,11 @@ BAZZITE_IMAGE_MATRIX = {
     "image_flavor": ["main", "nvidia"]
 }
 
+UCORE_IMAGE_MATRIX = {
+    "image": ["ucore"],
+    "image_flavor": ["main", "nvidia"]
+}
+
 RETRIES = 3
 RETRY_WAIT = 5
 FEDORA_PATTERN = re.compile(r"\.fc\d\d")
@@ -76,6 +81,8 @@ BLACKLIST_VERSIONS = [
 def get_images(target: str):
     if "bazzite" in target:
         matrix = BAZZITE_IMAGE_MATRIX
+    elif "ucore" in target:
+        matrix = UCORE_IMAGE_MATRIX
     else:
         matrix = IMAGE_MATRIX
 
