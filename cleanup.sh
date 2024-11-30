@@ -35,8 +35,6 @@ if [[ ! "${IMAGE}" =~ ucore ]]; then
     done
 fi
 
-sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr*.repo
-
 mv /var/lib/alternatives /staged-alternatives
 rm -rf /tmp/*
 rm -rf /var/*
