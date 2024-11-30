@@ -235,7 +235,6 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
                     bazzite.remove(c)
 
         first = False
-
     # Find other packages
     for t, other in others.items():
         first = True
