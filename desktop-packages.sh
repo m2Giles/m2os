@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set -eoux pipefail
+set ${SET_X:+-x} -eou pipefail
 
 # Ublue Staging
 dnf5 -y copr enable ublue-os/staging

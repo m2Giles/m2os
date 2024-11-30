@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set -eoux pipefail
+set ${SET_X:+-x} -eou pipefail
 
 # Docker Repo
 tee /etc/yum.repos.d/docker-ce.repo <<'EOF'
@@ -30,7 +30,19 @@ SERVER_PACKAGES=(
 
 # Incus Packages
 SERVER_PACKAGES+=(
+    distrobuilder
+    edk2-ovmf
+    genisoimage
     incus
+    incus-agent
+    incus-client
+    qemu-char-spice
+    qemu-device-display-virtio-vga
+    qemu-device-display-virtio-gpu
+    qemu-device-usb-redirect
+    qemu-img
+    qemu-kvm-core
+    swtpm
 )
 
 # Docker Packages

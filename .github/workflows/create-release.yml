@@ -10,6 +10,9 @@ on:
 permissions:
   contents: write
 
+env:
+  SET_X: 1
+
 jobs:
   create-release:
     name: Create Release
@@ -18,6 +21,7 @@ jobs:
       - name: Checkout 
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           fetch-tags: true
 
       - name: Download Artifacts
@@ -48,11 +52,12 @@ jobs:
         shell: bash
         run: |
           set -eoux pipefail
-          output=$(just merge-changelog)
+          output="$(just merge-changelog)"
           cat changelog.md
-          jq -r <<< $output
-          echo "title=$(jq -r '."title"' <<< $output)" >> $GITHUB_OUTPUT
-          echo "tag=$(jq -r '."tag"' <<< $output)" >> $GITHUB_OUTPUT
+          jq -r <<< "$output"
+          for k in $(jq 'keys[]' <<< "$output" | tr -d \"); do
+            echo "$k=$(jq -r ".$k" <<< "$output")" >> $GITHUB_OUTPUT
+          done
 
       - name: Upload Changelogs as Artifact
         uses: actions/upload-artifact@v4

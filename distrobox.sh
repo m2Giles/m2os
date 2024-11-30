@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set -eoux pipefail
+set ${SET_X:+-x} -eou pipefail
 
 # Distrobox Stuff
 mkdir -p /etc/distrobox/

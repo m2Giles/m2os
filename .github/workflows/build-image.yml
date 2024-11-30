@@ -16,6 +16,7 @@ concurrency:
 env:
   IMAGE_REGISTRY: ghcr.io/m2giles
   IMAGE_NAME: m2os
+  SET_X: 1
 
 jobs:
   build-image:
