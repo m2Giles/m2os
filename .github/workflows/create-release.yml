@@ -48,7 +48,7 @@ jobs:
         shell: bash
         run: |
           set -eoux pipefail
-          declare -A output=$(just merge-changelog)
+          declare -A output="$(just merge-changelog)"
           cat changelog.md
           for item in ${!output[@]}; do
             echo ${output[$item]}
