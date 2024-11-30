@@ -48,11 +48,11 @@ jobs:
         shell: bash
         run: |
           set -eoux pipefail
-          declare -A output="$(just merge-changelog)"
+          output="$(just merge-changelog)"
           cat changelog.md
-          for item in ${!output[@]}; do
-            echo ${output[$item]}
-            echo "$item=${output[$item])" >> $GITHUB_OUTPUT
+          jq -r <<< "$output"
+          for k in $(jq 'keys[]' <<< $ouptut | tr -d \"); do
+            echo "$k=$(jq -r ".$k" <<< "$ouptut")" >> $GITHUB_OUTPUT
           done
 
       - name: Upload Changelogs as Artifact

@@ -10,7 +10,7 @@ from collections import defaultdict
 REGISTRY = "docker://ghcr.io/m2giles/"
 
 IMAGE_MATRIX = {
-    "image": ["aurora", "cosmic", "bluefin"],
+    "image": ["aurora", "cosmic", "bluefin", "ucore"],
     "image_flavor": ["main", "nvidia"],
 }
 
@@ -36,6 +36,7 @@ PATTERN_REMOVE = "\n| ❌ | {name} | {version} | |"
 PATTERN_PKGREL_CHANGED = "{prev} ➡️ {new}"
 PATTERN_PKGREL = "{version}"
 COMMON_PAT = "### All Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n"
+DESKTOP_PAT = "### Desktop Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n"
 OTHER_NAMES = {
     "aurora": "### [Aurora Images](https://getaurora.dev/)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "bluefin": "### [Bluefin Images](https://projectbluefin.io/)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
@@ -138,13 +139,15 @@ def get_tags(target: str, manifests: dict[str, Any]):
                 if tag.endswith(".0"):
                     continue
                 if re.match(START_PATTERN(img[0]), tag):
-                    version = re.sub(START_PATTERN(img[0]), "", tag)
+                    tags.add(tag)
+
+                    version = STRIP_PATTERN(tag)
                     for check_img in imgs:
                         if f"{check_img[0]}-{version}" not in manifest["RepoTags"]:
-                            continue
-                    else:
-                        tags.add(tag)
-
+                            try:
+                                tags.remove(tag)
+                            except:
+                                continue
 
         tags = list(sorted(tags))
         if not len(tags) >= 2:
@@ -170,6 +173,7 @@ def get_packages(manifests: dict[str, Any]):
 
 def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, Any]):
     common = set()
+    desktop = set()
     others = {k: set() for k in OTHER_NAMES.keys()}
 
     npkg = get_packages(manifests)
@@ -193,6 +197,25 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
             for c in common.copy():
                 if c not in pkg[img]:
                     common.remove(c)
+
+        first = False
+
+    # Desktop common packages
+    first = True
+    for img, image, image_flavor in get_images(target):
+        if image not in ["aurora", "bluefin", "cosmic"]:
+            continue
+        if img not in pkg:
+            continue
+
+        if first:
+            for p in pkg[img]:
+                if p not in common:
+                    desktop.add(p)
+        else:
+            for c in desktop.copy():
+                if c not in pkg[img]:
+                    desktop.remove(c)
 
         first = False
 
@@ -221,7 +244,8 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
             if first:
                 for p in pkg[img]:
                     if p not in common:
-                        other.add(p)
+                        if p not in desktop:
+                            other.add(p)
             else:
                 for c in other.copy():
                     if c not in pkg[img]:
@@ -229,7 +253,7 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
 
             first = False
 
-    return sorted(common), {k: sorted(v) for k, v in others.items()}
+    return sorted(common), sorted(desktop), {k: sorted(v) for k, v in others.items()}
 
 
 def get_versions(manifests: dict[str, Any]):
@@ -331,14 +355,11 @@ def generate_changelog(
     prev_manifests,
     manifests,
 ):
-    common, others = get_package_groups(target, prev_manifests, manifests)
+    common, desktop, others = get_package_groups(target, prev_manifests, manifests)
     versions = get_versions(manifests)
     prev_versions = get_versions(prev_manifests)
 
     prev_tags, curr_tags = get_tags(target, manifests)
-
-    if target == "stable":
-        target = "Desktop"
 
     if not pretty:
         # Generate pretty version since we dont have it
@@ -367,8 +388,8 @@ def generate_changelog(
     changelog = (
         changelog.replace("{handwritten}", handwritten if handwritten else HANDWRITTEN_PLACEHOLDER)
         .replace("{target}", target)
-        .replace("{prev}", f"{target.lower()}-{STRIP_PATTERN(prev_tags[0])}")
-        .replace("{curr}", f"{target.lower()}-{STRIP_PATTERN(curr_tags[0])}")
+        .replace("{prev}", f"{STRIP_PATTERN(prev_tags[0])}")
+        .replace("{curr}", f"{STRIP_PATTERN(curr_tags[0])}")
     )
     if urlmd:
         with open(urlmd, "r") as f:
@@ -388,8 +409,11 @@ def generate_changelog(
     changes = ""
     changes += get_commits(prev_manifests, manifests, workdir)
     common = calculate_changes(common, prev_versions, versions)
+    desktop = calculate_changes(desktop, prev_versions, versions)
     if common:
         changes += COMMON_PAT.format(changes=common)
+    if desktop:
+        changes += DESKTOP_PAT.format(changes=desktop)
     for k, v in others.items():
         chg = calculate_changes(v, prev_versions, versions)
         if chg:
@@ -411,12 +435,7 @@ def main():
     parser.add_argument("--handwritten", help="Handwritten changelog")
     args = parser.parse_args()
 
-    # Remove refs/tags, refs/heads, refs/remotes e.g.
-    # Tags cannot include / anyway.
-    target = args.target.split('/')[-1]
-
-    if target == "main":
-        target = "stable"
+    target = args.target
 
     temp = list(get_images(target))
     images = []
@@ -426,7 +445,6 @@ def main():
     prev, curr = get_tags(target, manifests)
     print(f"Previous tag date: {STRIP_PATTERN(prev[0])}")
     print(f" Current tag date: {STRIP_PATTERN(curr[0])}")
-
     prev_manifests = get_manifests(prev)
     title, changelog = generate_changelog(
         args.handwritten,
@@ -437,9 +455,6 @@ def main():
         prev_manifests,
         manifests,
     )
-
-    if target == "stable":
-        target = "Desktop"
 
     print(f"Changelog:\n# {title}\n{changelog}")
     print(f"\nOutput:\nTITLE=\"{title}\"\nTAG=\"{target.lower()}-{STRIP_PATTERN(curr[0])}\"")

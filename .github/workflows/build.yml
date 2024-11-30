@@ -42,19 +42,11 @@ jobs:
       images: '["ucore", "ucore-nvidia"]'
       image_flavor: Server
 
-  changelogs-server-stable:
-    name: Server Changelogs
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: build-image-server
-    with:
-      target: ucore
-
   build-iso-desktop:
     name: Desktop ISOs
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
-    needs: build-image-desktop
+    needs: [build-image-desktop, build-image-server]
     with:
       images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       image_flavor: Desktop
@@ -70,5 +62,5 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [build-iso-desktop, build-iso-bazzite, changelogs-server-stable]
+    needs: [build-iso-desktop, build-iso-bazzite]
     uses: ./.github/workflows/create-release.yml

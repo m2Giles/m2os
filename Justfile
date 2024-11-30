@@ -503,8 +503,8 @@ merge-changelog:
         tag="{{ repo_image_name }}-$(date +%Y%m%d).0"
     fi
     cat << EOF
-    (
-        [title]="$tag (#$(git rev-parse --short HEAD))"
-        [tag]="$tag"
-    )
+    {
+        "title": "$tag (#$(git rev-parse --short HEAD))",
+        "tag": "$tag"
+    }
     EOF
