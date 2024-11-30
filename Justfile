@@ -13,7 +13,6 @@ images := '(
     [ucore]="stable-zfs"
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
-
 export SUDOIF := if `id -u` == "0" { "" } else { "sudo" }
 export SET_X := if `id -u` == "0" { "1" } else { "" }
 
