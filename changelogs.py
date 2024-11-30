@@ -32,11 +32,11 @@ PATTERN_PKGREL_CHANGED = "{prev} ➡️ {new}"
 PATTERN_PKGREL = "{version}"
 COMMON_PAT = "### All Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n"
 DESKTOP_PAT = "### Desktop Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n"
+BAZZITE_PAT = "### [Bazzite Images](https://bazzite.gg)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n"
 OTHER_NAMES = {
     "aurora": "### [Aurora Images](https://getaurora.dev/)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "bluefin": "### [Bluefin Images](https://projectbluefin.io/)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "cosmic": "### Cosmic Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
-    "bazzite": "### [Bazzite Images](https://bazzite.gg)\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "ucore": "### Ucore Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
     "nvidia": "### Nvidia Images\n| | Name | Previous | New |\n| --- | --- | --- | --- |{changes}\n\n",
 }
@@ -56,6 +56,9 @@ From previous m2os version `{prev}` there have been the following changes. **One
 | **Kernel** | {pkgrel:kernel} |
 | **Mesa** | {pkgrel:mesa-dri-drivers} |
 | **Podman** | {pkgrel:podman} |
+| **Gnome** | {pkgrel:gnome-control-center-filesystem} |
+| **Nvidia** | {pkgrel:nvidia-driver} |
+| **KDE** | {pkgrel:plasma-desktop} |
 | **Docker** | {pkgrel:docker-ce} |
 | **Incus** | {pkgrel:incus} |
 
@@ -166,6 +169,7 @@ def get_packages(manifests: dict[str, Any]):
 
 def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, Any]):
     common = set()
+    bazzite = set()
     desktop = set()
     others = {k: set() for k in OTHER_NAMES.keys()}
 
@@ -177,9 +181,11 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
     for k in keys:
         pkg[k] = set(npkg.get(k, {})) | set(ppkg.get(k, {}))
 
-    # Find common packages
+    # Find common packages (Ignore Bazzite)
     first = True
     for img, image, image_flavor in get_images(target):
+        if image == "bazzite":
+            continue
         if img not in pkg:
             continue
 
@@ -212,6 +218,24 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
 
         first = False
 
+    # Find Bazzite packages
+    first = True
+    for img, image, image_flavor in get_images(target):
+        if image != "bazzite":
+            continue
+        if img not in pkg:
+            continue
+
+        if first:
+            for p in pkg[img]:
+                bazzite.add(p)
+        else:
+            for c in bazzite.copy():
+                if c not in pkg[img]:
+                    bazzite.remove(c)
+
+        first = False
+
     # Find other packages
     for t, other in others.items():
         first = True
@@ -227,8 +251,6 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
                 continue
             if t == "bluefin" and image != "bluefin":
                 continue
-            if t == "bazzite" and image != "bazzite":
-                continue
             if t == "cosmic" and image != "cosmic":
                 continue
             if t == "ucore" and image != "ucore":
@@ -236,9 +258,8 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
 
             if first:
                 for p in pkg[img]:
-                    if p not in common:
-                        if p not in desktop:
-                            other.add(p)
+                    if p not in [*common, *desktop, *bazzite]:
+                        other.add(p)
             else:
                 for c in other.copy():
                     if c not in pkg[img]:
@@ -246,7 +267,7 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
 
             first = False
 
-    return sorted(common), sorted(desktop), {k: sorted(v) for k, v in others.items()}
+    return sorted(common), sorted(bazzite), sorted(desktop), {k: sorted(v) for k, v in others.items()}
 
 
 def get_versions(manifests: dict[str, Any]):
@@ -348,7 +369,7 @@ def generate_changelog(
     prev_manifests,
     manifests,
 ):
-    common, desktop, others = get_package_groups(target, prev_manifests, manifests)
+    common, bazzite, desktop, others = get_package_groups(target, prev_manifests, manifests)
     versions = get_versions(manifests)
     prev_versions = get_versions(prev_manifests)
 
@@ -377,6 +398,11 @@ def generate_changelog(
     title = CHANGELOG_TITLE.format_map(defaultdict(str, tag=STRIP_PATTERN(curr_tags[0]), pretty=pretty))
 
     changelog = CHANGELOG_FORMAT
+    
+    if target == "bazzite":
+        changelog = changelog.splitlines()
+        del changelog[12:15]
+        changelog = '\n'.join(changelog)
 
     changelog = (
         changelog.replace("{handwritten}", handwritten if handwritten else HANDWRITTEN_PLACEHOLDER)
@@ -400,13 +426,17 @@ def generate_changelog(
             )
 
     changes = ""
-    changes += get_commits(prev_manifests, manifests, workdir)
+    if target == "stable":
+        changes += get_commits(prev_manifests, manifests, workdir)
     common = calculate_changes(common, prev_versions, versions)
+    bazzite = calculate_changes(bazzite, prev_versions, versions)
     desktop = calculate_changes(desktop, prev_versions, versions)
     if common:
         changes += COMMON_PAT.format(changes=common)
     if desktop:
         changes += DESKTOP_PAT.format(changes=desktop)
+    if bazzite: 
+        changes += BAZZITE_PAT.format(changes=bazzite)
     for k, v in others.items():
         chg = calculate_changes(v, prev_versions, versions)
         if chg:
