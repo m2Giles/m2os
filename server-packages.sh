@@ -12,26 +12,24 @@ gpgcheck=1
 gpgkey=https://download.docker.com/linux/fedora/gpg
 EOF
 
-# Incus COPR Repo
-curl -Lo /etc/yum.repos.d/ganto-lxc4-fedora.repo \
-    https://copr.fedorainfracloud.org/coprs/ganto/lxc4/repo/fedora-"$(rpm -E %fedora)"/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
+# Incus COPR Repo (Ucore does not have python)
+curl -Lo /etc/yum.repos.d/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo \
+        https://copr.fedorainfracloud.org/coprs/ganto/lxc4/repo/fedora-"$(rpm -E %fedora)"/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
 
 SERVER_PACKAGES=(
     binutils
     bootc
+    erofs-utils
     just
     rclone
     sbsigntools
     socat
-    swtpm
     tmux
     udica
-    zstd
 )
 
 # Incus Packages
 SERVER_PACKAGES+=(
-    distrobuilder
     incus
 )
 
@@ -45,11 +43,11 @@ SERVER_PACKAGES+=(
 )
 
 if [[ ${IMAGE} =~ ucore ]]; then
-    rpm-ostree override remove \
+    dnf5 remove -y \
         containerd docker-cli moby-engine runc
 fi
 
-rpm-ostree install "${SERVER_PACKAGES[@]}"
+dnf5 install -y "${SERVER_PACKAGES[@]}"
 
 # Bootupctl fix for ISO
 if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin|ucore ]]; then
@@ -66,7 +64,8 @@ curl -Lo /tmp/incus-ui-canonical.deb \
 
 ar -x --output=/tmp /tmp/incus-ui-canonical.deb
 tar --zstd -xvf /tmp/data.tar.zst
-sed -i 's@\[Service\]@\[Service\]\nEnvironment=INCUS_UI=/opt/incus/ui/@g' /usr/lib/systemd/system/incus.service
+mv /opt/incus /usr/lib/
+sed -i 's@\[Service\]@\[Service\]\nEnvironment=INCUS_UI=/usr/lib/incus/ui/@g' /usr/lib/systemd/system/incus.service
 
 # Groups
 groupmod -g 250 incus-admin

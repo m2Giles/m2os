@@ -10,16 +10,13 @@ fi
 QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/"${KERNEL_FLAVOR}"-kernel:"$(rpm -E %fedora)" | jq -r '.Labels["ostree.linux"]')
 
 # Add Cosmic Repo
-curl -Lo /etc/yum.repos.d/_copr_ryanabx-cosmic.repo \
-    https://copr.fedorainfracloud.org/coprs/ryanabx/cosmic-epoch/repo/fedora-"$(rpm -E %fedora)"/ryanabx-cosmic-epoch-fedora-"$(rpm -E %fedora)".repo
+dnf5 -y copr enable ryanabx/cosmic-epoch
 
 # Add Staging repo
-curl -Lo /etc/yum.repos.d/ublue-os-staging-fedora-"$(rpm -E %fedora)".repo \
-    https://copr.fedorainfracloud.org/coprs/ublue-os/staging/repo/fedora-"$(rpm -E %fedora)"/ublue-os-staging-fedora-"$(rpm -E %fedora)".repo
+dnf5 -y copr enable ublue-os/staging
 
 # Add Nerd Fonts Repo
-curl -Lo /etc/yum.repos.d/_copr_che-nerd-fonts-"$(rpm -E %fedora)".repo \
-    https://copr.fedorainfracloud.org/coprs/che/nerd-fonts/repo/fedora-"$(rpm -E %fedora)"/che-nerd-fonts-fedora-"$(rpm -E %fedora)".repo
+dnf5 -y copr enable che/nerd-fonts
 
 # Add Charm Repo
 tee /etc/yum.repos.d/charm.repo <<'EOF'
@@ -32,7 +29,7 @@ gpgkey=https://repo.charm.sh/yum/gpg.key
 EOF
 
 # Add Tailscale Repo
-curl -Lo /etc/yum.repos.d/tailscale.repo https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+dnf5 config-manager addrepo --from-repofile https://pkgs.tailscale.com/stable/fedora/tailscale.repo
 
 # Cosmic Packages
 PACKAGES=(
@@ -111,12 +108,12 @@ RPM_FUSION=(
     https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-"$(rpm -E %fedora)".noarch.rpm
 )
 
-rpm-ostree install "${RPM_FUSION[@]}"
+dnf5 install -y "${RPM_FUSION[@]}"
 
 # FWUPD
-rpm-ostree override replace \
-    --experimental --from repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
-        fwupd fwupd-plugin-flashrom fwupd-plugin-modem-manager fwupd-plugin-uefi-capsule-data
+dnf5 swap -y \
+    --repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
+        fwupd fwupd
 
 # Fetch Kernel
 skopeo copy docker://ghcr.io/ublue-os/"${KERNEL_FLAVOR}"-kernel:"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/kernel-rpms
@@ -187,7 +184,7 @@ if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     NVIDIA_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods-rpms/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
     mv /tmp/rpms/* /tmp/akmods-rpms/
-    rpm-ostree install /tmp/akmods-rpms/ublue-os/ublue-os-nvidia-addons-*.rpm
+    dnf5 install -y /tmp/akmods-rpms/ublue-os/ublue-os-nvidia-addons-*.rpm
 
     # Enable Repos
     sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/nvidia-container-toolkit.repo
@@ -224,20 +221,19 @@ done
 sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 
 # Install
-rpm-ostree install "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${NVIDIA_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+dnf5 install -y "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${NVIDIA_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
 depmod -a -v "${QUALIFIED_KERNEL}"
 
-# Remove Unneeded
+# Remove Unneeded and Disable Repos
 UNINSTALL_PACKAGES=(
     firefox
     firefox-langpacks
+    rpmfusion-free-release
+    rpmfusion-nonfree-release
 )
 
-rpm-ostree override remove "${UNINSTALL_PACKAGES[@]}"
-
-# Disable Repos
+dnf5 remove -y "${UNINSTALL_PACKAGES[@]}"
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
-rpm-ostree uninstall rpmfusion-free-release rpmfusion-nonfree-release
 
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     # Disable Repos
@@ -267,7 +263,7 @@ curl -Lo /usr/share/bash-prexec https://raw.githubusercontent.com/rcaloras/bash-
 pip install --prefix=/usr topgrade
 
 # Install ublue-update
-rpm-ostree install ublue-update
+dnf5 install -y ublue-update
 mkdir -p /etc/ublue-update
 tee /etc/ublue-update/ublue-update.toml <<'EOF'
 [checks]

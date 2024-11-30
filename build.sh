@@ -5,6 +5,7 @@ set -eoux pipefail
 mkdir -p /var/lib/alternatives
 
 #Common
+/ctx/remove-cliwrap.sh
 /ctx/server-packages.sh
 /ctx/distrobox.sh
 

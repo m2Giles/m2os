@@ -51,3 +51,13 @@ cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
 if [[ "$IMAGE" =~ bazzite ]]; then
     sed -i 's/image-branch/image-tag/' /usr/libexec/bazzite-fetch-image
 fi
+
+# OS Release File for Cosmic
+if [[ "$IMAGE" =~ cosmic ]]; then
+    sed -i "s/^VARIANT_ID=.*/VARIANT_ID=cosmic/" /usr/lib/os-release
+    sed -i "s/^PRETTY_NAME=.*/PRETTY_NAME=\"Cosmic-Atomic $(rpm -E %fedora) (FROM Fedora ${BASE_IMAGE^})\"/" /usr/lib/os-release
+    sed -i "s/^NAME=.*/NAME=\"Cosmic Atomic\"/" /usr/lib/os-release
+    sed -i "s/^DEFAULT_HOSTNAME=.*/DEFAULT_HOSTNAME=\"cosmic-atomic\"/" /usr/lib/os-release
+    sed -i "s/^ID=fedora/ID=cosmic-atomic\nID_LIKE=\"fedora\"/" /usr/lib/os-release
+    sed -i "/^REDHAT_BUGZILLA_PRODUCT=/d; /^REDHAT_BUGZILLA_PRODUCT_VERSION=/d; /^REDHAT_SUPPORT_PRODUCT=/d; /^REDHAT_SUPPORT_PRODUCT_VERSION=/d" /usr/lib/os-release
+fi
