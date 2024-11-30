@@ -14,7 +14,7 @@ images := '(
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
 export SUDOIF := if `id -u` == "0" { "" } else { "sudo" }
-export SET_X := if `id -u` == "0" { "1" } else { "" }
+export SET_X := if `id -u` == "0" { "1" } else { `echo ${SET_X:-}` }
 
 [private]
 default:
