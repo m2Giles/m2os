@@ -33,6 +33,7 @@ dnf5 -y copr enable kylegospo/webapp-manager
 LAYERED_PACKAGES=(
     adw-gtk3-theme
     breeze-cursor-theme
+    cascadia-fonts-all
     code
     devpod
     emacs
