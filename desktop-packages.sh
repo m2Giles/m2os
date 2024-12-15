@@ -39,7 +39,6 @@ LAYERED_PACKAGES=(
     emacs
     git-credential-libsecret
     git-credential-oauth
-    libvterm
     spice-gtk-tools
     sunshine
     webapp-manager
