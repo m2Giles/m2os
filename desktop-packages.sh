@@ -48,6 +48,14 @@ if [[ "${IMAGE}" =~ aurora ]]; then
     LAYERED_PACKAGES+=(krdp)
 fi
 
+if [[ "${IMAGE}" =~ bluefin ]]; then
+    LAYERED_PACKAGES+=(
+        gnome-shell-extension-compiz-windows-effect
+        gnome-shell-extension-just-perfection
+        gnome-shell-extension-hotedge
+    )
+fi
+
 dnf5 install -y "${LAYERED_PACKAGES[@]}"
 
 # Zed because why not?
