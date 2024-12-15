@@ -267,7 +267,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     mkdir -p "${FLATPAK_REFS_DIR_ABS}"
     case "{{ image }}" in
     *"aurora"*)
-        FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/aurora_flatpaks/flatpaks"
+        FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/aurora/refs/heads/main/aurora_flatpaks/flatpaks"
     ;;
     *"bazzite"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
