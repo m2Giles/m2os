@@ -57,7 +57,7 @@ if [[ "${IMAGE}" =~ bazzite|bluefin ]]; then
 [org.gnome.desktop.interface]
 font-name='Inter 10'
 document-font-name='Inter 10'
-monospace-font-name='CascadiaCodeNF 14'
+monospace-font-name='Cascadia Code NF 14'
 color-scheme='prefer-dark'
 gtk-theme='adw-gtk3-dark'
 EOF
