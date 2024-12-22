@@ -43,20 +43,13 @@ PACKAGES=(
 # Bluefin Packages
 PACKAGES+=(
     adcli
-    bash-color-prompt
-    bcache-tools
     borgbackup
     bootc
     cascadia-code-fonts
     evtest
-    epson-inkjet-printer-escpr
-    epson-inkjet-printer-escpr2
     fastfetch
-    fish
     firewall-config
     foo2zjs
-    freeipa-client
-    fuse-encfs
     gcc
     git-credential-libsecret
     glow
@@ -74,9 +67,6 @@ PACKAGES+=(
     mesa-libGLU
     nerd-fonts
     oddjob-mkhomedir
-    opendyslexic-fonts
-    playerctl
-    printer-driver-brlaser
     ptyxis
     pulseaudio-utils
     python3-pip
