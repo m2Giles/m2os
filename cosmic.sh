@@ -36,7 +36,6 @@ PACKAGES=(
     cosmic-desktop
     gnome-keyring
     NetworkManager-openvpn
-    NetworkManager-tui
     power-profiles-daemon
 )
 
@@ -70,7 +69,6 @@ PACKAGES+=(
     ptyxis
     pulseaudio-utils
     python3-pip
-    rclone
     restic
     samba-dcerpc
     samba-ldb-ldap-modules
@@ -85,7 +83,6 @@ PACKAGES+=(
     sssd-nfs-idmap
     stress-ng
     tailscale
-    tmux
     usbmuxd
     wireguard-tools
     xprop
