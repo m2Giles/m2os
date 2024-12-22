@@ -42,9 +42,9 @@ PACKAGES=(
 # Bluefin Packages
 PACKAGES+=(
     adcli
-    borgbackup
     bootc
     cascadia-code-fonts
+    clevis
     evtest
     fastfetch
     firewall-config
@@ -55,8 +55,6 @@ PACKAGES+=(
     hplip
     krb5-workstation
     ifuse
-    input-leap
-    input-remapper
     libimobiledevice
     libxcrypt-compat
     libsss_autofs
@@ -64,7 +62,6 @@ PACKAGES+=(
     mesa-libGLU
     nerd-fonts
     oddjob-mkhomedir
-    pulseaudio-utils
     python3-pip
     samba-dcerpc
     samba-ldb-ldap-modules
@@ -80,9 +77,7 @@ PACKAGES+=(
     tailscale
     usbmuxd
     wireguard-tools
-    xprop
     wl-clipboard
-    zsh
 )
 
 RPM_FUSION=(
