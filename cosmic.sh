@@ -36,52 +36,33 @@ PACKAGES=(
     cosmic-desktop
     gnome-keyring
     NetworkManager-openvpn
-    NetworkManager-tui
     power-profiles-daemon
 )
 
 # Bluefin Packages
 PACKAGES+=(
     adcli
-    bash-color-prompt
-    bcache-tools
-    borgbackup
     bootc
     cascadia-code-fonts
+    clevis
     evtest
-    epson-inkjet-printer-escpr
-    epson-inkjet-printer-escpr2
     fastfetch
-    fish
     firewall-config
     foo2zjs
-    freeipa-client
-    fuse-encfs
-    gcc
     git-credential-libsecret
     glow
     gum
     hplip
     krb5-workstation
     ifuse
-    input-leap
-    input-remapper
     libimobiledevice
     libxcrypt-compat
     libsss_autofs
     lm_sensors
-    make
     mesa-libGLU
     nerd-fonts
     oddjob-mkhomedir
-    opendyslexic-fonts
-    playerctl
-    printer-driver-brlaser
-    ptyxis
-    pulseaudio-utils
     python3-pip
-    rclone
-    restic
     samba-dcerpc
     samba-ldb-ldap-modules
     samba-winbind-clients
@@ -93,14 +74,10 @@ PACKAGES+=(
     sssd-ipa
     sssd-krb5
     sssd-nfs-idmap
-    stress-ng
     tailscale
-    tmux
     usbmuxd
     wireguard-tools
-    xprop
     wl-clipboard
-    zsh
 )
 
 RPM_FUSION=(
@@ -138,7 +115,6 @@ mv /tmp/rpms/* /tmp/akmods/
 
 AKMODS_RPMS=(
     /tmp/akmods/kmods/*xone*.rpm
-    /tmp/akmods/kmods/*openrazer*.rpm
     /tmp/akmods/kmods/*v4l2loopback*.rpm
     v4l2loopback
 )
@@ -351,7 +327,6 @@ systemctl enable brew-update.timer
 systemctl --global enable podman-auto-update.timer
 
 # Hide Desktop Files. Hidden removes mime associations
-sed -i 's@\[Desktop Entry\]@\[Desktop Entry\]\nHidden=true@g' /usr/share/applications/fish.desktop
 sed -i 's@\[Desktop Entry\]@\[Desktop Entry\]\nHidden=true@g' /usr/share/applications/htop.desktop
 sed -i 's@\[Desktop Entry\]@\[Desktop Entry\]\nHidden=true@g' /usr/share/applications/nvtop.desktop
 

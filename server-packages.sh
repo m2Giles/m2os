@@ -30,7 +30,6 @@ SERVER_PACKAGES=(
 
 # Incus Packages
 SERVER_PACKAGES+=(
-    distrobuilder
     edk2-ovmf
     genisoimage
     incus
