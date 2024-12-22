@@ -49,7 +49,6 @@ PACKAGES+=(
     fastfetch
     firewall-config
     foo2zjs
-    gcc
     git-credential-libsecret
     glow
     gum
@@ -62,14 +61,11 @@ PACKAGES+=(
     libxcrypt-compat
     libsss_autofs
     lm_sensors
-    make
     mesa-libGLU
     nerd-fonts
     oddjob-mkhomedir
-    ptyxis
     pulseaudio-utils
     python3-pip
-    restic
     samba-dcerpc
     samba-ldb-ldap-modules
     samba-winbind-clients
@@ -81,7 +77,6 @@ PACKAGES+=(
     sssd-ipa
     sssd-krb5
     sssd-nfs-idmap
-    stress-ng
     tailscale
     usbmuxd
     wireguard-tools
@@ -125,7 +120,6 @@ mv /tmp/rpms/* /tmp/akmods/
 
 AKMODS_RPMS=(
     /tmp/akmods/kmods/*xone*.rpm
-    /tmp/akmods/kmods/*openrazer*.rpm
     /tmp/akmods/kmods/*v4l2loopback*.rpm
     v4l2loopback
 )
