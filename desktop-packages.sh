@@ -37,6 +37,7 @@ LAYERED_PACKAGES=(
     code
     devpod
     emacs
+    ghostty
     git-credential-libsecret
     git-credential-oauth
     spice-gtk-tools
