@@ -35,6 +35,8 @@ if [[ ! "${IMAGE}" =~ ucore ]]; then
     done
 fi
 
+dnf5 clean all
+
 mv /var/lib/alternatives /staged-alternatives
 rm -rf /tmp/*
 rm -rf /var/*
