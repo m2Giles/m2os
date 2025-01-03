@@ -24,7 +24,7 @@ gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 EOF
 
 # Sunshine
-dnf5 -y copr enable matte-schwartz/sunshine
+dnf5 -y copr enable lizardbyte/beta
 
 # Webapp Manager
 dnf5 -y copr enable kylegospo/webapp-manager
