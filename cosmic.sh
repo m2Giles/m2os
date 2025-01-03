@@ -41,8 +41,6 @@ PACKAGES=(
 
 # Bluefin Packages
 PACKAGES+=(
-    adcli
-    bootc
     cascadia-code-fonts
     clevis
     evtest
@@ -53,16 +51,11 @@ PACKAGES+=(
     glow
     gum
     hplip
-    krb5-workstation
-    ifuse
-    libimobiledevice
     libxcrypt-compat
-    libsss_autofs
     lm_sensors
     mesa-libGLU
     nerd-fonts
     oddjob-mkhomedir
-    python3-pip
     samba-dcerpc
     samba-ldb-ldap-modules
     samba-winbind-clients
@@ -70,12 +63,10 @@ PACKAGES+=(
     samba
     setools-console
     solaar
-    sssd-ad
-    sssd-ipa
-    sssd-krb5
-    sssd-nfs-idmap
     tailscale
+    topgrade
     usbmuxd
+    uupd
     wireguard-tools
     wl-clipboard
 )
@@ -231,25 +222,6 @@ tar -xzf /tmp/starship.tar.gz -C /tmp
 install -c -m 0755 /tmp/starship /usr/bin
 # shellcheck disable=SC2016
 echo 'eval "$(starship init bash)"' >> /etc/bashrc
-
-# Bash Prexec
-curl -Lo /usr/share/bash-prexec https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh
-
-# Topgrade Install
-pip install --prefix=/usr topgrade
-
-# Install ublue-update
-dnf5 install -y ublue-update
-mkdir -p /etc/ublue-update
-tee /etc/ublue-update/ublue-update.toml <<'EOF'
-[checks]
-    min_battery_percent = 20.0
-    max_cpu_load_percent = 50.0
-    max_mem_percent = 90.0
-    network_not_metered = true  # Abort if network connection is metered
-[notify]
-    dbus_notify = false
-EOF
 
 # Convince the installer we are in CI
 touch /.dockerenv

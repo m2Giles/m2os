@@ -34,17 +34,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      
+
       - name: Install Just
         shell: bash
         run: |
           set -eoux pipefail
-          JUST_VERSION=$(curl -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
-          curl -sSLO https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
+          JUST_VERSION=$(curl --retry 3 -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
+          curl --retry 3 -sSLO https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
           tar -zxvf just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -C /tmp just
           sudo mv /tmp/just /usr/local/bin/just
           rm -f just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
-        
+
       - name: Check Just Syntax
         shell: bash
         run: |
@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           sudo just rechunk ${{ matrix.image }}
-        
+
       - name: Load and Tag Image
         shell: bash
         run: |
@@ -124,18 +124,17 @@ jobs:
           TAGS: ${{ steps.push.outputs.outputs && fromJSON(steps.push.outputs.outputs).digest }}
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
-        
+
   check:
-      name: Check all builds successful
-      if: ${{ !cancelled() }}
-      runs-on: ubuntu-latest
-      needs: [build-image]
-      steps:
-        - name: Exit on failure
-          if: ${{ needs.build-image.result == 'failure' }}
-          shell: bash
-          run: exit 1
-        - name: Exit
-          shell: bash
-          run: exit 0
-            
+    name: Check all builds successful
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    needs: [build-image]
+    steps:
+      - name: Exit on failure
+        if: ${{ needs.build-image.result == 'failure' }}
+        shell: bash
+        run: exit 1
+      - name: Exit
+        shell: bash
+        run: exit 0
