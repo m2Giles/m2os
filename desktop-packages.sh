@@ -57,13 +57,6 @@ if [[ "${IMAGE}" =~ bluefin ]]; then
     )
 fi
 
-if [[ ${IMAGE} =~ nvidia ]]; then
-    sed -i 's@enabled=0@enabled=1@g' "/etc/yum.repos.d/negativo17-fedora-multimedia.repo"
-    LAYERED_PACKAGES+=(
-        cuda
-    )
-fi
-
 dnf5 install -y "${LAYERED_PACKAGES[@]}"
 
 # Zed because why not?

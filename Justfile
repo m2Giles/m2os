@@ -13,7 +13,7 @@ images := '(
     [ucore]="stable-zfs"
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
-export SUDO_DISPLAY := if `if [[ -n "${DISPLAY:-}" || -n "${WAYLAND_DISPLAY:-}" ]]; then echo true; fi` == "true" { "true" } else { "false" }
+export SUDO_DISPLAY := if `if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then echo true; fi` == "true" { "true" } else { "false" }
 export SUDOIF := if `id -u` == "0" { "" } else { if SUDO_DISPLAY == "true" { "sudo --askpass" } else { "sudo" } }
 export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else { if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") } }
