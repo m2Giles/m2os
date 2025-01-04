@@ -4,20 +4,21 @@
 set ${SET_X:+-x} -eou pipefail
 
 repos=(
-    _copr_ublue-os-akmods.repo
-    _copr_ublue-os-staging.repo
-    _copr_kylegospo-latencyflex.repo
-    _copr_kylegospo-obs-vkcapture.repo
-    _copr_kylegospo-webapp-manager.repo
-    _copr_che-nerd-fonts.repo
-    _copr_hikariknight-looking-glass-kvmfr.repo
     charm.repo
     docker-ce.repo
+    fedora-cisco-openh264.repo
     fedora-updates.repo
     fedora-updates-archive.repo
+    fedora-updates-testing.repo
+    ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
+    google-chrome.repo
+    negativo17-fedora-multimedia.repo
+    negativo17-fedora-nvidia.repo
+    nvidia-container-toolkit.repo
+    rpm-fusion-nonfree-nvidia-driver.repo
+    rpm-fusion-nonfree-steam.repo
     tailscale.repo
-    ublue-os-bling-fedora-*.repo
-    ublue-os-staging-fedora-*.repo
+    ublue-os-staging-fedora-"$(rpm -E %fedora)".repo
     vscode.repo
 )
 
@@ -29,7 +30,8 @@ for repo in "${repos[@]}"; do
 done
 
 if [[ ! "${IMAGE}" =~ ucore ]]; then
-    coprs=($(find /etc/yum.repos.d/_copr*.repo))
+    coprs=()
+    mapfile -t coprs <<< "$(find /etc/yum.repos.d/_copr*.repo)"
     for copr in "${coprs[@]}"; do
         sed -i 's@enabled=1@enabled=0@g' "$copr"
     done
