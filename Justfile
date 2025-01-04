@@ -13,7 +13,8 @@ images := '(
     [ucore]="stable-zfs"
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
-export SUDOIF := if `id -u` == "0" { "" } else { "sudo" }
+export SUDO_DISPLAY := if `if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then echo true; fi` == "true" { "true" } else { "false" }
+export SUDOIF := if `id -u` == "0" { "" } else { if SUDO_DISPLAY == "true" { "sudo --askpass" } else { "sudo" } }
 export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else { if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") } }
 
@@ -98,9 +99,22 @@ build image="bluefin":
         skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:${fedora_version} > /tmp/inspect-"{{ image }}".json
         ;;
     esac
+
+    VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
+    skopeo list-tags docker://ghcr.io/{{ repo_name }}/{{ repo_image_name }} > /tmp/repotags.json
+    if [[ $(jq "any(.Tags[]; contains(\"$VERSION\"))" < /tmp/repotags.json) == "true" ]]; then
+        POINT="1"
+        while $(jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" < /tmp/repotags.json)
+        do
+            (( POINT++ ))
+        done
+    fi
+    if [[ -n "${POINT:-}" ]]; then
+        VERSION="${VERSION}.$POINT"
+    fi
     BUILD_ARGS+=("--file" "Containerfile")
     BUILD_ARGS+=("--label" "org.opencontainers.image.title={{ repo_image_name }}")
-    BUILD_ARGS+=("--label" "org.opencontainers.image.version={{ image }}-${fedora_version}.$(date +%Y%m%d)")
+    BUILD_ARGS+=("--label" "org.opencontainers.image.version=$VERSION")
     BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json)")
     BUILD_ARGS+=("--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.")
     BUILD_ARGS+=("--build-arg" "IMAGE={{ image }}")
@@ -132,19 +146,22 @@ rechunk image="bluefin":
     fi
 
     if [[ "${UID}" -gt "0" && ! ${PODMAN} =~ docker ]]; then
-        ${SUDOIF} ${PODMAN} image scp "${UID}"@localhost::localhost/{{ repo_image_name }}:{{ image }} root@localhost::localhost/{{ repo_image_name }}:{{ image }}
+        COPYTMP="$(mktemp -p "${PWD}" -d -t podman_scp.XXXXXXXXXX)"
+        ${SUDOIF} TMPDIR=${COPYTMP} ${PODMAN} image scp "${UID}"@localhost::localhost/{{ repo_image_name }}:{{ image }} root@localhost::localhost/{{ repo_image_name }}:{{ image }}
+        rm -rf "${COPYTMP}"
     fi
 
     CREF=$(${SUDOIF} ${PODMAN} create localhost/{{ repo_image_name }}:{{ image }} bash)
     MOUNT=$(${SUDOIF} ${PODMAN} mount $CREF)
     FEDORA_VERSION="$(${SUDOIF} ${PODMAN} inspect $CREF | jq -r '.[]["Config"]["Labels"]["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
     OUT_NAME="{{ repo_image_name }}_{{ image }}"
-    VERSION="{{ image }}-${FEDORA_VERSION}.$(date +%Y%m%d)"
+    VERSION="$(${SUDOIF} ${PODMAN} inspect $CREF | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')"
     LABELS="
-        org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
-        org.opencontainers.image.revision=$(git rev-parse HEAD)
-        ostree.linux=$(${PODMAN} inspect localhost/{{ repo_image_name }}:{{ image }} | jq -r '.[].["Config"]["Labels"]["ostree.linux"]')
-        org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
+    org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
+    org.opencontainers.image.revision=$(git rev-parse HEAD)
+    ostree.linux=$(${SUDOIF} ${PODMAN} inspect $CREF | jq -r '.[].["Config"]["Labels"]["ostree.linux"]')
+    org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
+    "
     ${SUDOIF} ${PODMAN} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
@@ -190,6 +207,7 @@ rechunk image="bluefin":
     ${SUDOIF} find {{ repo_image_name }}_{{ image }}* -type f -exec chmod 0644 {} \; || true
     if [[ "${UID}" -gt "0" ]]; then
         ${SUDOIF} chown -R ${UID}:${GROUPS} "${PWD}"
+        just load-image {{ image }}
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
         ${SUDOIF} chown -R ${SUDO_UID}:${SUDO_GID} "${PWD}"
     fi
@@ -263,7 +281,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
 
     # Load image into rootful podman
     if [[ "${UID}" -gt "0" && ! ${PODMAN} =~ docker ]]; then
+        COPYTMP="$(mktemp -p "${PWD}" -d -t podman_scp.XXXXXXXXXX)"
         ${SUDOIF} ${PODMAN} image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"
+        rm -rf "${COPYTMP}"
     fi
 
     # Generate Flatpak List

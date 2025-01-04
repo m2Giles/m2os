@@ -13,9 +13,9 @@ on:
         description: "The image flavor to build, Make sure it matches"
         type: choice
         options:
-          - 'Desktop'
-          - 'Bazzite'
-        default: 'Desktop'
+          - "Desktop"
+          - "Bazzite"
+        default: "Desktop"
 
   workflow_call:
     inputs:
@@ -57,17 +57,20 @@ jobs:
         shell: bash
         run: |
           set -eoux pipefail
-          JUST_VERSION=$(curl -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
+          while [[ "${JUST_VERSION:-}" =~ null || -z "${JUST_VERSION:-}" ]]
+          do
+            JUST_VERSION=$(curl -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
+          done
           curl -sSLO https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
           tar -zxvf just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -C /tmp just
           sudo mv /tmp/just /usr/local/bin/just
           rm -f just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
-        
+
       - name: Check Just Syntax
         shell: bash
         run: |
           just check
-      
+
       - name: Maximize Build Space
         if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
         uses: ublue-os/remove-unwanted-software@v7
@@ -91,7 +94,7 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
-        
+
       - name: Make URL Artifact
         shell: bash
         id: url
@@ -106,14 +109,13 @@ jobs:
           esac
           echo "|[${{ matrix.image }}](${{ steps.upload.outputs.artifact-url }})|" > url-${upload}-${{ matrix.image }}.txt
           echo "url=${upload}" >> $GITHUB_OUTPUT
-      
+
       - name: Upload ISO URL for Changelogs
         id: upload-url
         uses: actions/upload-artifact@v4
         with:
           name: url-${{ steps.url.outputs.url }}-${{ matrix.image }}
-          path:
-            url-${{ steps.url.outputs.url }}-${{ matrix.image }}.txt
+          path: url-${{ steps.url.outputs.url }}-${{ matrix.image }}.txt
           if-no-files-found: error
           retention-days: 0
           compression-level: 0
