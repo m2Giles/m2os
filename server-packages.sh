@@ -58,13 +58,6 @@ if [[ ${IMAGE} =~ ucore ]]; then
         containerd docker-cli moby-engine runc
 fi
 
-if [[ ${IMAGE} =~ nvidia && ! ${IMAGE} =~ cosmic ]]; then
-    sed -i 's@enabled=0@enabled=1@g' "/etc/yum.repos.d/negativo17-fedora-multimedia.repo"
-    SERVER_PACKAGES+=(
-        cuda
-    )
-fi
-
 dnf5 install -y "${SERVER_PACKAGES[@]}"
 
 # Bootupctl fix for ISO
