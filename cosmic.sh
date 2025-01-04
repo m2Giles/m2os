@@ -159,7 +159,6 @@ if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     source /tmp/akmods-rpms/kmods/nvidia-vars
 
     NVIDIA_RPMS=(
-        cuda
         libnvidia-fbc
         libnvidia-ml.i686
         libva-nvidia-driver
