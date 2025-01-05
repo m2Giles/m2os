@@ -16,7 +16,7 @@ env:
 
 jobs:
   get-images:
-    name: Get ${{ input.image_flavor }} Images for Build
+    name: Get ${{ inputs.image_flavor }} Images for Build
     outputs:
       images: ${{ steps.images.outputs.images }}
     runs-on: ubuntu-latest
