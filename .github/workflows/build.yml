@@ -4,7 +4,7 @@ on:
     - cron: "41 6 * * 0" # 6:41 UTC Sunday
     - cron: "41 6 * * 1,2,3,4,5,6" # 6:41 UTC Monday-Saturday
   push:
-    branches: 
+    branches:
       - main
   pull_request:
     branches:
@@ -23,7 +23,6 @@ jobs:
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
-      images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       image_flavor: Desktop
 
   build-image-bazzite:
@@ -31,7 +30,6 @@ jobs:
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
-      images: '["bazzite", "bazzite-deck"]'
       image_flavor: Bazzite
 
   build-image-server:
@@ -39,7 +37,6 @@ jobs:
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     with:
-      images: '["ucore", "ucore-nvidia"]'
       image_flavor: Server
 
   build-iso-desktop:
@@ -48,7 +45,6 @@ jobs:
     secrets: inherit
     needs: [build-image-desktop, build-image-server]
     with:
-      images: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       image_flavor: Desktop
 
   build-iso-bazzite:
@@ -57,7 +53,6 @@ jobs:
     secrets: inherit
     needs: build-image-bazzite
     with:
-      images: '["bazzite", "bazzite-deck"]'
       image_flavor: Bazzite
 
   create-release:

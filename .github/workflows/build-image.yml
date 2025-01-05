@@ -2,10 +2,6 @@ name: Build m2os Images
 on:
   workflow_call:
     inputs:
-      images:
-        description: "Images for the build"
-        required: true
-        type: string
       image_flavor:
         type: string
 
@@ -19,6 +15,18 @@ env:
   SET_X: 1
 
 jobs:
+  get-images:
+    name: Get Images for Build
+    outputs:
+      images: ${{ steps.images.outputs.images }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Images for Build
+        id: images
+        uses: ./.github/actions/get-images
+        with:
+          image_flavor: ${{ inputs.image_flavor }}
+
   build-image:
     name: Build ${{ inputs.image_flavor }} Images (${{ matrix.image }})
     runs-on: ubuntu-24.04
@@ -36,17 +44,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Install Just
-        shell: bash
-        run: |
-          set -eoux pipefail
-          while [[ "${JUST_VERSION:-}" =~ null || -z "${JUST_VERSION:-}" ]]
-          do
-            JUST_VERSION=$(curl -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
-          done
-          curl --retry 3 -sSLO https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
-          tar -zxvf just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -C /tmp just
-          sudo mv /tmp/just /usr/local/bin/just
-          rm -f just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
+        uses: ./.github/actions/install-just
 
       - name: Check Just Syntax
         shell: bash
