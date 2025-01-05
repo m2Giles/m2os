@@ -31,7 +31,7 @@ jobs:
           image_flavor: ${{ inputs.image_flavor }}
 
   build-image:
-    name: Build ${{ matrix.image }} Image
+    name: Build ${{ inputs.image_flavor }} Images (${{ matrix.image }})
     needs: get-images
     runs-on: ubuntu-24.04
     continue-on-error: false
@@ -137,7 +137,7 @@ jobs:
     needs: [build-image]
     steps:
       - name: Exit on failure
-        if: ${{ contains(fromJSON('["failure", "skipped"]'), needs.build-image.result) }}
+        if: ${{ !success() }}
         shell: bash
         run: exit 1
       - name: Exit
