@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: ["${{ fromJson(steps.images.outputs.images) }}"]
+        image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
