@@ -309,34 +309,24 @@ build-iso image="bluefin" ghcr="0" clean="0":
         ADDITIONAL_FLATPAKS=(
             app/com.discordapp.Discord/x86_64/stable
             app/com.google.Chrome/x86_64/stable
-            app/com.microsoft.Edge/x86_64/stable
             app/com.spotify.Client/x86_64/stable
             app/org.gimp.GIMP/x86_64/stable
             app/org.keepassxc.KeePassXC/x86_64/stable
             app/org.libreoffice.LibreOffice/x86_64/stable
             app/org.prismlauncher.PrismLauncher/x86_64/stable
-    )
+        )
     if [[ "{{ image }}" =~ cosmic ]]; then
-        ADDITIONAL_FLATPAKS+=(app/org.gnome.World.PikaBackup/x86_64/stable)
-    fi
-    if [[ "{{ image }}" =~ aurora|bluefin|cosmic ]]; then
         ADDITIONAL_FLATPAKS+=(
-            app/com.github.Matoking.protontricks/x86_64/stable
-            app/io.github.fastrizwaan.WineZGUI/x86_64/stable
+            app/org.gnome.World.PikaBackup/x86_64/stable
             app/it.mijorus.gearlever/x86_64/stable
-            app/com.vysp3r.ProtonPlus/x86_64/stable
-            runtime/org.freedesktop.Platform.VulkanLayer.MangoHud/x86_64/23.08
-            runtime/org.freedesktop.Platform.VulkanLayer.vkBasalt/x86_64/23.08
-            runtime/org.freedesktop.Platform.VulkanLayer.OBSVkCapture/x86_64/23.08
-            runtime/com.obsproject.Studio.Plugin.OBSVkCapture/x86_64/stable
-            runtime/com.obsproject.Studio.Plugin.Gstreamer/x86_64/stable
-            runtime/com.obsproject.Studio.Plugin.GStreamerVaapi/x86_64/stable
             runtime/org.gtk.Gtk3theme.adw-gtk3/x86_64/3.22
             runtime/org.gtk.Gtk3theme.adw-gtk3-dark/x86_64/3.22
-    )
+        )
     fi
     if [[ "{{ image }}" =~ bazzite ]]; then
         ADDITIONAL_FLATPAKS+=(app/org.gnome.World.PikaBackup/x86_64/stable)
+    if [[ "{{ image }}" =~ aurora|bluefin ]]; then
+        ADDITIONAL_FLATPAKS+=(app/it.mijorus.gearlever/x86_64/stable)
     fi
     FLATPAK_REFS=()
     while IFS= read -r line; do
