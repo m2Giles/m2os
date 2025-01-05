@@ -21,6 +21,9 @@ jobs:
       images: ${{ steps.images.outputs.images }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Get Images for Build
         id: images
         uses: ./.github/actions/get-images
