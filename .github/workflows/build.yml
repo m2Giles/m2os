@@ -18,44 +18,30 @@ permissions:
   id-token: write
 
 jobs:
-  build-image-desktop:
-    name: Desktop Images
+  build-image:
+    name: Build Images
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Desktop", "Bazzite", "Server"]
     with:
-      image_flavor: Desktop
+      image_flavor: ${{ matrix.image_flavor }}
 
-  build-image-bazzite:
-    name: Bazzite Images
-    uses: ./.github/workflows/build-image.yml
-    secrets: inherit
-    with:
-      image_flavor: Bazzite
-
-  build-image-server:
-    name: Server Images
-    uses: ./.github/workflows/build-image.yml
-    secrets: inherit
-    with:
-      image_flavor: Server
-
-  build-iso-desktop:
-    name: Desktop ISOs
+  build-iso:
+    name: Build ISOs
     uses: ./.github/workflows/build-iso.yml
     secrets: inherit
-    needs: [build-image-desktop, build-image-server]
+    needs: [build-image]
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Desktop", "Bazzite"]
     with:
-      image_flavor: Desktop
-
-  build-iso-bazzite:
-    name: Bazzite ISOs
-    uses: ./.github/workflows/build-iso.yml
-    secrets: inherit
-    needs: build-image-bazzite
-    with:
-      image_flavor: Bazzite
+      image_flavor: ${{ matrix.image_flavor }}
 
   create-release:
     name: Create Release
-    needs: [build-iso-desktop, build-iso-bazzite]
+    needs: [build-iso]
     uses: ./.github/workflows/create-release.yml
