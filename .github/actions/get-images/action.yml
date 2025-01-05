@@ -13,7 +13,6 @@ outputs:
 
 runs:
   using: "composite"
-  name: Get Images for Build
   steps:
     - name: Get Images for Build
       id: images
