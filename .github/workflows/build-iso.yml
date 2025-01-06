@@ -2,13 +2,6 @@ name: Build m2os ISOs
 on:
   workflow_dispatch:
     inputs:
-      images:
-        description: "The images to build, Make sure it matches"
-        type: choice
-        options:
-          - '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
-          - '["bazzite", "bazzite-deck"]'
-        default: '["aurora", "aurora-nvidia", "bluefin", "bluefin-nvidia", "cosmic", "cosmic-nvidia"]'
       image_flavor:
         description: "The image flavor to build, Make sure it matches"
         type: choice
@@ -19,10 +12,6 @@ on:
 
   workflow_call:
     inputs:
-      images:
-        description: "The images to build"
-        required: true
-        type: string
       image_flavor:
         type: string
         required: true
@@ -36,8 +25,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  get-images:
+    name: Get Images for Build
+    outputs:
+      images: ${{ steps.images.outputs.images }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Images for Build
+        id: images
+        uses: ./.github/actions/get-images
+        with:
+          image_flavor: ${{ inputs.image_flavor }}
+
   build-iso:
     name: Build ${{ inputs.image_flavor }} ISOs (${{ matrix.image }})
+    needs: get-images
     outputs:
       url: ${{ steps.url.outputs.url }}
     runs-on: ubuntu-latest
@@ -48,23 +53,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: ["${{ fromJson(inputs.images) }}"]
+        image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Just
-        shell: bash
-        run: |
-          set -eoux pipefail
-          while [[ "${JUST_VERSION:-}" =~ null || -z "${JUST_VERSION:-}" ]]
-          do
-            JUST_VERSION=$(curl -L https://api.github.com/repos/casey/just/releases/latest | jq -r '.tag_name')
-          done
-          curl -sSLO https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
-          tar -zxvf just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz -C /tmp just
-          sudo mv /tmp/just /usr/local/bin/just
-          rm -f just-${JUST_VERSION}-x86_64-unknown-linux-musl.tar.gz
+        uses: ./.github/actions/install-just
 
       - name: Check Just Syntax
         shell: bash
