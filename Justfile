@@ -59,6 +59,7 @@ clean:
 [group('Image')]
 build image="bluefin":
     #!/usr/bin/env bash
+    echo "::group:: Container Build Prep"
     set ${SET_X:+-x} -eou pipefail
     declare -A images={{ images }}
     check=${images[{{ image }}]-}
@@ -121,12 +122,16 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "BASE_IMAGE=$BASE_IMAGE")
     BUILD_ARGS+=("--build-arg" "TAG_VERSION=$TAG_VERSION")
     BUILD_ARGS+=("--build-arg" "SET_X=${SET_X:-}")
+    BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     if [[ "${PODMAN}" =~ docker && "${TERM}" == "dumb" ]]; then
         BUILD_ARGS+=("--progress" "plain")
     fi
-    ${PODMAN} pull ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
+    echo "::endgroup::"
+
+    echo "::group:: Container Build"
     ${PODMAN} build "${BUILD_ARGS[@]}" .
+    echo "::endgroup::"
 
     if [[ "${UID}" -gt "0" ]]; then
         just rechunk {{ image }}
@@ -138,6 +143,7 @@ build image="bluefin":
 [private]
 rechunk image="bluefin":
     #!/usr/bin/env bash
+    echo "::group:: Rechunk Build Prep"
     set ${SET_X:+-x} -eou pipefail
     ID=$(${PODMAN} images --filter reference=localhost/{{ repo_image_name }}:{{ image }} --format "'{{ '{{.ID}}' }}'")
 
@@ -162,6 +168,9 @@ rechunk image="bluefin":
     ostree.linux=$(${SUDOIF} ${PODMAN} inspect $CREF | jq -r '.[].["Config"]["Labels"]["ostree.linux"]')
     org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
     "
+    echo "::endgroup::"
+
+    echo "::group:: Rechunk Prune"
     ${SUDOIF} ${PODMAN} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
@@ -169,6 +178,9 @@ rechunk image="bluefin":
         --user 0:0 \
         ghcr.io/hhd-dev/rechunk:latest \
         /sources/rechunk/1_prune.sh
+    echo "::endgroup::"
+
+    echo "::group:: Create Tree"
     ${SUDOIF} ${PODMAN} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
@@ -185,6 +197,9 @@ rechunk image="bluefin":
         ${SUDOIF} ${PODMAN} rmi localhost/{{ repo_image_name }}:{{ image }}
     fi
     ${PODMAN} rmi localhost/{{ repo_image_name }}:{{ image }}
+    echo "::endgroup::"
+
+    echo "::group:: Rechunk"
     ${SUDOIF} ${PODMAN} run --rm \
         --pull=newer \
         --security-opt label=disable \
@@ -202,7 +217,9 @@ rechunk image="bluefin":
         --user 0:0 \
         ghcr.io/hhd-dev/rechunk:latest \
         /sources/rechunk/3_chunk.sh
+    echo "::endgroup::"
 
+    echo "::group:: Cleanup"
     ${SUDOIF} find {{ repo_image_name }}_{{ image }} -type d -exec chmod 0755 {} \; || true
     ${SUDOIF} find {{ repo_image_name }}_{{ image }}* -type f -exec chmod 0644 {} \; || true
     if [[ "${UID}" -gt "0" ]]; then
@@ -213,6 +230,7 @@ rechunk image="bluefin":
     fi
 
     ${SUDOIF} ${PODMAN} volume rm cache_ostree
+    echo "::endgroup::"
 
 # Load Image into Podman and Tag
 [private]
