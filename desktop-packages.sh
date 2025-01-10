@@ -57,7 +57,7 @@ if [[ "${IMAGE}" =~ bluefin ]]; then
     )
 fi
 
-dnf5 install -y "${LAYERED_PACKAGES[@]}"
+dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
 
 # Zed because why not?
 curl -Lo /tmp/zed.tar.gz \
