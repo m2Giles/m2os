@@ -1,6 +1,6 @@
 ---
 name: Build m2os
-on:
+on:  # yamllint disable-line rule:truthy
   schedule:
     - cron: "41 6 * * 0"  # 6:41 UTC Sunday
     - cron: "41 6 * * 1,2,3,4,5,6"  # 6:41 UTC Monday-Saturday
@@ -17,6 +17,9 @@ permissions:
   packages: write
   id-token: write
 jobs:
+  lint:
+    name: Lint Project
+    uses: ./.github/actions/lint-project/action.yml
   build-image:
     name: Build Images
     uses: ./.github/workflows/build-image.yml

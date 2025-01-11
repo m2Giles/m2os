@@ -1,0 +1,15 @@
+---
+name: Lint Project
+description: Lint Project
+runs:
+  using: "composite"
+  steps:
+    - name: Install Just
+      id: just
+      uses: ./.github/actions/install-just
+
+    - name: Lint Project
+      id: lint
+      shell: bash
+      run: |
+        just lint
