@@ -19,7 +19,7 @@ permissions:
 jobs:
   lint:
     name: Lint Project
-    uses: ./.github/actions/lint-project/action.yml
+    uses: ./.github/workflows/lint.yml
   build-image:
     name: Build Images
     uses: ./.github/workflows/build-image.yml
