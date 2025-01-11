@@ -30,7 +30,7 @@ runs:
           images+=("cosmic" "cosmic-nvidia")
           ;;
         "Server")
-          images+=("ucore", "ucore-nvidia")
+          images+=("ucore" "ucore-nvidia")
           ;;
         esac
 
