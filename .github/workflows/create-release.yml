@@ -1,18 +1,17 @@
+---
 name: Create Release
 on:
   workflow_call:
   workflow_dispatch:
     inputs:
       run-id:
+        description: "The Run-ID for the workflow."
         type: number
         required: true
-
 permissions:
   contents: write
-
 env:
   SET_X: 1
-
 jobs:
   create-release:
     name: Create Release
@@ -23,7 +22,6 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -31,15 +29,12 @@ jobs:
           merge-multiple: true
           run-id: ${{ inputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
-
       - name: Install Just
         uses: ./.github/actions/install-just
-
       - name: Check Just Syntax
         shell: bash
         run: |
           just check
-
       - name: Prepare Release
         id: prepare-release
         shell: bash
@@ -51,7 +46,6 @@ jobs:
           for k in $(jq 'keys[]' <<< "$output" | tr -d \"); do
             echo "$k=$(jq -r ".$k" <<< "$output")" >> $GITHUB_OUTPUT
           done
-
       - name: Upload Changelogs as Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -61,10 +55,13 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
-        if: contains(fromJson('["workflow_dispatch", "merge_group"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+
+            github.event_name)
+          || github.event.schedule == '41 6 * * 0'
         with:
           name: ${{ steps.prepare-release.outputs.title }}
           tag_name: ${{ steps.prepare-release.outputs.tag }}

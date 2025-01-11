@@ -1,3 +1,4 @@
+---
 name: Build m2os ISOs
 on:
   workflow_dispatch:
@@ -9,21 +10,19 @@ on:
           - "Desktop"
           - "Bazzite"
         default: "Desktop"
-
   workflow_call:
     inputs:
       image_flavor:
         type: string
         required: true
-
 env:
   IMAGE_REGISTRY: ghcr.io/m2giles
   IMAGE_NAME: m2os
-
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}-${{ inputs.image_flavor }}.iso
+  group: >-
+    ${{ github.workflow }}-${{ github.ref
+    || github.run_id }}-${{ inputs.image_flavor }}.iso
   cancel-in-progress: true
-
 jobs:
   get-images:
     name: Get Images for Build
@@ -33,13 +32,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Get Images for Build
         id: images
         uses: ./.github/actions/get-images
         with:
           image_flavor: ${{ inputs.image_flavor }}
-
   build-iso:
     name: Build ${{ inputs.image_flavor }} ISOs (${{ matrix.image }})
     needs: get-images
@@ -57,30 +54,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install Just
         uses: ./.github/actions/install-just
-
       - name: Check Just Syntax
         shell: bash
         run: |
           just check
-
       - name: Maximize Build Space
-        if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
+        if: >-
+          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
         uses: ublue-os/remove-unwanted-software@v7
-
       - name: Build ISO
-        if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
+        if: >-
+          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
         shell: bash
         run: |
           sudo just build-iso ${{ matrix.image }} 1 1
           tree "./${{ env.IMAGE_NAME }}_build/output/"
-
       - name: Upload ISOs and Checksum to Job Artifacts
         id: upload
         uses: actions/upload-artifact@v4
-        if: contains(fromJson('["workflow_dispatch", "workflow_call"]'), github.event_name) || github.event.schedule == '41 6 * * 0'
+        if: >-
+          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
         with:
           name: ${{ matrix.image }}-iso
           path: |
@@ -89,7 +87,6 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
-
       - name: Make URL Artifact
         shell: bash
         id: url
@@ -102,9 +99,11 @@ jobs:
             upload="stable"
             ;;
           esac
-          echo "|[${{ matrix.image }}](${{ steps.upload.outputs.artifact-url }})|" > url-${upload}-${{ matrix.image }}.txt
+          echo "|[${{ matrix.image }}](${{ env.ARTIFACT-URL }})|" \
+            > url-${upload}-${{ matrix.image }}.txt
           echo "url=${upload}" >> $GITHUB_OUTPUT
-
+        env:
+          ARTIFACT-URL: ${{ steps.upload.outputs.artifact-url }}
       - name: Upload ISO URL for Changelogs
         id: upload-url
         uses: actions/upload-artifact@v4
@@ -115,7 +114,6 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
-
   changelogs:
     name: ${{ inputs.image_flavor }} Changelogs
     uses: ./.github/workflows/changelogs.yml
