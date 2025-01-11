@@ -14,7 +14,7 @@ EOF
 
 # Incus COPR Repo (Ucore does not have python)
 curl -Lo /etc/yum.repos.d/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo \
-        https://copr.fedorainfracloud.org/coprs/ganto/lxc4/repo/fedora-"$(rpm -E %fedora)"/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
+    https://copr.fedorainfracloud.org/coprs/ganto/lxc4/repo/fedora-"$(rpm -E %fedora)"/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
 
 SERVER_PACKAGES=(
     binutils
