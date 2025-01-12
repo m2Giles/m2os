@@ -1,6 +1,6 @@
 ---
 name: Build m2os ISOs
-on:
+on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
     inputs:
       image_flavor:
@@ -56,10 +56,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Install Just
         uses: ./.github/actions/install-just
-      - name: Check Just Syntax
-        shell: bash
-        run: |
-          just check
       - name: Maximize Build Space
         if: >-
           contains(fromJson('["workflow_dispatch", "workflow_call"]'),

@@ -1,6 +1,6 @@
 ---
 name: Generate Release Text
-on:
+on:  # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
       target:

@@ -226,6 +226,7 @@ rechunk image="bluefin":
         ${SUDOIF} chown -R ${UID}:${GROUPS} "${PWD}"
         just load-image {{ image }}
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
+        ${SUDOIF} chown -R ${SUDO_UID}:${SUDO_GID} "/run/user/${SUDO_UID}/just"
         ${SUDOIF} chown -R ${SUDO_UID}:${SUDO_GID} "${PWD}"
     fi
 

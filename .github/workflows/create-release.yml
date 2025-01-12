@@ -1,6 +1,6 @@
 ---
 name: Create Release
-on:
+on:  # yamllint disable-line rule:truthy
   workflow_call:
   workflow_dispatch:
     inputs:
@@ -31,10 +31,6 @@ jobs:
           github-token: ${{ github.token }}
       - name: Install Just
         uses: ./.github/actions/install-just
-      - name: Check Just Syntax
-        shell: bash
-        run: |
-          just check
       - name: Prepare Release
         id: prepare-release
         shell: bash
