@@ -1,8 +1,6 @@
 ---
 name: Lint Project
 on:  # yamllint disable-line rule:truthy
-  pull_request:
-    branches: ["main"]
   workflow_call:
   workflow_dispatch:
 jobs:

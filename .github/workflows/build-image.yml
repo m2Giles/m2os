@@ -59,7 +59,6 @@ jobs:
       - name: Load and Tag Image
         shell: bash
         run: |
-          ls -la /run/user/${UID}
           just load-image ${{ matrix.image }}
       - name: Get Tags
         id: get_tags

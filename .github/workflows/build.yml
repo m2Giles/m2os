@@ -17,8 +17,12 @@ permissions:
   packages: write
   id-token: write
 jobs:
+  lint:
+    name: Lint Project
+    uses: ./.github/workflows/lint.yml
   build-image:
     name: Build Images
+    needs: [lint]
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     strategy:
