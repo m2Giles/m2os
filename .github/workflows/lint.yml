@@ -1,6 +1,9 @@
 ---
 name: Lint Project
 on:  # yamllint disable-line rule:truthy
+  push:
+  pull_request:
+    branches: ["main"]
   workflow_call:
   workflow_dispatch:
 jobs:
@@ -10,9 +13,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
 
       - name: Install Just
         id: just
