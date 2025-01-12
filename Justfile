@@ -226,8 +226,8 @@ rechunk image="bluefin":
         {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "${PWD}"
         just load-image {{ image }}
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
-        {{ SUDOIF }} chown -R "${SUDO_UID}":"{SUDO_GID}" "/run/user/${SUDO_UID}/just"
-        {{ SUDOIF }} chown -R "${SUDO_UID}":"{SUDO_GID}" "${PWD}"
+        {{ SUDOIF }} chown -R "${SUDO_UID}":"${SUDO_GID}" "/run/user/${SUDO_UID}/just"
+        {{ SUDOIF }} chown -R "${SUDO_UID}":"${SUDO_GID}" "${PWD}"
     fi
 
     {{ SUDOIF }} {{ PODMAN }} volume rm cache_ostree
@@ -420,7 +420,7 @@ run-iso image="bluefin":
         just build-iso {{ image }}
     fi
     port=8006;
-    while grep -q ${port} <<< "$(ss -tunalp)"; do
+    while grep -q "${port}" <<< "$(ss -tunalp)"; do
         port=$(( port + 1 ))
     done
     echo "Using Port: ${port}"
@@ -551,7 +551,7 @@ lint:
     # shell
     /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
     # yaml
-    yamllint {{ justfile_dir() }}
+    yamllint -s {{ justfile_dir() }}
     # just
     just check
 
