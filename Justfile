@@ -554,6 +554,8 @@ lint:
     yamllint -s {{ justfile_dir() }}
     # just
     just check
+    # just recipes
+    just lint-recipes
 
 format:
     # shell
