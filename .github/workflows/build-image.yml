@@ -128,7 +128,9 @@ jobs:
     needs: [build-image]
     steps:
       - name: Exit on failure
-        if: ${{ !success() }}
+        if: >-
+          ${{ contains(fromJson('["failure", "skipped"]'),
+          needs.build-image.result) }}
         shell: bash
         run: exit 1
       - name: Exit
