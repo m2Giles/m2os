@@ -133,7 +133,7 @@ build image="bluefin":
     ${PODMAN} build "${BUILD_ARGS[@]}" .
     echo "::endgroup::"
 
-    if [[ "${UID}" -gt "0" ]]; then
+    if [[ "${UID}" -gt "0" && ! "${PODMAN}" =~ docker ]]; then
         just rechunk {{ image }}
     else
         ${PODMAN} rmi ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
@@ -145,6 +145,12 @@ rechunk image="bluefin":
     #!/usr/bin/env bash
     echo "::group:: Rechunk Build Prep"
     set ${SET_X:+-x} -eou pipefail
+
+    if [[ "${PODMAN}" =~ docker ]]; then
+        echo "Rechunk does not currently support Docker... Exiting..."
+        exit 0
+    fi
+
     ID=$(${PODMAN} images --filter reference=localhost/{{ repo_image_name }}:{{ image }} --format "'{{ '{{.ID}}' }}'")
 
     if [[ -z "$ID" ]]; then
