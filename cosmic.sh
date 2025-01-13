@@ -81,11 +81,11 @@ dnf5 install -y "${RPM_FUSION[@]}"
 # FWUPD
 dnf5 swap -y \
     --repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
-        fwupd fwupd
+    fwupd fwupd
 
 # Fetch Kernel
 skopeo copy docker://ghcr.io/ublue-os/"${KERNEL_FLAVOR}"-kernel:"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/kernel-rpms
-KERNEL_TARGZ=$(jq -r '.layers[].digest' < /tmp/kernel-rpms/manifest.json | cut -d : -f 2)
+KERNEL_TARGZ=$(jq -r '.layers[].digest' </tmp/kernel-rpms/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/kernel-rpms/"$KERNEL_TARGZ" -C /
 mv /tmp/rpms/* /tmp/kernel-rpms/
 
@@ -100,7 +100,7 @@ KERNEL_RPMS=(
 
 # Fetch AKMODS
 skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
-AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
+AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
 mv /tmp/rpms/* /tmp/akmods/
 
@@ -113,10 +113,10 @@ AKMODS_RPMS=(
 # Fetch ZFS
 if [[ "${KERNEL_FLAVOR}" == "coreos-stable" ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
-    ZFS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods-zfs/manifest.json | cut -d : -f 2)
+    ZFS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-zfs/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
     mv /tmp/rpms/* /tmp/akmods-zfs/
-    echo "zfs" > /usr/lib/modules-load.d/zfs.conf
+    echo "zfs" >/usr/lib/modules-load.d/zfs.conf
 
     ZFS_RPMS=(
         /tmp/akmods-zfs/kmods/zfs/kmod-zfs-"${QUALIFIED_KERNEL}"-*.rpm
@@ -133,7 +133,7 @@ else
 fi
 
 # Nvidia Modprobe and Dracut
-echo "options nvidia NVreg_TemporaryFilePath=/var/tmp" >> /usr/lib/modprobe.d/nvidia-atomic.conf
+echo "options nvidia NVreg_TemporaryFilePath=/var/tmp" >>/usr/lib/modprobe.d/nvidia-atomic.conf
 
 tee /usr/lib/modprobe.d/nvidia-modeset.conf <<'EOF'
 # Nvidia modesetting support. Set to 0 or comment to disable kernel modesetting
@@ -142,13 +142,13 @@ tee /usr/lib/modprobe.d/nvidia-modeset.conf <<'EOF'
 options nvidia-drm modeset=1 fbdev=1
 EOF
 
-echo 'force_drivers+=" nvidia nvidia-drm nvidia-modeset nvidia-peermem nvidia-uvm "' >> /usr/lib/dracut/dracut.conf.d/99-nvidia.conf
+echo 'force_drivers+=" nvidia nvidia-drm nvidia-modeset nvidia-peermem nvidia-uvm "' >>/usr/lib/dracut/dracut.conf.d/99-nvidia.conf
 
 # Fetch Nvidia or Delete Nvidia Configs
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
 
-    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia:${KERNEL_FLAVOR}-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
-    NVIDIA_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods-rpms/manifest.json | cut -d : -f 2)
+    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
+    NVIDIA_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-rpms/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
     mv /tmp/rpms/* /tmp/akmods-rpms/
     dnf5 install -y /tmp/akmods-rpms/ublue-os/ublue-os-nvidia-addons-*.rpm
@@ -156,6 +156,7 @@ if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     # Enable Repos
     sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/nvidia-container-toolkit.repo
 
+    # shellcheck disable=1091
     source /tmp/akmods-rpms/kmods/nvidia-vars
 
     NVIDIA_RPMS=(
@@ -179,8 +180,7 @@ else
 fi
 
 # Delete Kernel Packages for Install
-for pkg in kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra
-do
+for pkg in kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra; do
     rpm --erase $pkg --nodeps
 done
 
@@ -221,7 +221,7 @@ curl -Lo /tmp/starship.tar.gz "https://github.com/starship/starship/releases/lat
 tar -xzf /tmp/starship.tar.gz -C /tmp
 install -c -m 0755 /tmp/starship /usr/bin
 # shellcheck disable=SC2016
-echo 'eval "$(starship init bash)"' >> /etc/bashrc
+echo 'eval "$(starship init bash)"' >>/etc/bashrc
 
 # Convince the installer we are in CI
 touch /.dockerenv
@@ -260,7 +260,7 @@ curl -Lo /usr/lib/systemd/system/brew-update.timer \
 curl -Lo /usr/lib/systemd/system/brew-upgrade.timer \
     https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/system_files/shared/usr/lib/systemd/system/brew-upgrade.timer
 
-echo 'd /var/home/linuxbrew 0755 1000 1000 - -' >> /usr/lib/tmpfiles.d/homebrew.conf
+echo 'd /var/home/linuxbrew 0755 1000 1000 - -' >>/usr/lib/tmpfiles.d/homebrew.conf
 
 tee /etc/profile.d/brew-bash-completion.sh <<'EOF'
 #!/bin/sh

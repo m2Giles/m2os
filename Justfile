@@ -232,6 +232,7 @@ rechunk image="bluefin":
         ${SUDOIF} chown -R ${UID}:${GROUPS} "${PWD}"
         just load-image {{ image }}
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
+        ${SUDOIF} chown -R ${SUDO_UID}:${SUDO_GID} "/run/user/${SUDO_UID}/just"
         ${SUDOIF} chown -R ${SUDO_UID}:${SUDO_GID} "${PWD}"
     fi
 
@@ -550,3 +551,19 @@ merge-changelog:
         "tag": "$tag"
     }
     EOF
+
+lint:
+    # shell
+    /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
+    # yaml
+    yamllint {{ justfile_dir() }}
+    # just
+    just check
+
+format:
+    # shell
+    /usr/bin/find . -iname "*.sh" -type f -exec shfmt --write "{}" ';'
+    # yaml
+    yamlfmt {{ justfile_dir() }}
+    # just
+    just fix

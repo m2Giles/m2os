@@ -14,7 +14,7 @@ dnf5 -y copr enable hikariknight/looking-glass-kvmfr
 
 if [[ ! "${IMAGE}" =~ bazzite ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
-    AKMODS_TARGZ=$(jq -r '.layers[].digest' < /tmp/akmods/manifest.json | cut -d : -f 2)
+    AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
     dnf5 install -y /tmp/rpms/kmods/*kvmfr*.rpm
 fi

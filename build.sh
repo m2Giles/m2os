@@ -8,9 +8,11 @@ mkdir -p /var/lib/alternatives
 echo "::group:: ===Remove CLI Wrap==="
 /ctx/remove-cliwrap.sh
 echo "::endgroup::"
+
 echo "::group:: ===Server Packages==="
 /ctx/server-packages.sh
 echo "::endgroup::"
+
 echo "::group:: ===Distrobox Configuration==="
 /ctx/distrobox.sh
 echo "::endgroup::"
@@ -21,9 +23,11 @@ case "${IMAGE}" in
     echo "::group:: ===Desktop Packages==="
     /ctx/desktop-packages.sh
     echo "::endgroup::"
+
     echo "::group:: ===Steam Packages==="
     /ctx/steam.sh
     echo "::endgroup::"
+
     echo "::group:: ===VFIO Configuration==="
     /ctx/vfio.sh
     echo "::endgroup::"
@@ -32,12 +36,15 @@ case "${IMAGE}" in
     echo "::group:: ===Cosmic Packages==="
     /ctx/cosmic.sh
     echo "::endgroup::"
+
     echo "::group:: ===Desktop Packages==="
     /ctx/desktop-packages.sh
     echo "::endgroup::"
+
     echo "::group:: ===Steam Packages==="
     /ctx/steam.sh
     echo "::endgroup::"
+
     echo "::group:: ===VFIO Configuration==="
     /ctx/vfio.sh
     echo "::endgroup::"
@@ -57,6 +64,7 @@ esac
 echo "::group:: ===Branding Changes==="
 /ctx/branding.sh
 echo "::endgroup::"
+
 echo "::group:: ===Container Signing==="
 /ctx/signing.sh
 echo "::endgroup::"

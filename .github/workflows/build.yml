@@ -1,8 +1,9 @@
+---
 name: Build m2os
-on:
+on:  # yamllint disable-line rule:truthy
   schedule:
-    - cron: "41 6 * * 0" # 6:41 UTC Sunday
-    - cron: "41 6 * * 1,2,3,4,5,6" # 6:41 UTC Monday-Saturday
+    - cron: "41 6 * * 0"  # 6:41 UTC Sunday
+    - cron: "41 6 * * 1,2,3,4,5,6"  # 6:41 UTC Monday-Saturday
   push:
     branches:
       - main
@@ -11,15 +12,17 @@ on:
       - main
   merge_group:
   workflow_dispatch:
-
 permissions:
   contents: write
   packages: write
   id-token: write
-
 jobs:
+  lint:
+    name: Lint Project
+    uses: ./.github/workflows/lint.yml
   build-image:
     name: Build Images
+    needs: [lint]
     uses: ./.github/workflows/build-image.yml
     secrets: inherit
     strategy:
@@ -28,7 +31,6 @@ jobs:
         image_flavor: ["Desktop", "Bazzite", "Server"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
-
   build-iso:
     name: Build ISOs
     uses: ./.github/workflows/build-iso.yml
@@ -40,7 +42,6 @@ jobs:
         image_flavor: ["Desktop", "Bazzite"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
-
   create-release:
     name: Create Release
     needs: [build-iso]
