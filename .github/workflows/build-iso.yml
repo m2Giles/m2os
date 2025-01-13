@@ -60,7 +60,7 @@ jobs:
         if: >-
           contains(fromJson('["workflow_dispatch", "workflow_call"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
-        uses: ublue-os/remove-unwanted-software@v7
+        uses: ublue-os/remove-unwanted-software@v8
       - name: Build ISO
         if: >-
           contains(fromJson('["workflow_dispatch", "workflow_call"]'),
