@@ -145,6 +145,12 @@ rechunk image="bluefin":
     #!/usr/bin/env bash
     echo "::group:: Rechunk Build Prep"
     set ${SET_X:+-x} -eou pipefail
+
+    if [[ ! {{ PODMAN }} =~ podman ]]; then
+        echo "Rechunk only supported with podman. Exiting..."
+        exit 0
+    fi
+
     ID=$({{ PODMAN }} images --filter reference=localhost/{{ repo_image_name }}:{{ image }} --format "'{{ '{{.ID}}' }}'")
 
     if [[ -z "$ID" ]]; then

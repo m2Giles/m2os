@@ -62,7 +62,7 @@ if [[ "$IMAGE" =~ cosmic ]]; then
     sed -i "/^REDHAT_BUGZILLA_PRODUCT=/d; /^REDHAT_BUGZILLA_PRODUCT_VERSION=/d; /^REDHAT_SUPPORT_PRODUCT=/d; /^REDHAT_SUPPORT_PRODUCT_VERSION=/d" /usr/lib/os-release
 fi
 
-sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"${IMAGE^} $(rpm -E %fedora) (Versio: ${VERSION} / FROM ${BASE_IMAGE^})\"|" /usr/lib/os-release
+sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"$(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION} / FROM ${BASE_IMAGE^} $(rpm -E %fedora))\"|" /usr/lib/os-release
 sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (${base_image^})\"|" /usr/lib/os-release
 sed -i "s|^OSTREE_VERSION=.*|OSTREE_VERSION=\'${VERSION}\'|" /usr/lib/os-release
 echo "IMAGE_ID=\"${IMAGE}\"" >>/usr/lib/os-release
