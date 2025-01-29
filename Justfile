@@ -85,19 +85,19 @@ build image="bluefin":
     "cosmic"*)
         just verify-container bluefin:stable-daily
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:stable-daily | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        just verify-container coreos-stable-kernel:"${fedora_version}"
+        just verify-container coreos-testing-kernel:"${fedora_version}"
         BASE_IMAGE=base-main
         TAG_VERSION="${fedora_version}"
         just verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
-        skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:"${fedora_version}" > /tmp/inspect-"{{ image }}".json
+        skopeo inspect docker://ghcr.io/ublue-os/coreos-testing-kernel:"${fedora_version}" > /tmp/inspect-"{{ image }}".json
         ;;
     "ucore"*)
         BASE_IMAGE=ucore
         TAG_VERSION="${check}"
         just verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/ucore:"${check}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        just verify-container coreos-stable-kernel:"${fedora_version}"
-        skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:"${fedora_version}" > /tmp/inspect-"{{ image }}".json
+        just verify-container coreos-testing-kernel:"${fedora_version}"
+        skopeo inspect docker://ghcr.io/ublue-os/coreos-testing-kernel:"${fedora_version}" > /tmp/inspect-"{{ image }}".json
         ;;
     esac
 

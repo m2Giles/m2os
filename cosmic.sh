@@ -3,7 +3,7 @@
 set ${SET_X:+-x} -eou pipefail
 
 if [[ -z "${KERNEL_FLAVOR:-}" ]]; then
-    KERNEL_FLAVOR=coreos-stable
+    KERNEL_FLAVOR=coreos-testing
 fi
 
 # Get Kernel Version
@@ -111,8 +111,8 @@ AKMODS_RPMS=(
 )
 
 # Fetch ZFS
-if [[ "${KERNEL_FLAVOR}" == "coreos-stable" ]]; then
-    skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:coreos-stable-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
+if [[ "${KERNEL_FLAVOR}" =~ coreos ]]; then
+    skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
     ZFS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-zfs/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
     mv /tmp/rpms/* /tmp/akmods-zfs/
