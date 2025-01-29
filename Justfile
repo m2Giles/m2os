@@ -96,8 +96,8 @@ build image="bluefin":
         TAG_VERSION="${check}"
         just verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/ucore:"${check}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        just verify-container coreos-testing-kernel:"${fedora_version}"
-        skopeo inspect docker://ghcr.io/ublue-os/coreos-testing-kernel:"${fedora_version}" > /tmp/inspect-"{{ image }}".json
+        just verify-container coreos-stable-kernel:"${fedora_version}"
+        skopeo inspect docker://ghcr.io/ublue-os/coreos-stable-kernel:"${fedora_version}" > /tmp/inspect-"{{ image }}".json
         ;;
     esac
 
