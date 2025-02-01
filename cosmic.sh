@@ -146,7 +146,7 @@ dnf5 install -y "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_
 # Fetch Nvidia
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
-    dnf5 config-manager setopt fedora-multimedia.enabled=0
+    dnf5 config-manager setopt fedora-multimedia.enabled=0 fedora-nvidia.enabled=1
     NVIDIA_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-rpms/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
     mv /tmp/rpms/* /tmp/akmods-rpms/
@@ -157,7 +157,7 @@ if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     IMAGE_NAME="" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
     rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
     ln -sf libnvidia-ml.so.1 /usr/lib64/libnvidia-ml.so
-    dnf5 config-manager setopt fedora-multimedia.enabled=1
+    dnf5 config-manager setopt fedora-multimedia.enabled=1 fedora-nvidia.enabled=0
 fi
 
 depmod -a -v "${QUALIFIED_KERNEL}"
