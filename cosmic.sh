@@ -132,53 +132,6 @@ else
     ZFS_RPMS=()
 fi
 
-# Nvidia Modprobe and Dracut
-echo "options nvidia NVreg_TemporaryFilePath=/var/tmp" >>/usr/lib/modprobe.d/nvidia-atomic.conf
-
-tee /usr/lib/modprobe.d/nvidia-modeset.conf <<'EOF'
-# Nvidia modesetting support. Set to 0 or comment to disable kernel modesetting
-# support. This must be disabled in case of SLI Mosaic.
-
-options nvidia-drm modeset=1 fbdev=1
-EOF
-
-echo 'force_drivers+=" nvidia nvidia-drm nvidia-modeset nvidia-peermem nvidia-uvm "' >>/usr/lib/dracut/dracut.conf.d/99-nvidia.conf
-
-# Fetch Nvidia or Delete Nvidia Configs
-if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
-
-    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
-    NVIDIA_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-rpms/manifest.json | cut -d : -f 2)
-    tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
-    mv /tmp/rpms/* /tmp/akmods-rpms/
-    dnf5 install -y /tmp/akmods-rpms/ublue-os/ublue-os-nvidia-addons-*.rpm
-
-    # Enable Repos
-    sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/nvidia-container-toolkit.repo
-
-    # shellcheck disable=1091
-    source /tmp/akmods-rpms/kmods/nvidia-vars
-
-    NVIDIA_RPMS=(
-        libnvidia-fbc
-        libnvidia-ml.i686
-        libva-nvidia-driver
-        mesa-vulkan-drivers.i686
-        nvidia-driver
-        nvidia-driver-cuda
-        nvidia-driver-cuda-libs.i686
-        nvidia-driver-libs.i686
-        nvidia-modprobe
-        nvidia-persistenced
-        nvidia-settings
-        nvidia-container-toolkit
-        "/tmp/akmods-rpms/kmods/kmod-nvidia-${KERNEL_VERSION}-${NVIDIA_AKMOD_VERSION}.fc${RELEASE}.rpm"
-    )
-else
-    rm -f /usr/lib/modprobe.d/nvidia-{modeset,atomic}.conf
-    rm -f /usr/lib/dracut/dracut.conf.d/99-nvidia.conf
-fi
-
 # Delete Kernel Packages for Install
 for pkg in kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra; do
     rpm --erase $pkg --nodeps
@@ -188,7 +141,26 @@ done
 sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 
 # Install
-dnf5 install -y "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${NVIDIA_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+dnf5 install -y "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+
+# Fetch Nvidia
+if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
+    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
+    dnf5 config-manager setopt fedora-multimedia.enabled=0
+    dnf5 config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-nvidia.repo
+    NVIDIA_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-rpms/manifest.json | cut -d : -f 2)
+    tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
+    mv /tmp/rpms/* /tmp/akmods-rpms/
+    # Install Nvidia RPMs
+    curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
+    sed -i "s/rpm-ostree install/dnf install -y/" /tmp/nvidia-install.sh
+    chmod +x /tmp/nvidia-install.sh
+    IMAGE_NAME="" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
+    rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
+    ln -sf libnvidia-ml.so.1 /usr/lib64/libnvidia-ml.so
+    dnf5 config-manager setopt fedora-multimedia.enabled=1 fedora-nvidia.enabled=0
+fi
+
 depmod -a -v "${QUALIFIED_KERNEL}"
 
 # Remove Unneeded and Disable Repos
@@ -201,20 +173,6 @@ UNINSTALL_PACKAGES=(
 
 dnf5 remove -y "${UNINSTALL_PACKAGES[@]}"
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
-
-if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
-    # Disable Repos
-    sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/nvidia-container-toolkit.repo
-
-    # Correct Flavor
-    sed -i "s/^MODULE_VARIANT=.*/MODULE_VARIANT=$KERNEL_MODULE_TYPE/" /etc/nvidia/kernel.conf
-
-    # Enable Services
-    systemctl enable nvidia-persistenced.service ublue-nvctk-cdi.service
-
-    # SELinux
-    semodule --verbose --install /usr/share/selinux/packages/nvidia-container.pp
-fi
 
 # Starship Shell Prompt
 curl -Lo /tmp/starship.tar.gz "https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz"
