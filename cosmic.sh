@@ -154,8 +154,7 @@ if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     dnf5 install -y /tmp/akmods-rpms/ublue-os/ublue-os-nvidia-addons-*.rpm
 
     # Enable Repos
-    sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/nvidia-container-toolkit.repo
-    dnf5 config-manager addrepo --from-repofile https://negativo17.org/repos/fedora-nvidia.repo
+    dnf5 config-manager setopt fedora-nvidia.enabled=1 nvidia-container-toolkit.enabled=1
 
     # shellcheck disable=1091
     source /tmp/akmods-rpms/kmods/nvidia-vars
@@ -205,7 +204,7 @@ sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     # Disable Repos
-    sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/{nvidia-container-toolkit,negativo17-fedora-nvidia}.repo
+    dnf5 config-manager setopt fedora-nvidia.enabled=0 nvidia-container-toolkit.enabled=0
 
     # Correct Flavor
     sed -i "s/^MODULE_VARIANT=.*/MODULE_VARIANT=$KERNEL_MODULE_TYPE/" /etc/nvidia/kernel.conf
