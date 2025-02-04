@@ -3,7 +3,7 @@
 set ${SET_X:+-x} -eou pipefail
 
 if [[ -z "${KERNEL_FLAVOR:-}" ]]; then
-    KERNEL_FLAVOR=coreos-testing
+    KERNEL_FLAVOR=coreos-stable
 fi
 
 KERNEL_SUFFIX=""
