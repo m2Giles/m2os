@@ -11,6 +11,7 @@ repos=(
     fedora-updates-archive.repo
     fedora-updates-testing.repo
     ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
+    ganto-umoci-fedora-"$(rpm -E %fedora)".repo
     google-chrome.repo
     negativo17-fedora-multimedia.repo
     negativo17-fedora-nvidia.repo
