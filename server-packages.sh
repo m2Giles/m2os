@@ -16,6 +16,9 @@ EOF
 curl -Lo /etc/yum.repos.d/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo \
     https://copr.fedorainfracloud.org/coprs/ganto/lxc4/repo/fedora-"$(rpm -E %fedora)"/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
 
+curl -Lo /etc/yum.repos.d/ganto-umoci-fedora-"$(rpm -E %fedora)".repo \
+    https://copr.fedorainfracloud.org/coprs/ganto/umoci/repo/fedora-"$(rpm -E %fedora)"/ganto-umoci-fedora-"$(rpm -E %fedora)".repo
+
 SERVER_PACKAGES=(
     binutils
     bootc
@@ -41,6 +44,7 @@ SERVER_PACKAGES+=(
     qemu-device-usb-redirect
     qemu-img
     qemu-kvm-core
+    umoci
     swtpm
 )
 
