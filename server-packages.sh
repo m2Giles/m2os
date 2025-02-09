@@ -24,6 +24,7 @@ SERVER_PACKAGES=(
     bootc
     erofs-utils
     just
+    python-ramalama
     rclone
     sbsigntools
     socat
