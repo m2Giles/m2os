@@ -72,6 +72,7 @@ PACKAGES+=(
     ublue-brew
     ublue-fastfetch
     ublue-motd
+    ublue-recipes
     ublue-setup-services
     usbmuxd
     wireguard-tools
