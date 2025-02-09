@@ -105,7 +105,7 @@ build image="bluefin":
     skopeo list-tags docker://ghcr.io/{{ repo_name }}/{{ repo_image_name }} > /tmp/repotags.json
     if [[ $(jq "any(.Tags[]; contains(\"$VERSION\"))" < /tmp/repotags.json) == "true" ]]; then
         POINT="1"
-        while eval jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" < /tmp/repotags.json
+        while jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" < /tmp/repotags.json
         do
             (( POINT++ ))
         done
@@ -459,7 +459,6 @@ changelogs branch="stable" urlmd="" handwritten="":
 verify-container container="" registry="ghcr.io/ublue-os" key="":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
-
     # Get Cosign if Needed
     if [[ ! $(command -v cosign) ]]; then
         COSIGN_CONTAINER_ID=$({{ SUDOIF }} {{ PODMAN }} create cgr.dev/chainguard/cosign:latest bash)
@@ -492,7 +491,6 @@ verify-container container="" registry="ghcr.io/ublue-os" key="":
 secureboot image="bluefin":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
-
     # Get the vmlinuz to check
     kernel_release=$({{ PODMAN }} inspect "{{ repo_image_name }}":"{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
     TMP=$({{ PODMAN }} create "{{ repo_image_name }}":"{{ image }}" bash)

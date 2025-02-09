@@ -36,11 +36,11 @@ PACKAGES=(
     cosmic-desktop
     gnome-keyring
     NetworkManager-openvpn
-    power-profiles-daemon
 )
 
 # Bluefin Packages
 PACKAGES+=(
+    "bluefin-*"
     cascadia-code-fonts
     clevis
     evtest
@@ -62,11 +62,18 @@ PACKAGES+=(
     samba-winbind-modules
     samba
     setools-console
-    solaar
     tailscale
     topgrade
+    tuned
+    tuned-gtk
+    tuned-ppd
+    tuned-profiles-atomic
+    ublue-bling
+    ublue-brew
+    ublue-fastfetch
+    ublue-motd
+    ublue-setup-services
     usbmuxd
-    uupd
     wireguard-tools
     wl-clipboard
 )
@@ -141,7 +148,11 @@ done
 sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 
 # Install
-dnf5 install -y "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+dnf5 install -y \
+    "${PACKAGES[@]}" \
+    "${KERNEL_RPMS[@]}" \
+    "${AKMODS_RPMS[@]}" \
+    "${ZFS_RPMS[@]}"
 
 # Fetch Nvidia
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
@@ -153,7 +164,6 @@ if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     mv /tmp/rpms/* /tmp/akmods-rpms/
     # Install Nvidia RPMs
     curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
-    sed -i "s/rpm-ostree install/dnf install -y/" /tmp/nvidia-install.sh
     chmod +x /tmp/nvidia-install.sh
     IMAGE_NAME="" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
     rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
@@ -181,84 +191,10 @@ install -c -m 0755 /tmp/starship /usr/bin
 # shellcheck disable=SC2016
 echo 'eval "$(starship init bash)"' >>/etc/bashrc
 
-# Convince the installer we are in CI
-touch /.dockerenv
-
-# Make these so script will work
-mkdir -p /var/home
-mkdir -p /var/roothome
-
-# Brew Install Script
-curl -Lo /tmp/brew-install https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh
-chmod +x /tmp/brew-install
-/tmp/brew-install
-tar --zstd -cvf /usr/share/homebrew.tar.zst /home/linuxbrew/.linuxbrew
-mkdir -p /etc/security/limits.d
-tee /etc/security/limits.d/30-brew-limits.conf <<'EOF'
-#This file sets the resource limits for the users logged in via PAM,
-#more specifically, users logged in on via SSH or tty (console).
-#Limits related to terminals in Wayland/Xorg sessions depend on a
-#change to /etc/systemd/user.conf.
-#This does not affect resource limits of the system services.
-#This file overrides defaults set in /etc/security/limits.conf
-
-* soft nofile 4096
-root soft nofile 4096
-EOF
-
-# Brew Services
-curl -Lo /usr/lib/systemd/system/brew-setup.service \
-    https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/system_files/shared/usr/lib/systemd/system/brew-setup.service
-curl -Lo /usr/lib/systemd/system/brew-update.service \
-    https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/system_files/shared/usr/lib/systemd/system/brew-update.service
-curl -Lo /usr/lib/systemd/system/brew-upgrade.service \
-    https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/system_files/shared/usr/lib/systemd/system/brew-upgrade.service
-curl -Lo /usr/lib/systemd/system/brew-update.timer \
-    https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/system_files/shared/usr/lib/systemd/system/brew-update.timer
-curl -Lo /usr/lib/systemd/system/brew-upgrade.timer \
-    https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/system_files/shared/usr/lib/systemd/system/brew-upgrade.timer
-
-echo 'd /var/home/linuxbrew 0755 1000 1000 - -' >>/usr/lib/tmpfiles.d/homebrew.conf
-
-tee /etc/profile.d/brew-bash-completion.sh <<'EOF'
-#!/bin/sh
-# shellcheck shell=sh disable=SC1091,SC2039,SC2166
-# Check for interactive bash and that we haven't already been sourced.
-if [ "x${BASH_VERSION-}" != x -a "x${PS1-}" != x -a "x${BREW_BASH_COMPLETION-}" = x ]; then
-
-    # Check for recent enough version of bash.
-    if [ "${BASH_VERSINFO[0]}" -gt 4 ] ||
-        [ "${BASH_VERSINFO[0]}" -eq 4 -a "${BASH_VERSINFO[1]}" -ge 2 ]; then
-        if [ -w /home/linuxbrew/.linuxbrew ]; then
-            if ! test -L /home/linuxbrew/.linuxbrew/etc/bash_completion.d/brew; then
-                /home/linuxbrew/.linuxbrew/bin/brew completions link > /dev/null
-            fi
-        fi
-        if test -d /home/linuxbrew/.linuxbrew/etc/bash_completion.d; then
-            for rc in /home/linuxbrew/.linuxbrew/etc/bash_completion.d/*; do
-                if test -r "$rc"; then
-                . "$rc"
-                fi
-            done
-            unset rc
-        fi
-    fi
-    BREW_BASH_COMPLETION=1
-    export BREW_BASH_COMPLETION
-fi
-EOF
-
 # Systemd
 systemctl enable cosmic-greeter
-systemctl enable power-profiles-daemon
-systemctl enable brew-setup.service
-systemctl enable brew-upgrade.timer
-systemctl enable brew-update.timer
 systemctl --global enable podman-auto-update.timer
 
 # Hide Desktop Files. Hidden removes mime associations
 sed -i 's@\[Desktop Entry\]@\[Desktop Entry\]\nHidden=true@g' /usr/share/applications/htop.desktop
 sed -i 's@\[Desktop Entry\]@\[Desktop Entry\]\nHidden=true@g' /usr/share/applications/nvtop.desktop
-
-#Disable autostart behaviour
-rm -f /etc/xdg/autostart/solaar.desktop
