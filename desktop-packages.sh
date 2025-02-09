@@ -13,16 +13,6 @@ dnf5 -y copr enable kylegospo/bazzite
 dnf5 -y copr enable kylegospo/bazzite-multilib
 dnf5 -y copr enable kylegospo/LatencyFleX
 
-# VSCode because it's still better for a lot of things
-tee /etc/yum.repos.d/vscode.repo <<'EOF'
-[code]
-name=Visual Studio Code
-baseurl=https://packages.microsoft.com/yumrepos/vscode
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-EOF
-
 # Sunshine
 dnf5 -y copr enable lizardbyte/beta
 
@@ -34,9 +24,7 @@ LAYERED_PACKAGES=(
     adw-gtk3-theme
     breeze-cursor-theme
     cascadia-fonts-all
-    code
     devpod
-    emacs
     git-credential-libsecret
     git-credential-oauth
     spice-gtk-tools
@@ -89,3 +77,57 @@ systemctl --global disable flatpak-user-update.timer
 systemctl disable brew-update.timer
 systemctl disable brew-upgrade.timer
 systemctl enable uupd.timer
+systemctl enable systemd-sysupdate.timer
+
+# Sysexts
+mkdir -p /etc/sysupdate.d/
+tee /usr/lib/tmpfiles.d/m2os-sysext.conf <<EOF
+d /var/lib/extensions/ 0755 root root - -
+d /var/lib/extensions.d/ 0755 root root - -
+EOF
+SYSEXTS=(
+    emacs
+    google-chrome
+    keepassxc
+    microsoft-edge
+    vscode
+)
+if [[ "${IMAGE}" =~ bluefin|bazzite|cosmic ]]; then
+    for SYSEXT in "${SYSEXTS[@]}"; do
+        tee /etc/sysupdate.d/"$SYSEXT".conf <<EOF
+[Transfer]
+Verify=false
+
+[Source]
+Type=url-file
+Path=https://github.com/travier/fedora-sysexts/releases/download/fedora-silverblue-41/
+MatchPattern=$SYSEXT-@v-%a.raw
+
+[Target]
+InstancesMax=2
+Type=regular-file
+Path=/var/lib/extensions.d/
+MatchPattern=$SYSEXT-@v-%a.raw
+CurrentSymlink=/var/lib/extensions/$SYSEXT.raw
+EOF
+    done
+elif [[ "${IMAGE}" =~ aurora ]]; then
+    for SYSEXT in "${SYSEXTS[@]}"; do
+        cat >/etc/sysupdate.d/"$SYSEXT".conf <<EOF
+[Transfer]
+Verify=false
+
+[Source]
+Type=url-file
+Path=https://github.com/travier/fedora-sysexts/releases/download/fedora-kinoite-41/
+MatchPattern=$SYSEXT-@v-%a.raw
+
+[Target]
+InstancesMax=2
+Type=regular-file
+Path=/var/lib/extensions.d/
+MatchPattern=$SYSEXT-@v-%a.raw
+CurrentSymlink=/var/lib/extensions/$SYSEXT.raw
+EOF
+    done
+fi
