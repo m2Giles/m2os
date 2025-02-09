@@ -37,11 +37,11 @@ LAYERED_PACKAGES=(
     code
     devpod
     emacs
-    ghostty
     git-credential-libsecret
     git-credential-oauth
     spice-gtk-tools
     sunshine
+    uupd
     webapp-manager
 )
 
@@ -80,3 +80,12 @@ unzip -d /usr/bin/ /tmp/emacs-lsp-booster.zip
 # Call other Scripts
 /ctx/desktop-defaults.sh
 /ctx/flatpak.sh
+
+# Services / Use uupd updater
+dnf5 remove -y ublue-os-update-services
+systemctl disable rpm-ostreed-automatic.timer
+systemctl disable flatpak-system-update.timer
+systemctl --global disable flatpak-user-update.timer
+systemctl disable brew-update.timer
+systemctl disable brew-upgrade.timer
+systemctl enable uupd.timer

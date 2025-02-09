@@ -64,6 +64,10 @@ fi
 
 dnf5 install -y "${SERVER_PACKAGES[@]}"
 
+# The superior default editor
+dnf5 swap -y \
+    nano-default-editor vim-default-editor
+
 # Bootupctl fix for ISO
 if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin|ucore ]]; then
     /usr/bin/bootupctl backend generate-update-metadata

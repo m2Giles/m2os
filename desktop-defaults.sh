@@ -47,11 +47,6 @@ tee /usr/share/user-tmpfiles.d/editor.conf <<EOF
 C %h/.config/environment.d/editor.conf - - - - /usr/share/ublue-os/etc/environment.d/default-editor.conf
 EOF
 
-mkdir -p /usr/share/ublue-os/etc/environment.d
-tee /usr/share/ublue-os/etc/environment.d/default-editor.conf <<EOF
-EDITOR=/usr/bin/vim
-EOF
-
 if [[ "${IMAGE}" =~ bazzite|bluefin ]]; then
     tee /usr/share/glib-2.0/schemas/zz1-m2os-modifications.gschema.override <<'EOF'
 [org.gnome.desktop.interface]
