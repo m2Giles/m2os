@@ -42,11 +42,6 @@ if [[ ${IMAGE} =~ aurora ]]; then
     cp /tmp/ssh-add-identities.desktop /etc/xdg/autostart/
 fi
 
-mkdir -p /usr/share/user-tmpfiles.d
-tee /usr/share/user-tmpfiles.d/editor.conf <<EOF
-C %h/.config/environment.d/editor.conf - - - - /usr/share/ublue-os/etc/environment.d/default-editor.conf
-EOF
-
 if [[ "${IMAGE}" =~ bazzite|bluefin ]]; then
     tee /usr/share/glib-2.0/schemas/zz1-m2os-modifications.gschema.override <<'EOF'
 [org.gnome.desktop.interface]
