@@ -333,10 +333,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     curl -Lo "${FLATPAK_REFS_DIR_ABS}"/flatpaks.txt "${FLATPAK_LIST_URL}"
     ADDITIONAL_FLATPAKS=(
         app/com.discordapp.Discord/x86_64/stable
-        app/com.google.Chrome/x86_64/stable
         app/com.spotify.Client/x86_64/stable
         app/org.gimp.GIMP/x86_64/stable
-        app/org.keepassxc.KeePassXC/x86_64/stable
         app/org.libreoffice.LibreOffice/x86_64/stable
         app/org.prismlauncher.PrismLauncher/x86_64/stable
     )
@@ -347,11 +345,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
             runtime/org.gtk.Gtk3theme.adw-gtk3/x86_64/3.22
             runtime/org.gtk.Gtk3theme.adw-gtk3-dark/x86_64/3.22
         )
-    fi
-    if [[ "{{ image }}" =~ bazzite ]]; then
+    elif [[ "{{ image }}" =~ bazzite ]]; then
         ADDITIONAL_FLATPAKS+=(app/org.gnome.World.PikaBackup/x86_64/stable)
-    fi
-    if [[ "{{ image }}" =~ aurora|bluefin ]]; then
+    elif [[ "{{ image }}" =~ aurora|bluefin ]]; then
         ADDITIONAL_FLATPAKS+=(app/it.mijorus.gearlever/x86_64/stable)
     fi
     FLATPAK_REFS=()
