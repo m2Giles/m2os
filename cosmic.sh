@@ -7,7 +7,7 @@ if [[ -z "${KERNEL_FLAVOR:-}" ]]; then
 fi
 
 # Get Kernel Version
-QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/"${KERNEL_FLAVOR}"-kernel:"$(rpm -E %fedora)" | jq -r '.Labels["ostree.linux"]')
+QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}-$(rpm -E %fedora)" | jq -r '.Labels["ostree.linux"]')
 
 # Add Cosmic Repo
 dnf5 -y copr enable ryanabx/cosmic-epoch
@@ -90,11 +90,10 @@ dnf5 swap -y \
     --repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
     fwupd fwupd
 
-# Fetch Kernel
-skopeo copy docker://ghcr.io/ublue-os/"${KERNEL_FLAVOR}"-kernel:"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/kernel-rpms
-KERNEL_TARGZ=$(jq -r '.layers[].digest' </tmp/kernel-rpms/manifest.json | cut -d : -f 2)
-tar -xvzf /tmp/kernel-rpms/"$KERNEL_TARGZ" -C /
-mv /tmp/rpms/* /tmp/kernel-rpms/
+# Fetch KERNEL/AKMODS
+skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
+AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
+tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
 
 KERNEL_RPMS=(
     "/tmp/kernel-rpms/kernel-${QUALIFIED_KERNEL}.rpm"
@@ -105,15 +104,11 @@ KERNEL_RPMS=(
     "/tmp/kernel-rpms/kernel-uki-virt-${QUALIFIED_KERNEL}.rpm"
 )
 
-# Fetch AKMODS
-skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
-AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
-tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
-mv /tmp/rpms/* /tmp/akmods/
-
 AKMODS_RPMS=(
-    /tmp/akmods/kmods/*xone*.rpm
-    /tmp/akmods/kmods/*v4l2loopback*.rpm
+    /tmp/rpms/kmods/*framework-laptop-"${QUALIFIED_KERNEL}"-*.rpm
+    /tmp/rpms/kmods/*xpadneo-"${QUALIFIED_KERNEL}"-*.rpm
+    /tmp/rpms/kmods/*xone-"${QUALIFIED_KERNEL}"-*.rpm
+    /tmp/rpms/kmods/*v4l2loopback-"${QUALIFIED_KERNEL}"-*.rpm
     v4l2loopback
 )
 
@@ -122,17 +117,16 @@ if [[ "${KERNEL_FLAVOR}" =~ coreos ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
     ZFS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-zfs/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
-    mv /tmp/rpms/* /tmp/akmods-zfs/
     echo "zfs" >/usr/lib/modules-load.d/zfs.conf
 
     ZFS_RPMS=(
-        /tmp/akmods-zfs/kmods/zfs/kmod-zfs-"${QUALIFIED_KERNEL}"-*.rpm
-        /tmp/akmods-zfs/kmods/zfs/libnvpair3-*.rpm
-        /tmp/akmods-zfs/kmods/zfs/libuutil3-*.rpm
-        /tmp/akmods-zfs/kmods/zfs/libzfs5-*.rpm
-        /tmp/akmods-zfs/kmods/zfs/libzpool5-*.rpm
-        /tmp/akmods-zfs/kmods/zfs/python3-pyzfs-*.rpm
-        /tmp/akmods-zfs/kmods/zfs/zfs-*.rpm
+        /tmp/rpms/kmods/zfs/kmod-zfs-"${QUALIFIED_KERNEL}"-*.rpm
+        /tmp/rpms/kmods/zfs/libnvpair3-*.rpm
+        /tmp/rpms/kmods/zfs/libuutil3-*.rpm
+        /tmp/rpms/kmods/zfs/libzfs5-*.rpm
+        /tmp/rpms/kmods/zfs/libzpool5-*.rpm
+        /tmp/rpms/kmods/zfs/python3-pyzfs-*.rpm
+        /tmp/rpms/kmods/zfs/zfs-*.rpm
         pv
     )
 else
@@ -144,8 +138,8 @@ for pkg in kernel kernel-core kernel-modules kernel-modules-core kernel-modules-
     rpm --erase $pkg --nodeps
 done
 
-# Enable Repo
-sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
+# Enable Akmods-Addons
+dnf5 install -y /tmp/rpms/ublue-os/ublue-os-akmods-addons*.rpm
 
 # Install
 dnf5 install -y "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
