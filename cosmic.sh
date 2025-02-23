@@ -102,6 +102,7 @@ KERNEL_RPMS=(
     "/tmp/kernel-rpms/kernel-modules-core-${QUALIFIED_KERNEL}.rpm"
     "/tmp/kernel-rpms/kernel-modules-extra-${QUALIFIED_KERNEL}.rpm"
     "/tmp/kernel-rpms/kernel-uki-virt-${QUALIFIED_KERNEL}.rpm"
+    "/tmp/kernel-rpms/kernel-devel-${QUALIFIED_KERNEL}.rpm"
 )
 
 AKMODS_RPMS=(
@@ -142,7 +143,9 @@ done
 dnf5 install -y /tmp/rpms/ublue-os/ublue-os-akmods-addons*.rpm
 
 # Install
-dnf5 install -y "${PACKAGES[@]}" "${KERNEL_RPMS[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+dnf5 install -y "${KERNEL_RPMS[@]}"
+dnf5 versionlock add kernel kernel-devel kernel-devel-matched kernel-core kernel-modules kernel-modules-core kernel-modules-extra
+dnf5 install -y "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
 
 # Fetch Nvidia
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
