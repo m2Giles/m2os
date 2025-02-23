@@ -77,7 +77,6 @@ systemctl --global disable flatpak-user-update.timer
 systemctl disable brew-update.timer
 systemctl disable brew-upgrade.timer
 systemctl enable uupd.timer
-systemctl enable systemd-sysupdate.timer
 
 # Sysexts
 mkdir -p /etc/sysupdate.d/
@@ -90,36 +89,22 @@ SYSEXTS=(
     google-chrome
     keepassxc
     microsoft-edge
+    neovim
     vscode
 )
 if [[ "${IMAGE}" =~ bluefin|bazzite|cosmic ]]; then
-    for SYSEXT in "${SYSEXTS[@]}"; do
-        tee /etc/sysupdate.d/"$SYSEXT".conf <<EOF
-[Transfer]
-Verify=false
-
-[Source]
-Type=url-file
-Path=https://github.com/travier/fedora-sysexts/releases/download/fedora-silverblue-41/
-MatchPattern=$SYSEXT-@v-%a.raw
-
-[Target]
-InstancesMax=2
-Type=regular-file
-Path=/var/lib/extensions.d/
-MatchPattern=$SYSEXT-@v-%a.raw
-CurrentSymlink=/var/lib/extensions/$SYSEXT.raw
-EOF
-    done
+    FLAVOR=silverblue
 elif [[ "${IMAGE}" =~ aurora ]]; then
-    for SYSEXT in "${SYSEXTS[@]}"; do
-        cat >/etc/sysupdate.d/"$SYSEXT".conf <<EOF
+    FLAVOR=kinoite
+fi
+for SYSEXT in "${SYSEXTS[@]}"; do
+    tee /etc/sysupdate.d/"$SYSEXT".conf <<EOF
 [Transfer]
 Verify=false
 
 [Source]
 Type=url-file
-Path=https://github.com/travier/fedora-sysexts/releases/download/fedora-kinoite-41/
+Path=https://github.com/travier/fedora-sysexts/releases/download/fedora-$FLAVOR-41/
 MatchPattern=$SYSEXT-@v-%a.raw
 
 [Target]
@@ -129,5 +114,4 @@ Path=/var/lib/extensions.d/
 MatchPattern=$SYSEXT-@v-%a.raw
 CurrentSymlink=/var/lib/extensions/$SYSEXT.raw
 EOF
-    done
-fi
+done
