@@ -5,6 +5,9 @@ set ${SET_X:+-x} -eou pipefail
 # Ublue Staging
 dnf5 -y copr enable ublue-os/staging
 
+# Ublue Packages
+dnf5 -y copr enable ublue-os/packages
+
 # OBS-VKcapture
 dnf5 -y copr enable kylegospo/obs-vkcapture
 
