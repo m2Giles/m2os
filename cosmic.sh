@@ -15,6 +15,9 @@ dnf5 -y copr enable ryanabx/cosmic-epoch
 # Add Staging repo
 dnf5 -y copr enable ublue-os/staging
 
+# Ublue Packages
+dnf5 -y copr enable ublue-os/packages
+
 # Add Nerd Fonts Repo
 dnf5 -y copr enable che/nerd-fonts
 
