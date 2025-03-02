@@ -153,7 +153,6 @@ dnf5 install -y "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
 # Fetch Nvidia
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia-open:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
-    dnf5 config-manager setopt fedora-multimedia.enabled=0
     dnf5 config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-nvidia.repo
     NVIDIA_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-rpms/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
