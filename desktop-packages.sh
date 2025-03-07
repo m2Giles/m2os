@@ -65,10 +65,11 @@ sed -i "s@Exec=zed@Exec=/usr/lib/zed.app/libexec/zed-editor@g" /usr/share/applic
 
 # Emacs LSP Booster
 while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" =~ null ]]; do
-    EMACS_LSP_BOOSTER="$(\
-        curl -L https://api.github.com/repos/blahgeek/emacs-lsp-booster/releases/latest \
-        | jq -r '.assets[].browser_download_url' \
-        | grep musl.zip$)"
+    EMACS_LSP_BOOSTER="$(
+        curl -L https://api.github.com/repos/blahgeek/emacs-lsp-booster/releases/latest |
+            jq -r '.assets[].browser_download_url' |
+            grep musl.zip$
+    )"
 done
 curl --retry=3 -Lo /tmp/emacs-lsp-booster.zip "$EMACS_LSP_BOOSTER"
 unzip -d /usr/bin/ /tmp/emacs-lsp-booster.zip
