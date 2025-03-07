@@ -71,7 +71,7 @@ while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" =~ null ]]; do
             grep musl.zip$
     )"
 done
-curl --retry=3 -Lo /tmp/emacs-lsp-booster.zip "$EMACS_LSP_BOOSTER"
+curl --retry 3 -Lo /tmp/emacs-lsp-booster.zip "$EMACS_LSP_BOOSTER"
 unzip -d /usr/bin/ /tmp/emacs-lsp-booster.zip
 
 # Call other Scripts
