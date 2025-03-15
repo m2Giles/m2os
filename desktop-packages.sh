@@ -107,7 +107,7 @@ elif [[ "${IMAGE}" =~ aurora ]]; then
     FLAVOR=kinoite
 fi
 for SYSEXT in "${SYSEXTS[@]}"; do
-    tee /etc/sysupdate.d/"$SYSEXT".conf <<EOF
+    tee /etc/sysupdate.d/"$SYSEXT".transfer <<EOF
 [Transfer]
 Verify=false
 
