@@ -5,3 +5,4 @@ changelog.md
 output-*.env
 output.env
 version.txt
+*.key

@@ -24,8 +24,11 @@ cat <<<"$(jq '.transports.docker |=. + {
         }
     }
 ]}' <"/etc/containers/policy.json")" >"/tmp/policy.json"
+
 cp /tmp/policy.json /etc/containers/policy.json
-cp /ctx/cosign.pub /etc/pki/containers/m2os.pub
+cp /ctx/m2os.pub /etc/pki/containers/m2os.pub
+cp /ctx/m2os-backup.pub /etc/pki/containers/m2os-backup.pub
+
 tee /etc/containers/registries.d/m2os.yaml <<EOF
 docker:
   ghcr.io/m2giles/m2os:
