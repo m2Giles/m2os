@@ -532,7 +532,7 @@ merge-changelog:
     set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
     cat changelog-stable.md changelog-bazzite.md > changelog.md
-    last_tag=$(git tag --list {{ repo_image_name }}-* | sort -V | tail -1)
+    last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
     date_extract="$(echo ${last_tag:-} | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
     date_version="$(echo ${last_tag:-} | grep -oP '\.\K[0-9]+$' || true)"
     if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
