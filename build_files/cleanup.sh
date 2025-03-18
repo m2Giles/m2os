@@ -39,10 +39,20 @@ fi
 
 dnf5 clean all
 
+# Cleanup extra directories in /usr/lib/modules
+KERNEL_VERSION="$(rpm -qa | grep 'kernel-core-' | sed 's/kernel-core-//g')"
+
+for kernel_dir in /usr/lib/modules/*; do
+    if [[ "$kernel_dir" != "/usr/lib/modules/$KERNEL_VERSION" ]]; then
+        rm -rf "$kernel_dir"
+    fi
+done
+
 rm -rf /tmp/*
 rm -rf /var/*
 mkdir -p /tmp
 mkdir -p /var/tmp
 chmod -R 1777 /var/tmp
 
+bootc container lint
 ostree container commit
