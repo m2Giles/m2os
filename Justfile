@@ -124,8 +124,13 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "SET_X=${SET_X:-}")
     BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
-    if [[ {{ PODMAN }} =~ docker && "${TERM}" == "dumb" ]]; then
-        BUILD_ARGS+=("--progress" "plain")
+    if [[ {{ PODMAN }} =~ podman ]]; then
+        BUILD_ARGS+=("--pull=newer")
+    elif [[ {{ PODMAN }} =~ docker ]]; then
+        BUILD_ARGS+=("--pull=missing")
+        if [[ "${TERM}" == "dumb" ]]; then
+            BUILD_ARGS+=("--progress" "plain")
+        fi
     fi
     echo "::endgroup::"
 

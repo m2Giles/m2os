@@ -67,6 +67,10 @@ echo "::group:: ===Container Signing==="
 /ctx/signing.sh
 echo "::endgroup::"
 
+echo "::group:: ===ComposeFS==="
+/ctx/composefs.sh
+echo
+
 # Clean Up
 echo "::group:: ===Cleanup==="
 /ctx/cleanup.sh

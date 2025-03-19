@@ -92,6 +92,13 @@ groupmod -g 250 incus-admin
 groupmod -g 251 incus
 groupmod -g 252 docker
 
+SYSUSER_GROUP=(docker qemu)
+for sys_group in "${SYSUSER_GROUP[@]}"; do
+    tee "/usr/lib/sysusers.d/$sys_group.conf" <<EOF
+g $sys_group -
+EOF
+done
+
 # TMUX Configuration
 tee /etc/tmux.conf <<'EOF'
 # tmux configuration
