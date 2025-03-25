@@ -30,6 +30,8 @@ LAYERED_PACKAGES=(
     devpod
     git-credential-libsecret
     git-credential-oauth
+    qemu-ui-curses
+    qemu-ui-gtk
     spice-gtk-tools
     sunshine
     uupd
