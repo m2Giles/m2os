@@ -134,9 +134,7 @@ build image="bluefin":
     fi
     echo "::endgroup::"
 
-    echo "::group:: Container Build"
     {{ PODMAN }} build "${BUILD_ARGS[@]}" .
-    echo "::endgroup::"
 
     if [[ "${UID}" -gt "0" ]]; then
         just rechunk {{ image }}

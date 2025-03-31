@@ -2,76 +2,44 @@
 
 set -eou pipefail
 
-#Common
-echo "::group:: ===Remove CLI Wrap==="
-/ctx/remove-cliwrap.sh
-echo "::endgroup::"
-
-echo "::group:: ===Server Packages==="
-/ctx/server-packages.sh
-echo "::endgroup::"
-
-echo "::group:: ===Distrobox Configuration==="
-/ctx/distrobox.sh
-echo "::endgroup::"
-
-# Changes
-case "${IMAGE}" in
-"aurora"* | "bluefin"*)
-    echo "::group:: ===Desktop Packages==="
-    /ctx/desktop-packages.sh
+function echo_group() {
+    local WHAT
+    WHAT="$(
+        basename "$1" .sh |
+            tr "-" " " |
+            tr "_" " "
+    )"
+    echo "::group:: === ${WHAT^^} ==="
+    "$1"
     echo "::endgroup::"
+}
 
-    echo "::group:: ===Steam Packages==="
-    /ctx/steam.sh
-    echo "::endgroup::"
+# Common
+echo_group /ctx/remove-cliwrap.sh
+echo_group /ctx/server-packages.sh
+echo_group /ctx/distrobox.sh
+echo_group /ctx/branding.sh
+echo_group /ctx/signing.sh
+echo_group /ctx/composefs.sh
 
-    echo "::group:: ===VFIO Configuration==="
-    /ctx/vfio.sh
-    echo "::endgroup::"
-    ;;
+# Desktops
+case "$IMAGE" in
 "cosmic"*)
-    echo "::group:: ===Cosmic Packages==="
-    /ctx/cosmic.sh
-    echo "::endgroup::"
-
-    echo "::group:: ===Desktop Packages==="
-    /ctx/desktop-packages.sh
-    echo "::endgroup::"
-
-    echo "::group:: ===Steam Packages==="
-    /ctx/steam.sh
-    echo "::endgroup::"
-
-    echo "::group:: ===VFIO Configuration==="
-    /ctx/vfio.sh
-    echo "::endgroup::"
+    echo_group /ctx/cosmic.sh
+    echo_group /ctx/desktop-packages.sh
+    echo_group /ctx/vfio.sh
+    ;;
+"aurora"* | "bluefin"*)
+    echo_group /ctx/desktop-packages.sh
+    echo_group /ctx/steam.sh
+    echo_group /ctx/vfio.sh
     ;;
 "bazzite"*)
-    echo "::group:: ===Desktop Packages==="
-    /ctx/desktop-packages.sh
-    echo "::endgroup::"
-    echo "::group:: ===VFIO Configuration==="
-    /ctx/vfio.sh
-    echo "::endgroup::"
+    echo_group /ctx/desktop-packages.sh
+    echo_group /ctx/vfio.sh
     ;;
 "ucore"*) ;;
 esac
 
-# Common
-echo "::group:: ===Branding Changes==="
-/ctx/branding.sh
-echo "::endgroup::"
-
-echo "::group:: ===Container Signing==="
-/ctx/signing.sh
-echo "::endgroup::"
-
-echo "::group:: ===ComposeFS==="
-/ctx/composefs.sh
-echo
-
-# Clean Up
-echo "::group:: ===Cleanup==="
-/ctx/cleanup.sh
-echo "::endgroup::"
+# Cleanup
+echo_group /ctx/cleanup.sh
