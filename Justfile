@@ -699,7 +699,7 @@ gen-sbom $image:
 
 # Add SBOM attestation
 [group('CI')]
-sbom-attest $image $dryrun="true" $digest="" $destination="": install-cosign
+sbom-attest $image $dryrun="true" $sbom="" $digest="" $destination="": install-cosign
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
@@ -720,8 +720,10 @@ sbom-attest $image $dryrun="true" $digest="" $destination="": install-cosign
         digest="$({{ PODMAN }} inspect localhost/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"
     fi
 
-    # Generate SBOM
-    sbom="$({{ just }} gen-sbom $image)"
+    # set SBOM
+    if [[ -z "$sbom" ]]; then
+        sbom="$({{ just }} gen-sbom $image)"
+    fi
 
     # ATTEST ARGS
     COSIGN_ATTEST_ARGS=(
