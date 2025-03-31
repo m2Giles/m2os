@@ -69,3 +69,4 @@ sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (${base_image^})\"|" /usr/lib/os-rele
 sed -i "s|^OSTREE_VERSION=.*|OSTREE_VERSION=\'${VERSION}\'|" /usr/lib/os-release
 echo "IMAGE_ID=\"${IMAGE}\"" >>/usr/lib/os-release
 echo "IMAGE_VERSION=\"${VERSION}\"" >>/usr/lib/os-release
+ln -sf /usr/lib/os-release /etc/os-release
