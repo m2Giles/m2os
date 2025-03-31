@@ -600,6 +600,7 @@ install-cosign:
             echo "NOTICE: Failed to verify cosign image signatures."
             exit 1
         fi
+        {{ SUDOIF }} {{ PODMAN }} rmi -f cgr.dev/chainguard/cosign:latest
     fi
 
 # Login to GHCR
@@ -649,7 +650,7 @@ cosign-sign $digest $destination="": install-cosign
 
 # Generate SBOM
 [group('CI')]
-gen-sbom $image $local="true":
+gen-sbom $image:
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
@@ -664,33 +665,27 @@ gen-sbom $image $local="true":
     SYFT_ID=""
     if [[ ! $(command -v syft) ]]; then
         SYFT_ID="$({{ SUDOIF }} podman create --pull=newer docker.io/anchore/syft:latest)"
-        {{ SUDOIF }} podman cp "$SYFT_ID":/syft /usr/local/bin/syft
-        {{ SUDOIF }} podman rm -f "$SYFT_ID" > /dev/null
+        {{ SUDOIF }} {{ PODMAN }} cp "$SYFT_ID":/syft /usr/local/bin/syft
+        {{ SUDOIF }} {{ PODMAN }} rm -f "$SYFT_ID" > /dev/null
+        {{ SUDOIF }} {{ PODMAN }} rmi -f docker.io/anchore/syft:latest
         trap '{{ SUDOIF }} rm -f /usr/local/bin/syft; exit 1' SIGINT
+    fi
+
+    # Enable Podman Socket if needed
+    if [[ "$EUID" -eq "0" ]] && ! systemctl is-active -q podman.socket; then
+        systemctl start podman.socket
+        started_podman="true"
+    elif ! systemctl is-active -q --user podman.socket; then
+        systemctl start --user podman.socket
+        started_podman="true"
     fi
 
     # Make SBOM
     OUTPUT_PATH="$(mktemp -d)/sbom.json"
     SYFT_PARALLELISM="$(( $(nproc) * 2 ))"
-    if [[ "$local" == "true" ]]; then
-        # Enable Podman Socket if needed
-        if [[ "$EUID" -eq "0" ]] && ! systemctl is-active -q podman.socket; then
-            systemctl start podman.socket
-            started_podman="true"
-        elif ! systemctl is-active -q --user podman.socket; then
-            systemctl start --user podman.socket
-            started_podman="true"
-        fi
-        # Exclude Kernel
-        kernel_release=$({{ PODMAN }} inspect "{{ repo_image_name }}":"{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
-        # Run
-        syft "{{ repo_image_name }}:{{ image }}" --exclude "/usr/lib/modules/$kernel_release/vmlinuz" -o spdx-json="$OUTPUT_PATH" >&2
-    else
-        # Exclude Kernel
-        kernel_release=$(skopeo inspect "docker://{{ FQ_IMAGE_NAME }}":"{{ image }}" | jq -r '.Labels["ostree.linux"]')
-        # Run
-        syft "{{ FQ_IMAGE_NAME }}:{{ image }}" --exclude "/usr/lib/modules/$kernel_release/vmlinuz" -o spdx-json="$OUTPUT_PATH" >&2
-    fi
+    {{ PODMAN }} tag "localhost/{{ repo_image_name }}:{{ image }}" "{{ FQ_IMAGE_NAME }}:{{ image }}"
+    kernel_release=$({{ PODMAN }} inspect "{{ FQ_IMAGE_NAME }}":"{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
+    syft "{{ FQ_IMAGE_NAME }}:{{ image }}" --exclude "/usr/lib/modules/$kernel_release/vmlinuz" -o spdx-json="$OUTPUT_PATH" >&2
 
     # Cleanup
     if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then
@@ -698,9 +693,9 @@ gen-sbom $image $local="true":
     elif [[ "${started_podman:-}" == "true" ]]; then
         systemctl stop --user podman.socket
     fi
-    if [[ -n "$SYFT_ID" ]]; then
-        {{ SUDOIF }} rm -f /usr/local/bin/syft
-    fi
+    # if [[ -n "$SYFT_ID" ]]; then
+    #     {{ SUDOIF }} rm -f /usr/local/bin/syft
+    # fi
 
     # Output Path
     echo "$OUTPUT_PATH"

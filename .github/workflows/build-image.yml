@@ -107,26 +107,6 @@ jobs:
         shell: bash
         run: |
           just cosign-sign ${{ steps.push.outputs.digest }}
-
-  sbom-image:
-    runs-on: ubuntu-latest
-    name: Generate SBOM for ${{ matrix.image }}
-    needs: ["get-images", "build-image"]
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    strategy:
-      fail-fast: false
-      matrix:
-        image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
-    steps:
-      - name: Checkout
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Setup Just
-        # yamllint disable-line rule:line-length rule:comments
-        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
       - name: Setup Syft
         id: setup-syft
         # yamllint disable-line rule:line-length rule:comments
@@ -134,13 +114,19 @@ jobs:
       - name: Generate SBOM
         id: sbom
         run: |
-          sbom=$(just gen-sbom ${{ matrix.image }} false)
+          sudo podman rmi ghcr.io/hhd-dev/rechunk
+          # yamllint disable-line rule:line-length
+          podman tag ${{ env.IMAGE_NAME }}:${{ matrix.image }} ${{ env.FQ_IMAGE_NAME }}
+          df -h
+          sbom=$(just gen-sbom ${{ matrix.image }})
           echo "sbom=$sbom" >> $GITHUB_OUTPUT
       - name: SBOM Attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
         env:
+          # yamllint disable-line rule:line-length
+          FQ_IMAGE_NAME: ${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         run: |
@@ -157,7 +143,7 @@ jobs:
     name: Check Build ${{ inputs.image_flavor }} Images Successful
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    needs: [sbom-image]
+    needs: [build-image]
     steps:
       - name: Exit on failure
         if: >-
