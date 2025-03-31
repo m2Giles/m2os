@@ -682,7 +682,7 @@ gen-sbom $image:
     # Make SBOM
     OUTPUT_PATH="$(mktemp -d)/sbom.json"
     SYFT_PARALLELISM="$(( $(nproc) * 2 ))"
-    syft "{{ repo_image_name }}:{{ image }}" -o spdx-json="$OUTPUT_PATH" >&2
+    syft "{{ repo_image_name }}:{{ image }}" --exclude '/usr/lib/modules/*/vmlinuz' -o spdx-json="$OUTPUT_PATH" >&2
 
     # Cleanup
     if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then
