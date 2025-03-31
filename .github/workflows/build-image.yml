@@ -113,20 +113,22 @@ jobs:
         uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
       - name: Generate SBOM
         id: sbom
+        # yamllint disable rule:line-length rule:comments
+        env:
+          FQ_IMAGE_NAME: ${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME
+            }}:${{ matrix.image }}
         run: |
           sudo podman rmi ghcr.io/hhd-dev/rechunk
-          # yamllint disable-line rule:line-length
           podman tag ${{ env.IMAGE_NAME }}:${{ matrix.image }} ${{ env.FQ_IMAGE_NAME }}
           df -h
           sbom=$(just gen-sbom ${{ matrix.image }})
           echo "sbom=$sbom" >> $GITHUB_OUTPUT
+        # yamllint enable rule:line-length rule:comments
       - name: SBOM Attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
         env:
-          # yamllint disable-line rule:line-length
-          FQ_IMAGE_NAME: ${{ steps.registry_case.outputs.lowercase }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         run: |
