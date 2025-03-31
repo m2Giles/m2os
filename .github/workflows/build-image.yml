@@ -58,13 +58,11 @@ jobs:
       - name: Build Image
         shell: bash
         run: |
-          just=$(which just)
-          sudo $just build ${{ matrix.image }}
+          sudo $(which just) build ${{ matrix.image }}
       - name: Rechunk Image
         shell: bash
         run: |
-          just=$(which just)
-          sudo $just rechunk ${{ matrix.image }}
+          sudo $(which just) rechunk ${{ matrix.image }}
       - name: Load and Tag Image
         shell: bash
         run: |

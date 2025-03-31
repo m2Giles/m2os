@@ -1,6 +1,6 @@
 ---
 name: Build m2os ISOs
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy rule:comments
   workflow_dispatch:
     inputs:
       image_flavor:

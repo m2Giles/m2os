@@ -1,6 +1,6 @@
 ---
 name: Create Release
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy rule:comments
   workflow_call:
   workflow_dispatch:
     inputs:

@@ -1,9 +1,11 @@
 ---
 name: Build m2os
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy rule:comments
   schedule:
-    - cron: "41 6 * * 0"  # 6:41 UTC Sunday
-    - cron: "41 6 * * 1,2,3,4,5,6"  # 6:41 UTC Monday-Saturday
+    # yamllint disable-line rule:comments
+    - cron: "41 6 * * 0" # 6:41 UTC Sunday
+    # yamllint disable-line rule:comments
+    - cron: "41 6 * * 1,2,3,4,5,6" # 6:41 UTC Monday-Saturday
   pull_request:
     branches:
       - main
