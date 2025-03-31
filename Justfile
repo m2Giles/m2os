@@ -1,6 +1,10 @@
+# Constants
+
 repo_image_name := "m2os"
 repo_name := "m2giles"
 username := "m2"
+IMAGE_REGISTRY := "ghcr.io/" + repo_name
+FQ_IMAGE_NAME := IMAGE_REGISTRY + repo_image_name
 images := '(
     [aurora]="aurora"
     [aurora-nvidia]="aurora-nvidia-open"
@@ -13,14 +17,27 @@ images := '(
     [ucore]="stable-zfs"
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
+
+# Just Executable
+
+export just := just_executable()
+
+# SUDO
+
 export SUDO_DISPLAY := if `if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then echo true; fi` == "true" { "true" } else { "false" }
 export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY == "true" { "sudo --askpass" } else { "sudo" }
+
+# Quiet By Default
+
 export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
+
+# Podman By Default
+
 export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") }
 
 [private]
 default:
-    @just --list
+    @{{ just }} --list
 
 # Check Just Syntax
 [group('Just')]
@@ -28,10 +45,10 @@ check:
     #!/usr/bin/env bash
     find . -type f -name "*.just" | while read -r file; do
         echo "Checking syntax: $file"
-        just --unstable --fmt --check -f $file
+        {{ just }} --unstable --fmt --check -f $file
     done
     echo "Checking syntax: Justfile"
-    just --unstable --fmt --check -f Justfile
+    {{ just }} --unstable --fmt --check -f Justfile
 
 # Fix Just Syntax
 [group('Just')]
@@ -39,10 +56,10 @@ fix:
     #!/usr/bin/env bash
     find . -type f -name "*.just" | while read -r file; do
         echo "Checking syntax: $file"
-        just --unstable --fmt -f $file
+        {{ just }} --unstable --fmt -f $file
     done
     echo "Checking syntax: Justfile"
-    just --unstable --fmt -f Justfile || { exit 1; }
+    {{ just }} --unstable --fmt -f Justfile || { exit 1; }
 
 # Cleanup
 [group('Utility')]
@@ -71,38 +88,38 @@ build image="bluefin":
     "aurora"*|"bluefin"*)
         BASE_IMAGE="${check}"
         TAG_VERSION=stable-daily
-        just verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
+        {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
         skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > /tmp/inspect-"{{ image }}".json
         fedora_version="$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
         ;;
     "bazzite"*)
         BASE_IMAGE=${check}
         TAG_VERSION=stable
-        just verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
+        {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
         skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > /tmp/inspect-"{{ image }}".json
         fedora_version="$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
         ;;
     "cosmic"*)
-        just verify-container bluefin:stable-daily
+        {{ just }} verify-container bluefin:stable-daily
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:stable-daily | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        just verify-container akmods:coreos-stable-"${fedora_version}"
+        {{ just }} verify-container akmods:coreos-stable-"${fedora_version}"
         BASE_IMAGE=base-main
         TAG_VERSION="${fedora_version}"
-        just verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
+        {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
         skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > /tmp/inspect-"{{ image }}".json
         ;;
     "ucore"*)
         BASE_IMAGE=ucore
         TAG_VERSION="${check}"
-        just verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
+        {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
         fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/ucore:"${check}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        just verify-container akmods:coreos-stable-"${fedora_version}"
+        {{ just }} verify-container akmods:coreos-stable-"${fedora_version}"
         skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > /tmp/inspect-"{{ image }}".json
         ;;
     esac
 
     VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
-    skopeo list-tags docker://ghcr.io/{{ repo_name }}/{{ repo_image_name }} > /tmp/repotags.json
+    skopeo list-tags docker://{{ FQ_IMAGE_NAME }} > /tmp/repotags.json
     if [[ $(jq "any(.Tags[]; contains(\"$VERSION\"))" < /tmp/repotags.json) == "true" ]]; then
         POINT="1"
         while jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" < /tmp/repotags.json
@@ -124,6 +141,7 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "SET_X=${SET_X:-}")
     BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
+    BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:$VERSION")
     if [[ {{ PODMAN }} =~ podman ]]; then
         BUILD_ARGS+=("--pull=newer")
     elif [[ {{ PODMAN }} =~ docker ]]; then
@@ -137,9 +155,9 @@ build image="bluefin":
     {{ PODMAN }} build "${BUILD_ARGS[@]}" .
 
     if [[ "${UID}" -gt "0" ]]; then
-        just rechunk {{ image }}
+        {{ just }} rechunk {{ image }}
     else
-        {{ PODMAN }} rmi ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
+        {{ PODMAN }} rmi -f ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     fi
 
 # Rechunk Image
@@ -157,7 +175,7 @@ rechunk image="bluefin":
     ID=$({{ PODMAN }} images --filter reference=localhost/{{ repo_image_name }}:{{ image }} --format "'{{ '{{.ID}}' }}'")
 
     if [[ -z "$ID" ]]; then
-        just build {{ image }}
+        {{ just }} build {{ image }}
     fi
 
     if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker ]]; then
@@ -203,9 +221,9 @@ rechunk image="bluefin":
     {{ SUDOIF }} {{ PODMAN }} unmount "$CREF"
     {{ SUDOIF }} {{ PODMAN }} rm "$CREF"
     if [[ "${UID}" -gt "0" ]]; then
-        {{ SUDOIF }} {{ PODMAN }} rmi localhost/{{ repo_image_name }}:{{ image }}
+        {{ SUDOIF }} {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
     fi
-    {{ PODMAN }} rmi localhost/{{ repo_image_name }}:{{ image }}
+    {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
     echo "::endgroup::"
 
     echo "::group:: Rechunk"
@@ -216,7 +234,7 @@ rechunk image="bluefin":
         --volume "$PWD:/var/git" \
         --volume cache_ostree:/var/ostree \
         --env REPO=/var/ostree/repo \
-        --env PREV_REF=ghcr.io/{{ repo_name }}/{{ repo_image_name }}:{{ image }} \
+        --env PREV_REF={{ FQ_IMAGE_NAME }}:{{ image }} \
         --env LABELS="$LABELS" \
         --env OUT_NAME="$OUT_NAME" \
         --env VERSION="$VERSION" \
@@ -233,7 +251,7 @@ rechunk image="bluefin":
     {{ SUDOIF }} find {{ repo_image_name }}_{{ image }}* -type f -exec chmod 0644 {} \; || true
     if [[ "${UID}" -gt "0" ]]; then
         {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "${PWD}"
-        just load-image {{ image }}
+        {{ just }} load-image {{ image }}
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
         {{ SUDOIF }} chown -R "${SUDO_UID}":"${SUDO_GID}" "/run/user/${SUDO_UID}/just"
         {{ SUDOIF }} chown -R "${SUDO_UID}":"${SUDO_GID}" "${PWD}"
@@ -274,7 +292,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Verify ISO Build Container
-    just verify-container "build-container-installer" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
+    {{ just }} verify-container "build-container-installer" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
 
     mkdir -p {{ repo_image_name }}_build/{lorax_templates,flatpak-refs-{{ image }},output}
     echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
@@ -282,10 +300,10 @@ build-iso image="bluefin" ghcr="0" clean="0":
 
     # Build from GHCR or localhost
     if [[ "{{ ghcr }}" == "1" ]]; then
-        IMAGE_FULL=ghcr.io/{{ repo_name }}/{{ repo_image_name }}:{{ image }}
-        IMAGE_REPO=ghcr.io/{{ repo_name }}
+        IMAGE_FULL={{ FQ_IMAGE_NAME }}:{{ image }}
+        IMAGE_REPO={{ IMAGE_REGISTRY }}
         # Verify Container for ISO
-        just verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
+        {{ just }} verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
         {{ PODMAN }} pull "${IMAGE_FULL}"
         TEMPLATES=(
             /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
@@ -295,7 +313,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
         IMAGE_REPO=localhost
         ID=$({{ PODMAN }} images --filter reference=${IMAGE_FULL} --format "'{{ '{{.ID}}' }}'")
         if [[ -z "$ID" ]]; then
-            just build {{ image }}
+            {{ just }} build {{ image }}
         fi
         TEMPLATES=(
             /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
@@ -422,7 +440,7 @@ run-iso image="bluefin":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
     if [[ ! -f "{{ repo_image_name }}_build/output/{{ image }}.iso" ]]; then
-        just build-iso {{ image }}
+        {{ just }} build-iso {{ image }}
     fi
     port=8006;
     while grep -q "${port}" <<< "$(ss -tunalp)"; do
@@ -455,23 +473,9 @@ changelogs branch="stable" urlmd="" handwritten="":
 
 # Verify Container with Cosign
 [group('Utility')]
-verify-container container="" registry="ghcr.io/ublue-os" key="":
+verify-container container="" registry="ghcr.io/ublue-os" key="": install-cosign
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
-    # Get Cosign if Needed
-    if [[ ! $(command -v cosign) ]]; then
-        COSIGN_CONTAINER_ID=$({{ SUDOIF }} {{ PODMAN }} create cgr.dev/chainguard/cosign:latest bash)
-        {{ SUDOIF }} {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign /usr/local/bin/cosign
-        {{ SUDOIF }} {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
-    fi
-
-    # Verify Cosign Image Signatures if needed
-    if [[ -n "${COSIGN_CONTAINER_ID:-}" ]]; then
-        if ! cosign verify --certificate-oidc-issuer=https://token.actions.githubusercontent.com --certificate-identity=https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main cgr.dev/chainguard/cosign >/dev/null; then
-            echo "NOTICE: Failed to verify cosign image signatures."
-            exit 1
-        fi
-    fi
 
     # Public Key for Container Verification
     key={{ key }}
@@ -556,9 +560,9 @@ lint:
     # yaml
     yamllint -s {{ justfile_dir() }}
     # just
-    just check
+    {{ just }} check
     # just recipes
-    just lint-recipes
+    {{ just }} lint-recipes
 
 format:
     # shell
@@ -566,10 +570,10 @@ format:
     # yaml
     yamlfmt {{ justfile_dir() }}
     # just
-    just fix
+    {{ just }} fix
 
 _lint-recipe linter recipe *args:
-    just -n {{ recipe }} {{ args }} 2>&1 | tee /tmp/{{ recipe }} >/dev/null && \
+    {{ just }} -n {{ recipe }} {{ args }} 2>&1 | tee /tmp/{{ recipe }} >/dev/null && \
     echo "Linting {{ recipe }} with {{ linter }}" && \
     {{ linter }} /tmp/{{ recipe }} && rm /tmp/{{ recipe }} || \
     rm /tmp/{{ recipe }}
@@ -577,5 +581,162 @@ _lint-recipe linter recipe *args:
 lint-recipes:
     #!/usr/bin/bash
     for recipe in build rechunk build-iso run-iso; do
-        just _lint-recipe "shellcheck -e SC2050,SC2194" "${recipe}" bluefin
+        {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "${recipe}" bluefin
     done
+
+# Get Cosign if Needed
+[private]
+install-cosign:
+    #!/usr/bin/bash
+
+    # Get Cosign from Chainguard
+    if [[ ! $(command -v cosign) ]]; then
+        COSIGN_CONTAINER_ID=$({{ SUDOIF }} {{ PODMAN }} create cgr.dev/chainguard/cosign:latest bash)
+        {{ SUDOIF }} {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign /usr/local/bin/cosign
+        {{ SUDOIF }} {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
+    fi
+    # Verify Cosign Image Signatures if needed
+    if [[ -n "${COSIGN_CONTAINER_ID:-}" ]]; then
+        if ! cosign verify --certificate-oidc-issuer=https://token.actions.githubusercontent.com --certificate-identity=https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main cgr.dev/chainguard/cosign >/dev/null; then
+            echo "NOTICE: Failed to verify cosign image signatures."
+            exit 1
+        fi
+    fi
+
+# Login to GHCR
+[group('CI')]
+login-to-ghcr $user $token:
+    @echo "$token" | {{ PODMAN }} login ghcr.io -u "$user" --password-stdin
+
+# Push Images to Registry
+[group('CI')]
+push-to-registry $image $dryrun="true" $destination="":
+    #!/usr/bin/bash
+    set ${SET_X:+-x} -eou pipefail
+
+    # Image Name and Version
+    declare -A images={{ images }}
+    check=${images[{{ image }}]-}
+    if [[ -z "$check" ]]; then
+        exit 1
+    fi
+
+    if [[ -z "$destination" ]]; then
+        destination="{{ IMAGE_REGISTRY }}"
+    fi
+
+    # Get Tag List
+    declare -a TAGS="($(podman image list localhost/{{ repo_image_name }}:{{ image }} --noheading --format 'table {{{{ .Tag }}'))"
+    if [[ "$dryrun" == "false" ]]; then
+        for tag in "${TAGS[@]}"; do
+            skopeo copy --retry-times=3 "containers-storage:localhost/{{ repo_image_name }}" "docker://$destination/{{ repo_image_name }}:$tag" >&2
+        done
+    fi
+    digest="$(skopeo inspect docker://$destination/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"
+    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+        echo "digest=$digest" >> "$GITHUB_OUTPUT"
+    fi
+    echo "$digest"
+
+# Sign Images with Cosign
+[group('CI')]
+cosign-sign $digest $destination="": install-cosign
+    #!/usr/bin/bash
+    set ${SET_X:+-x} -eou pipefail
+    if [[ -z "$destination" ]]; then
+        destination="{{ IMAGE_REGISTRY }}"
+    fi
+    @cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}:$digest"
+
+# Generate SBOM
+[group('CI')]
+gen-sbom $image:
+    #!/usr/bin/bash
+    set ${SET_X:+-x} -eou pipefail
+
+    # Image Name and Version
+    declare -A images={{ images }}
+    check=${images[{{ image }}]-}
+    if [[ -z "$check" ]]; then
+        exit 1
+    fi
+
+    # Get SYFT if needed
+    SYFT_ID=""
+    if [[ ! $(command -v syft) ]]; then
+        SYFT_ID="$({{ SUDOIF }} podman create --pull=newer docker.io/anchore/syft:latest)"
+        {{ SUDOIF }} podman cp "$SYFT_ID":/syft /usr/local/bin/syft
+        {{ SUDOIF }} podman rm -f "$SYFT_ID" > /dev/null
+        trap '{{ SUDOIF }} rm -f /usr/local/bin/syft; exit 1' SIGINT
+    fi
+
+    # Enable Podman Socket if needed
+    if [[ "$EUID" -eq "0" ]] && ! systemctl is-active -q podman.socket; then
+        systemctl start podman.socket
+        started_podman="true"
+    elif ! systemctl is-active -q --user podman.socket; then
+        systemctl start --user podman.socket
+        started_podman="true"
+    fi
+
+    # Make SBOM
+    OUTPUT_PATH="$(mktemp -d)/sbom.json"
+    SYFT_PARALLELISM="$(( $(nproc) * 2 ))"
+    syft "{{ repo_image_name }}:{{ image }}" -o spdx-json="$OUTPUT_PATH" >&2
+
+    # Cleanup
+    if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then
+        systemctl stop podman.socket
+    elif [[ "${started_podman:-}" == "true" ]]; then
+        systemctl stop --user podman.socket
+    fi
+    if [[ -n "$SYFT_ID" ]]; then
+        {{ SUDOIF }} rm -f /usr/local/bin/syft
+    fi
+
+    # Output Path
+    echo "$OUTPUT_PATH"
+
+# Add SBOM attestation
+[group('CI')]
+sbom-attest $image $dryrun="true" $digest="" $destination="": install-cosign
+    #!/usr/bin/bash
+    set ${SET_X:+-x} -eou pipefail
+
+    # Image Name and Version
+    declare -A images={{ images }}
+    check=${images[{{ image }}]-}
+    if [[ -z "$check" ]]; then
+        exit 1
+    fi
+
+    # Set Destination
+    if [[ -z "$destination" ]]; then
+        destination="{{ IMAGE_REGISTRY }}"
+    fi
+
+    # Set Digest
+    if [[ -z "$digest" ]]; then
+        digest="$({{ PODMAN }} inspect localhost/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"
+    fi
+
+    # Generate SBOM
+    sbom="$({{ just }} gen-sbom $image)"
+
+    # ATTEST ARGS
+    COSIGN_ATTEST_ARGS=(
+       "--predicate" "./sbom.json"
+       "--type" "spdxjson"
+       "--key" "env://COSIGN_PRIVATE_KEY"
+       "$destination/{{ repo_image_name }}:$digest"
+    )
+
+    if [[ "$dryrun" == "true" ]]; then
+        COSIGN_ATTEST_ARGS+=(
+            "--no-upload=true"
+        )
+    fi
+
+    # Attest with SBOM
+    cd "$(dirname $sbom)" && \
+    cosign attest -y "${COSIGN_ATTEST_ARGS[@]}"
