@@ -114,6 +114,9 @@ jobs:
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
+        env:
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         run: |
           attest_args=(
               ${{ matrix.image }}
