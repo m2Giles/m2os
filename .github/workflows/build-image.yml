@@ -111,7 +111,7 @@ jobs:
   sbom-image:
     runs-on: ubuntu-latest
     name: Generate SBOM for ${{ matrix.image }}
-    needs: [build-image]
+    needs: ["get-images", "build-image"]
     permissions:
       contents: read
       packages: write
