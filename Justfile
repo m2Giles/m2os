@@ -130,6 +130,10 @@ build image="bluefin":
     if [[ -n "${POINT:-}" ]]; then
         VERSION="${VERSION}.$POINT"
     fi
+    # Pull The image
+    {{ PODMAN }} pull "ghcr.io/ublue-os/$BASE_IMAGE:$TAG_VERSION"
+
+    #Build Args
     BUILD_ARGS+=("--file" "Containerfile")
     BUILD_ARGS+=("--label" "org.opencontainers.image.title={{ repo_image_name }}")
     BUILD_ARGS+=("--label" "org.opencontainers.image.version=$VERSION")
@@ -142,13 +146,8 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:$VERSION")
-    if [[ {{ PODMAN }} =~ podman ]]; then
-        BUILD_ARGS+=("--pull=newer")
-    elif [[ {{ PODMAN }} =~ docker ]]; then
-        BUILD_ARGS+=("--pull=missing")
-        if [[ "${TERM}" == "dumb" ]]; then
-            BUILD_ARGS+=("--progress" "plain")
-        fi
+    if [[ {{ PODMAN }} =~ docker  && "${TERM}" == "dumb" ]]; then
+        BUILD_ARGS+=("--progress" "plain")
     fi
     echo "::endgroup::"
 
@@ -650,7 +649,7 @@ cosign-sign $digest $destination="": install-cosign
 
 # Generate SBOM
 [group('CI')]
-gen-sbom $image:
+gen-sbom $image $local="true":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
@@ -670,19 +669,28 @@ gen-sbom $image:
         trap '{{ SUDOIF }} rm -f /usr/local/bin/syft; exit 1' SIGINT
     fi
 
-    # Enable Podman Socket if needed
-    if [[ "$EUID" -eq "0" ]] && ! systemctl is-active -q podman.socket; then
-        systemctl start podman.socket
-        started_podman="true"
-    elif ! systemctl is-active -q --user podman.socket; then
-        systemctl start --user podman.socket
-        started_podman="true"
-    fi
-
     # Make SBOM
     OUTPUT_PATH="$(mktemp -d)/sbom.json"
     SYFT_PARALLELISM="$(( $(nproc) * 2 ))"
-    syft "{{ repo_image_name }}:{{ image }}" --exclude '/usr/lib/modules/*/vmlinuz' -o spdx-json="$OUTPUT_PATH" >&2
+    if [[ "$local" == "true" ]]; then
+        # Enable Podman Socket if needed
+        if [[ "$EUID" -eq "0" ]] && ! systemctl is-active -q podman.socket; then
+            systemctl start podman.socket
+            started_podman="true"
+        elif ! systemctl is-active -q --user podman.socket; then
+            systemctl start --user podman.socket
+            started_podman="true"
+        fi
+        # Exclude Kernel
+        kernel_release=$({{ PODMAN }} inspect "{{ repo_image_name }}":"{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
+        # Run
+        syft "{{ repo_image_name }}:{{ image }}" --exclude "/usr/lib/modules/$kernel_release/vmlinuz" -o spdx-json="$OUTPUT_PATH" >&2
+    else
+        # Exclude Kernel
+        kernel_release=$(skopeo inspect "docker://{{ FQ_IMAGE_NAME }}":"{{ image }}" | jq -r '.Labels["ostree.linux"]')
+        # Run
+        syft "{{ FQ_IMAGE_NAME }}:{{ image }}" --exclude "/usr/lib/modules/$kernel_release/vmlinuz" -o spdx-json="$OUTPUT_PATH" >&2
+    fi
 
     # Cleanup
     if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then

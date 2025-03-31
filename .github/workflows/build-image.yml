@@ -51,10 +51,6 @@ jobs:
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
-      - name: Setup Syft
-        id: setup-syft
-        # yamllint disable-line rule:line-length rule:comments
-        uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
       - name: Build Image
         shell: bash
         run: |
@@ -111,10 +107,34 @@ jobs:
         shell: bash
         run: |
           just cosign-sign ${{ steps.push.outputs.digest }}
+
+  sbom-image:
+    runs-on: ubuntu-latest
+    name: Generate SBOM for ${{ matrix.image }}
+    needs: [build-image]
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
+    steps:
+      - name: Checkout
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Setup Just
+        # yamllint disable-line rule:line-length rule:comments
+        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
+      - name: Setup Syft
+        id: setup-syft
+        # yamllint disable-line rule:line-length rule:comments
+        uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
       - name: Generate SBOM
         id: sbom
         run: |
-          sbom=$(just gen-sbom ${{ matrix.image }})
+          sbom=$(just gen-sbom ${{ matrix.image }} false)
           echo "sbom=$sbom" >> $GITHUB_OUTPUT
       - name: SBOM Attest
         if: >-
@@ -132,11 +152,12 @@ jobs:
               ${{ steps.registry_case.outputs.lowercase }}
           )
           just sbom-attest "${attest_args[@]}"
+
   check:
     name: Check Build ${{ inputs.image_flavor }} Images Successful
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    needs: [build-image]
+    needs: [sbom-image]
     steps:
       - name: Exit on failure
         if: >-
