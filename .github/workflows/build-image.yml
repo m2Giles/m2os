@@ -79,9 +79,10 @@ jobs:
         id: archive
         shell: bash
         run: |
-          skopeo copy \
-             containers-storage:localhost/"$IMAGE_NAME:${{ matrix.image }}" \
-             oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar
+          podman save \
+             -o ${{ runner.temp }}/${{ matrix.image }}.tar \
+             --format oci-archive \
+             localhost/"$IMAGE_NAME:${{ matrix.image }}"
       - name: Upload OCI Artifact
         uses: actions/upload-artifact@v4
         with:
