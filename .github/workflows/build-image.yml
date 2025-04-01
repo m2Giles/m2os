@@ -66,7 +66,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.image }}.oci
-          path: ${PWD}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+          # yamllint disable-line rule:line-length rule:comments
+          path: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+          if-no-files-found: error
       - name: Load and Tag Image
         shell: bash
         run: |
