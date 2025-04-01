@@ -194,7 +194,7 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         run: |
           attest_args=(
-              ${{ matrix.image }}
+              ${{ env.FQ_IMAGE_NAME }}
               false
               ${{ runner.temp }}/${{ matrix.image }}.sbom.json
               ${{ steps.load.outputs.digest }}
