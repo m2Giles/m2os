@@ -629,7 +629,8 @@ push-to-registry $image $dryrun="true" $destination="":
     declare -a TAGS="($(podman image list localhost/{{ repo_image_name }}:{{ image }} --noheading --format 'table {{{{ .Tag }}'))"
     if [[ "$dryrun" == "false" ]]; then
         for tag in "${TAGS[@]}"; do
-            skopeo copy --retry-times=3 "containers-storage:localhost/{{ repo_image_name }}" "docker://$destination/{{ repo_image_name }}:$tag" >&2
+            {{ PODMAN }} tag "{{ repo_image_name }}:{{ image }}" "$destination/{{ repo_image_name }}:$tag"
+            {{ PODMAN }} push "$destiation/{{ repo_image_name }}:$tag"
         done
     fi
     digest="$(skopeo inspect docker://$destination/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"

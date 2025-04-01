@@ -22,11 +22,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout last 500 commits (for <commits> to work)
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@v4
         with:
           fetch-depth: 500
       - name: Download Artifacts
         if: contains(fromJson('["stable", "bazzite"]'), inputs.target)
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@v4
         with:
           pattern: url-${{ inputs.target }}-*
@@ -55,6 +57,7 @@ jobs:
             --urlmd "${{ steps.merge-artifacts.outputs.urlmd }}"
           source ./output-${{ inputs.target }}.env
       - name: Upload Changelogs as Artifact
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
         with:
           name: changelogs-${{ inputs.target }}

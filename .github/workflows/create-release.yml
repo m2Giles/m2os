@@ -18,11 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
       - name: Download Artifacts
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@v4
         with:
           pattern: changelogs-*
@@ -44,6 +46,7 @@ jobs:
             echo "$k=$(jq -r ".$k" <<< "$output")" >> $GITHUB_OUTPUT
           done
       - name: Upload Changelogs as Artifact
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
         with:
           name: release-changelog
@@ -53,6 +56,7 @@ jobs:
           compression-level: 0
           overwrite: true
       - name: Create Release
+        # yamllint disable-line rule:line-length rule:comments
         uses: softprops/action-gh-release@v2
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
