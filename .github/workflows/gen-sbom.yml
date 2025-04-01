@@ -1,5 +1,5 @@
 ---
-name: Build m2os Images
+name: Generate SBOMs
 on: # yamllint disable-line rule:truthy rule:comments
   workflow_call:
     inputs:
@@ -29,100 +29,6 @@ jobs:
         uses: ./.github/actions/get-images
         with:
           image_flavor: ${{ inputs.image_flavor }}
-  build-image:
-    name: Build ${{ matrix.image }} Image
-    needs: get-images
-    runs-on: ubuntu-24.04
-    continue-on-error: false
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    strategy:
-      fail-fast: false
-      matrix:
-        image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
-    steps:
-      - name: Checkout
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Maximize Build Space
-        if: ${{ ! contains(matrix.image, 'ucore') }}
-        # yamllint disable-line rule:line-length rule:comments
-        uses: ublue-os/remove-unwanted-software@v9
-      - name: Setup Just
-        # yamllint disable-line rule:line-length rule:comments
-        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
-      - name: Build Image
-        shell: bash
-        run: |
-          sudo $(which just) build ${{ matrix.image }}
-      - name: Rechunk Image
-        shell: bash
-        run: |
-          sudo $(which just) rechunk ${{ matrix.image }}
-      - name: Load and Tag Image
-        shell: bash
-        run: |
-          just load-image ${{ matrix.image }}
-      - name: Get Tags
-        id: get_tags
-        shell: bash
-        run: |
-          tags=$(just get-tags ${{ matrix.image }})
-          echo "tags=$tags" >> $GITHUB_OUTPUT
-          echo $GITHUB_OUTPUT
-      - name: Check Secureboot
-        id: secureboot
-        shell: bash
-        run: |
-          just secureboot ${{ matrix.image }}
-      - name: Create OCI-Archive of Image
-        id: archive
-        shell: bash
-        run: |
-          podman push localhost/"$IMAGE_NAME:${{ matrix.image }}" \
-                      oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar
-      - name: Upload OCI Artifact
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.image }}.oci
-          path: ${{ runner.temp }}/${{ matrix.image }}.tar
-      - name: Lowercase Registry
-        id: registry_case
-        # yamllint disable-line rule:line-length rule:comments
-        uses: ASzc/change-string-case-action@v6
-        with:
-          string: ${{ env.IMAGE_REGISTRY }}
-      - name: Login and Push to GHCR
-        id: push
-        if: >-
-          contains(fromJson('["workflow_dispatch", "merge_group"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
-        env:
-          REGISTRY_USER: ${{ github.actor }}
-          REGISTRY_PASSWORD: ${{ github.token }}
-        shell: bash
-        run: |
-          just login-to-ghcr ${{ github.actor }} ${{ github.token }}
-          push_args=(
-            ${{ matrix.image }}
-            false
-            ${{ steps.registry_case.outputs.lowercase }}
-          )
-          just push-to-registry "${push_args[@]}"
-      - name: Sign Container Image
-        if: >-
-          contains(fromJson('["workflow_dispatch", "merge_group"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
-        env:
-          COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
-        shell: bash
-        run: |
-          just cosign-sign ${{ steps.push.outputs.digest }}
-
   sbom-image:
     name: Generate ${{ matrix.image }} SBOM
     needs: ["get-images"]
@@ -200,22 +106,6 @@ jobs:
               ${{ steps.registry_case.outputs.lowercase }}
           )
           just sbom-attest "${attest_args[@]}"
-
-  check:
-    name: Check Build ${{ inputs.image_flavor }} Images Successful
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    needs: [build-image]
-    steps:
-      - name: Exit on failure
-        if: >-
-          ${{ contains(fromJson('["failure", "skipped"]'),
-          needs.build-image.result) }}
-        shell: bash
-        run: exit 1
-      - name: Exit
-        shell: bash
-        run: exit 0
 
   check-sbom:
     name: Check ${{ inputs.image_flavor }} SBOMs Generated
