@@ -651,16 +651,9 @@ cosign-sign $digest $destination="": install-cosign
 
 # Generate SBOM
 [group('CI')]
-gen-sbom $image:
+gen-sbom $image $output="":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-
-    # Image Name and Version
-    declare -A images={{ images }}
-    check=${images[{{ image }}]-}
-    if [[ -z "$check" ]]; then
-        exit 1
-    fi
 
     # Get SYFT if needed
     SYFT_ID=""
@@ -682,11 +675,14 @@ gen-sbom $image:
     fi
 
     # Make SBOM
-    OUTPUT_PATH="$(mktemp -d)/sbom.json"
+    if [[ -z "$output" ]]; then
+        OUTPUT_PATH="$(mktemp -d)/sbom.json"
+    else
+        mkdir -p "$(dirname $output)"
+        OUTPUT_PATH="$output"
+    fi
     SYFT_PARALLELISM="$(( $(nproc) * 2 ))"
-    {{ PODMAN }} tag "localhost/{{ repo_image_name }}:{{ image }}" "{{ FQ_IMAGE_NAME }}:{{ image }}"
-    kernel_release=$({{ PODMAN }} inspect "{{ FQ_IMAGE_NAME }}":"{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
-    syft "{{ FQ_IMAGE_NAME }}:{{ image }}" --exclude "/usr/lib/modules/$kernel_release/vmlinuz" -o spdx-json="$OUTPUT_PATH" >&2
+    syft "$image" -o spdx-json="$OUTPUT_PATH"
 
     # Cleanup
     if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then

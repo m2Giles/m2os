@@ -30,7 +30,7 @@ jobs:
         with:
           image_flavor: ${{ inputs.image_flavor }}
   build-image:
-    name: Build ${{ matrix.image }} Image (${{ inputs.image_flavor }})
+    name: Build ${{ matrix.image }} Image
     needs: get-images
     runs-on: ubuntu-24.04
     continue-on-error: false
@@ -124,7 +124,7 @@ jobs:
           just cosign-sign ${{ steps.push.outputs.digest }}
 
   sbom-image:
-    name: Generate ${{ matrix.image }} SBOMs (${{ inputs.image_flavor }})
+    name: Generate ${{ matrix.image }} SBOM
     needs: ["get-images", "build-image"]
     runs-on: ubuntu-24.04
     continue-on-error: false
@@ -147,6 +147,7 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
       - name: Download OCI-Archive
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.image }}.oci
@@ -172,17 +173,18 @@ jobs:
           echo "digest=$digest" >> $GITHUB_OUTPUT
           echo "FQ_IMAGE_NAME=$FQ_IMAGE_NAME" >> "$GITHUB_ENV"
           df -h
-      - name: Generate SBOM
-        id: sbom
-        env:
-          # yamllint disable-line rule:line-length rule:comments
-          FQ_IMAGE_NAME: ${{ steps.registry_case.outputs.lowercase}}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+      - name: Setup Syft
         # yamllint disable-line rule:line-length rule:comments
-        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
+        uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
+      - name: Generate SBOM
+        run: |
+          just $FQ_IMAGE_NAME ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+      - name: Upload SBOM
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/upload-artifact@v4
         with:
-          image: ${{ env.FQ_IMAGE_NAME }}@${{ steps.load.outputs.digest }}
-          artifact-name: ${{ matrix.image }}.sbom.json
-          output-file: ${{ runner.temp }}/sbom.json
+          name: ${{ matrix.image }}.sbom.json
+          path: ${{ runner.temp }}
       - name: SBOM Attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
@@ -194,7 +196,7 @@ jobs:
           attest_args=(
               ${{ matrix.image }}
               false
-              ${{ runner.temp }}/sbom.json
+              ${{ runner.temp }}/${{ matrix.image }}.sbom.json
               ${{ steps.load.outputs.digest }}
               ${{ steps.registry_case.outputs.lowercase }}
           )
