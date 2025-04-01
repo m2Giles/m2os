@@ -29,7 +29,7 @@ jobs:
         with:
           image_flavor: ${{ inputs.image_flavor }}
   build-image:
-    name: Build ${{ inputs.image_flavor }} Images (${{ matrix.image }})
+    name: Build ${{ matrix.image }} Image (${{ inputs.image_flavor }})
     needs: get-images
     runs-on: ubuntu-24.04
     continue-on-error: false
@@ -120,7 +120,7 @@ jobs:
           just cosign-sign ${{ steps.push.outputs.digest }}
 
   sbom-image:
-    name: SBOM ${{ inputs.image_flavor }} Images (${{ matrix.image }})
+    name: Generate ${{ matrix.image }} SBOMs (${{ inputs.image_flavor }})
     needs: ["get-images", "build-image"]
     runs-on: ubuntu-24.04
     continue-on-error: false
@@ -167,6 +167,7 @@ jobs:
                   oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar)"
           rm -rf "${{ runner.temp }}/${{ matrix.image }}.tar"
           podman tag "$CREF" "$FQ_IMAGE_NAME"
+          systemctl start --user podman.socket
           digest="$(podman inspect $FQ_IMAGE_NAME --format '{{ .Digest }}')"
           echo "digest=$digest" >> $GITHUB_OUTPUT
           df -h
