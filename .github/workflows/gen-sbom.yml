@@ -78,13 +78,15 @@ jobs:
                     --format '{{ .Digest }}')"
           echo "digest=$digest" >> $GITHUB_OUTPUT
           echo "FQ_IMAGE_NAME=$FQ_IMAGE_NAME" >> "$GITHUB_ENV"
+          echo "OCI_ARCHIVE=$OCI_ARCHIVE" >> "$GITHUB_ENV"
           df -h
       - name: Setup Syft
         # yamllint disable-line rule:line-length rule:comments
         uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
       - name: Generate SBOM
         run: |
-          just gen-sbom "oci-archive:${{ runner.temp }}/*.tar" \
+          just gen-sbom \
+                "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
                 "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
