@@ -54,8 +54,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install Just
-        uses: ./.github/actions/install-just
+      - name: Setup Just
+        # yamllint disable-line rule:line-length rule:comments
+        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
       - name: Maximize Build Space
         if: >-
           contains(fromJson('["workflow_dispatch", "workflow_call"]'),
