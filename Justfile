@@ -296,15 +296,19 @@ build-iso image="bluefin" ghcr="0" clean="0":
          > {{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
 
     # Build from GHCR or localhost
-    if [[ "{{ ghcr }}" == "1" ]]; then
+    if [[ "{{ ghcr }}" -gt "0" ]]; then
         IMAGE_FULL={{ FQ_IMAGE_NAME }}:{{ image }}
         IMAGE_REPO={{ IMAGE_REGISTRY }}
-        # Verify Container for ISO
-        {{ just }} verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
-        {{ PODMAN }} pull "${IMAGE_FULL}"
         TEMPLATES=(
             /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
-        )
+        if [[ "{{ ghcr }}" == "1" ]]; then
+            # Verify Container for ISO
+            {{ just }} verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
+            {{ PODMAN }} pull "${IMAGE_FULL}"
+            )
+        elif [[ "{{ ghcr }}" == "2" ]]; then
+            {{ just }} load-image {{ image }}
+        fi
     else
         IMAGE_FULL=localhost/{{ repo_image_name }}:{{ image }}
         IMAGE_REPO=localhost
@@ -394,7 +398,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
 
     VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect ${IMAGE_FULL} | jq -r '.[]["Config"]["Labels"]["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-    if [[ "{{ ghcr }}" == "1" && "{{ clean }}" == "1" ]]; then
+    if [[ "{{ ghcr }}" -ge "1" && "{{ clean }}" == "1" ]]; then
         {{ SUDOIF }} {{ PODMAN }} rmi ${IMAGE_FULL}
     fi
     # list Flatpaks
@@ -415,6 +419,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(IMAGE_SIGNED="true")
     if [[ "{{ ghcr }}" == "0" ]]; then
         iso_build_args+=(IMAGE_SRC="containers-storage:${IMAGE_FULL}")
+    elif [[ "{{ ghcr }}" == "2" ]]; then
+        iso_build_args+=(--volume "oci-archive:/github/workspace/{{ repo_image_name }}_{{ image }}.tar")
     fi
     iso_build_args+=(IMAGE_TAG="{{ image }}")
     iso_build_args+=(ISO_NAME="/github/workspace/{{ repo_image_name }}_build/output/{{ image }}.iso")
