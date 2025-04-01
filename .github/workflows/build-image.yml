@@ -161,7 +161,8 @@ jobs:
       - name: Generate SBOM
         id: sbom
         run: |
-          CREF=$(podman pull oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar)
+          CREF="$(podman pull \
+          oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar)"
           rm -rf "${{ runner.temp }}/${{ matrix.image }}.tar"
           podman tag "$CREF" "localhost/$IMAGE_NAME:${{ matrix.image }}"
           df -h
