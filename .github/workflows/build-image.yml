@@ -158,18 +158,15 @@ jobs:
         uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ env.IMAGE_REGISTRY }}
-      - name: Load and Tag Image
+      - name: Variables
         id: load
         run: |
           set -eoux pipefail
-          CREF="$(podman pull \
-                  oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar)"
-          rm -rf "${{ runner.temp }}/${{ matrix.image }}.tar"
           FQ_IMAGE_NAME="${{ steps.registry_case.outputs.lowercase}}/"
           FQ_IMAGE_NAME+="$IMAGE_NAME:${{ matrix.image }}"
-          podman tag "$CREF" "$FQ_IMAGE_NAME"
-          systemctl start --user podman.socket
-          digest="$(podman inspect $FQ_IMAGE_NAME --format '{{ .Digest }}')"
+          digest="$(skopeo inspect \
+                    oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar \
+                    --format '{{ .Digest }}')"
           echo "digest=$digest" >> $GITHUB_OUTPUT
           echo "FQ_IMAGE_NAME=$FQ_IMAGE_NAME" >> "$GITHUB_ENV"
           df -h
@@ -178,13 +175,14 @@ jobs:
         uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
       - name: Generate SBOM
         run: |
-          just $FQ_IMAGE_NAME ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+          just gen-sbom "oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar" \
+                        "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.image }}.sbom.json
-          path: ${{ runner.temp }}
+          path: ${{ runner.temp }}/${{ matrix.image }}.sbom.json
       - name: SBOM Attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),

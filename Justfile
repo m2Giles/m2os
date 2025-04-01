@@ -651,7 +651,7 @@ cosign-sign $digest $destination="": install-cosign
 
 # Generate SBOM
 [group('CI')]
-gen-sbom $image $output="":
+gen-sbom $input $output="":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
@@ -678,11 +678,10 @@ gen-sbom $image $output="":
     if [[ -z "$output" ]]; then
         OUTPUT_PATH="$(mktemp -d)/sbom.json"
     else
-        mkdir -p "$(dirname $output)"
         OUTPUT_PATH="$output"
     fi
     SYFT_PARALLELISM="$(( $(nproc) * 2 ))"
-    syft "$image" -o spdx-json="$OUTPUT_PATH"
+    syft scan "$input" -o spdx-json="$OUTPUT_PATH"
 
     # Cleanup
     if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then
