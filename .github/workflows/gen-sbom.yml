@@ -66,11 +66,15 @@ jobs:
           string: ${{ env.IMAGE_REGISTRY }}
       - name: Variables
         id: load
+        env:
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           set -eoux pipefail
           FQ_IMAGE_NAME="${{ steps.registry_case.outputs.lowercase}}/"
           FQ_IMAGE_NAME+="$IMAGE_NAME:${{ matrix.image }}"
-          digest="$(skopeo inspect oci-archive:${{ runner.temp }}/*.tar \
+          tree ${{ runner.temp }}
+          digest="$(skopeo inspect \
+                    oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }} \
                     --format '{{ .Digest }}')"
           echo "digest=$digest" >> $GITHUB_OUTPUT
           echo "FQ_IMAGE_NAME=$FQ_IMAGE_NAME" >> "$GITHUB_ENV"
