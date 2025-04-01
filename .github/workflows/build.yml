@@ -39,19 +39,19 @@ jobs:
       image_flavor: Server
   sbom-desktop:
     name: Generate Desktop SBOMs
-    needs: [build-desktop]
+    needs: ["build-desktop"]
     uses: ./.github/workflows/gen-sbom.yml
     with:
       image_flavor: Desktop
   sbom-bazzite:
     name: Generate Bazzite SBOMs
-    needs: [build-bazzite]
+    needs: ["build-bazzite"]
     uses: ./.github/workflows/gen-sbom.yml
     with:
       image_flavor: Bazzite
   sbom-server:
     name: Generate Server SBOMs
-    needs: [build-server]
+    needs: ["build-server"]
     uses: ./.github/workflows/gen-sbom.yml
     with:
       image_flavor: Server
