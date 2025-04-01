@@ -30,6 +30,17 @@ jobs:
         image_flavor: ["Desktop", "Bazzite", "Server"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+  push-image:
+    name: Push Images
+    needs: [build-image]
+    uses: ./.github/workflows/push.yml
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Desktop", "Bazzite", "Server"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
   gen-sbom:
     name: Generate SBOMs
     needs: [build-image]
