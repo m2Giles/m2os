@@ -21,7 +21,7 @@ env:
 concurrency:
   group: >-
     ${{ github.workflow }}-${{ github.ref
-    || github.run_id }}-${{ inputs.image_flavor }}.iso
+    || github.run_id }}-${{ inputs.image_flavor }}-iso
   cancel-in-progress: true
 jobs:
   get-images:
