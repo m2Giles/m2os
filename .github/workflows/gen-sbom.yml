@@ -64,8 +64,8 @@ jobs:
         uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ env.IMAGE_REGISTRY }}
-      - name: Variables
-        id: load
+      - name: Setup
+        id: setup
         env:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
@@ -79,7 +79,22 @@ jobs:
           echo "digest=$digest" >> $GITHUB_OUTPUT
           echo "FQ_IMAGE_NAME=$FQ_IMAGE_NAME" >> "$GITHUB_ENV"
           echo "OCI_ARCHIVE=$OCI_ARCHIVE" >> "$GITHUB_ENV"
+          echo "=== FREE SPACE ==="
           df -h
+          echo "=== MEMORY AND SWAP ==="
+          free -h
+          swapon --show
+          echo "=== MAKING SWAPFILE ==="
+          SWAP_FILE="/swapfile"
+          sudo fallocate -l 16G "$SWAP_FILE"
+          sudo chmod 600 "$SWAP_FILE"
+          sudo mkswap "$SWAP_FILE"
+          sudo swapon "$SWAP_FILE"
+          echo "=== FREE SPACE ==="
+          df -h
+          echo "=== MEMORY AND SWAP ==="
+          free -h
+          swapon --show
       - name: Setup Syft
         # yamllint disable-line rule:line-length rule:comments
         uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
@@ -108,7 +123,7 @@ jobs:
               ${{ env.FQ_IMAGE_NAME }}
               false
               ${{ runner.temp }}/${{ matrix.image }}.sbom.json
-              ${{ steps.load.outputs.digest }}
+              ${{ steps.setup.outputs.digest }}
               ${{ steps.registry_case.outputs.lowercase }}
           )
           just sbom-attest "${attest_args[@]}"

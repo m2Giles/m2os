@@ -58,17 +58,6 @@ jobs:
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
-      - name: Load and Tag Image
-        shell: bash
-        run: |
-          just load-image ${{ matrix.image }}
-      - name: Get Tags
-        id: get_tags
-        shell: bash
-        run: |
-          tags=$(just get-tags ${{ matrix.image }})
-          echo "tags=$tags" >> $GITHUB_OUTPUT
-          echo $GITHUB_OUTPUT
       - name: Lowercase Registry
         id: registry_case
         # yamllint disable-line rule:line-length rule:comments
@@ -89,7 +78,23 @@ jobs:
           push_args=(
             ${{ matrix.image }}
             false
-            ${{ steps.registry_case.outputs.lowercase }}
+            docker://${{ steps.registry_case.outputs.lowercase }}
+          )
+          just push-to-registry "${push_args[@]}"
+      - name: Test Login and Push to GHCR
+        if: >-
+          !contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) && github.event.schedule != '41 6 * * 0'
+        env:
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ github.token }}
+        shell: bash
+        run: |
+          just login-to-ghcr ${{ github.actor }} ${{ github.token }}
+          push_args=(
+            ${{ matrix.image }}
+            false
+            oci-archive:$(mktemp -d)
           )
           just push-to-registry "${push_args[@]}"
       - name: Sign Container Image

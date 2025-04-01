@@ -262,12 +262,15 @@ rechunk image="bluefin":
 load-image image="bluefin":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
-    IMAGE=$({{ PODMAN }} pull oci-archive:${PWD}/{{ repo_image_name }}_{{ image }}.tar)
-    {{ PODMAN }} tag ${IMAGE} localhost/{{ repo_image_name }}:{{ image }}
-    VERSION=$({{ PODMAN }} inspect $IMAGE | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
-    {{ PODMAN }} tag ${IMAGE} localhost/{{ repo_image_name }}:${VERSION}
+    if [[ {{ PODMAN }} =~ podman ]]; then
+        IMAGE=$(podman pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
+        podman tag ${IMAGE} localhost/{{ repo_image_name }}:{{ image }}
+    else
+        skopeo copy oci-archive:{{ repo_image_name }}_{{ image }}.tar docker-daemon:localhost/{{ repo_image_name }}:{{ image }}
+    fi
+    VERSION=$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')
+    {{ PODMAN }} tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:${VERSION}
     {{ PODMAN }} images
-    {{ just }} clean
 
 # Get Tags
 get-tags image="bluefin":
@@ -299,13 +302,11 @@ build-iso image="bluefin" ghcr="0" clean="0":
     if [[ "{{ ghcr }}" -gt "0" ]]; then
         IMAGE_FULL={{ FQ_IMAGE_NAME }}:{{ image }}
         IMAGE_REPO={{ IMAGE_REGISTRY }}
-        TEMPLATES=(
-            /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
+        TEMPLATES=(/github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl)
         if [[ "{{ ghcr }}" == "1" ]]; then
             # Verify Container for ISO
             {{ just }} verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
             {{ PODMAN }} pull "${IMAGE_FULL}"
-            )
         elif [[ "{{ ghcr }}" == "2" ]]; then
             {{ just }} load-image {{ image }}
         fi
@@ -316,9 +317,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
         if [[ -z "$ID" ]]; then
             {{ just }} build {{ image }}
         fi
-        TEMPLATES=(
-            /github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl
-        )
+        TEMPLATES=(/github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl)
     fi
 
     # Check if ISO already exists. Remove it.
@@ -405,7 +404,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     cat "${FLATPAK_REFS_DIR}"/flatpaks-with-deps
     #ISO Container Args
     iso_build_args=()
-    if [[ "{{ ghcr }}" == "0" ]]; then
+    if [[ "{{ ghcr }}" == "0" && "{{ PODMAN }}" =~ podman ]]; then
         iso_build_args+=(--volume "/var/lib/containers/storage:/var/lib/containers/storage")
     fi
     iso_build_args+=(--volume "${PWD}:/github/workspace/")
@@ -618,26 +617,22 @@ push-to-registry $image $dryrun="true" $destination="":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
-    # Image Name and Version
-    declare -A images={{ images }}
-    check=${images[{{ image }}]-}
-    if [[ -z "$check" ]]; then
-        exit 1
-    fi
-
     if [[ -z "$destination" ]]; then
-        destination="{{ IMAGE_REGISTRY }}"
+        destination="docker://{{ IMAGE_REGISTRY }}"
     fi
 
     # Get Tag List
-    declare -a TAGS="($(podman image list localhost/{{ repo_image_name }}:{{ image }} --noheading --format 'table {{{{ .Tag }}'))"
+    declare -a TAGS=("$(skopeo inspect oci-archive:{{ repo_image_name }}_$image.tar | jq -r '.Labels["org.opencontainers.image.version"]')")
+    TAGS+=("${TAGS[0]%%-*}")
+
+    echo "${TAGS[@]}"
+    # Push
     if [[ "$dryrun" == "false" ]]; then
         for tag in "${TAGS[@]}"; do
-            {{ PODMAN }} tag "{{ repo_image_name }}:{{ image }}" "$destination/{{ repo_image_name }}:$tag"
-            {{ PODMAN }} push "$destiation/{{ repo_image_name }}:$tag"
+            skopeo copy oci-archive:{{ repo_image_name }}_{{ image }}.tar $destination/{{ repo_image_name }}:$tag
         done
     fi
-    digest="$(skopeo inspect docker://$destination/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"
+    digest="$(skopeo inspect $destination/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"
     if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
         echo "digest=$digest" >> "$GITHUB_OUTPUT"
     fi
