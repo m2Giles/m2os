@@ -79,10 +79,8 @@ jobs:
         id: archive
         shell: bash
         run: |
-          podman save \
-             -o ${{ runner.temp }}/${{ matrix.image }}.tar \
-             --format oci-archive \
-             localhost/"$IMAGE_NAME:${{ matrix.image }}"
+          podman push localhost/"$IMAGE_NAME:${{ matrix.image }}" \
+                      oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar
       - name: Upload OCI Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -158,17 +156,27 @@ jobs:
         uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ env.IMAGE_REGISTRY }}
+      - name: Load and Tag Image
+        id: load
+        env:
+          # yamllint disable-line rule:line-length rule:comments
+          FQ_IMAGE_NAME: ${{ steps.registry_case.outputs.lowercase}}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+        run: |
+          set -eoux pipefail
+          CREF="$(podman pull \
+                  oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar)"
+          rm -rf "${{ runner.temp }}/${{ matrix.image }}.tar"
+          podman tag "$CREF" "$FQ_IMAGE_NAME"
+          digest="$(podman inspect $FQ_IMAGE_NAME --format '{{ .Digest }}')"
+          echo "digest=$digest" >> $GITHUB_OUTPUT
+          df -h
       - name: Generate SBOM
         id: sbom
-        run: |
-          CREF="$(podman pull \
-          oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar)"
-          rm -rf "${{ runner.temp }}/${{ matrix.image }}.tar"
-          podman tag "$CREF" "localhost/$IMAGE_NAME:${{ matrix.image }}"
-          df -h
-          sbom=$(just gen-sbom ${{ matrix.image }})
-          echo "sbom=$sbom" >> $GITHUB_OUTPUT
-        # yamllint enable rule:line-length rule:comments
+        uses: anchore/sbom-action@v0
+        with:
+          image: localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+          artifact-name: ${{ matrix.image }}.sbom.json
+          output-file: ${{ runner.temp }}/sbom.json
       - name: SBOM Attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
@@ -180,8 +188,8 @@ jobs:
           attest_args=(
               ${{ matrix.image }}
               false
-              ${{ steps.sbom.outputs.sbom }}
-              ""
+              ${{ runner.temp }}/sbom.json
+              ${{ steps.load.outputs.digest }}
               ${{ steps.registry_case.outputs.lowercase }}
           )
           just sbom-attest "${attest_args[@]}"
