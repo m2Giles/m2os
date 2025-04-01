@@ -175,8 +175,9 @@ jobs:
         uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
       - name: Generate SBOM
         run: |
-          just gen-sbom "oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar" \
-                        "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
+          just gen-sbom \
+                "oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar" \
+                "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
