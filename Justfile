@@ -679,7 +679,7 @@ gen-sbom $input $output="":
     else
         OUTPUT_PATH="$output"
     fi
-    SYFT_PARALLELISM="$(( $(nproc) * 2 ))"
+    SYFT_PARALLELISM="$(nproc)"
     syft scan "$input" -o spdx-json="$OUTPUT_PATH"
 
     # Cleanup
