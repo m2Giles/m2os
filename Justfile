@@ -186,7 +186,7 @@ rechunk image="bluefin":
     CREF=$({{ SUDOIF }} {{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
     MOUNT=$({{ SUDOIF }} {{ PODMAN }} mount "$CREF")
     # FEDORA_VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect "$CREF" | jq -r '.[]["Config"]["Labels"]["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-    OUT_NAME="{{ repo_image_name }}_{{ image }}"
+    OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
     VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect "$CREF" | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')"
     LABELS="
     org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
@@ -238,7 +238,7 @@ rechunk image="bluefin":
         --env OUT_NAME="$OUT_NAME" \
         --env VERSION="$VERSION" \
         --env VERSION_FN=/workspace/version.txt \
-        --env OUT_REF="oci:$OUT_NAME" \
+        --env OUT_REF="oci-archive:$OUT_NAME" \
         --env GIT_DIR="/var/git" \
         --user 0:0 \
         ghcr.io/hhd-dev/rechunk:latest \
@@ -246,8 +246,6 @@ rechunk image="bluefin":
     echo "::endgroup::"
 
     echo "::group:: Cleanup"
-    {{ SUDOIF }} find {{ repo_image_name }}_{{ image }} -type d -exec chmod 0755 {} \; || true
-    {{ SUDOIF }} find {{ repo_image_name }}_{{ image }}* -type f -exec chmod 0644 {} \; || true
     if [[ "${UID}" -gt "0" ]]; then
         {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "${PWD}"
         {{ just }} load-image {{ image }}
@@ -264,12 +262,12 @@ rechunk image="bluefin":
 load-image image="bluefin":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
-    IMAGE=$({{ PODMAN }} pull oci:${PWD}/{{ repo_image_name }}_{{ image }})
+    IMAGE=$({{ PODMAN }} pull oci-archive:${PWD}/{{ repo_image_name }}_{{ image }}.tar)
     {{ PODMAN }} tag ${IMAGE} localhost/{{ repo_image_name }}:{{ image }}
     VERSION=$({{ PODMAN }} inspect $IMAGE | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
     {{ PODMAN }} tag ${IMAGE} localhost/{{ repo_image_name }}:${VERSION}
     {{ PODMAN }} images
-    rm -rf {{ repo_image_name }}_{{ image }}
+    {{ just }} clean
 
 # Get Tags
 get-tags image="bluefin":

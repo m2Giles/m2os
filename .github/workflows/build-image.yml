@@ -61,6 +61,12 @@ jobs:
         shell: bash
         run: |
           sudo $(which just) rechunk ${{ matrix.image }}
+      - name: Upload OCI Artifact
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.image }}.oci
+          path: ${PWD}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
       - name: Load and Tag Image
         shell: bash
         run: |
@@ -77,18 +83,6 @@ jobs:
         shell: bash
         run: |
           just secureboot ${{ matrix.image }}
-      - name: Create OCI-Archive of Image
-        id: archive
-        shell: bash
-        run: |
-          podman push localhost/"$IMAGE_NAME:${{ matrix.image }}" \
-                      oci-archive:${{ runner.temp }}/${{ matrix.image }}.tar
-      - name: Upload OCI Artifact
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.image }}.oci
-          path: ${{ runner.temp }}/${{ matrix.image }}.tar
       - name: Lowercase Registry
         id: registry_case
         # yamllint disable-line rule:line-length rule:comments
