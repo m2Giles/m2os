@@ -84,7 +84,7 @@ jobs:
           free -h
           swapon --show
           echo "=== MAKING SWAPFILE ==="
-          SWAP_FILE="/mnt/swapfile"
+          SWAP_FILE="/mnt/swapfile.new"
           if [[ ! "${{ matrix.image }}" =~ ucore ]]; then
             sudo fallocate -l 24G "$SWAP_FILE"
           else
