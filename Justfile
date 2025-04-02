@@ -540,7 +540,6 @@ merge-changelog:
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
-    readar
     cat "$(find ./changelog*.md )" > changelog.md
     last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
     date_extract="$(echo "${last_tag:-}" | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
