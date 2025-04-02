@@ -83,5 +83,5 @@ jobs:
 
   create-release:
     name: Create Release
-    needs: [build-iso]
+    needs: [changelogs]
     uses: ./.github/workflows/create-release.yml
