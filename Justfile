@@ -540,10 +540,11 @@ merge-changelog:
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
-    cat changelog-stable.md changelog-bazzite.md > changelog.md
+    readar
+    cat "$(find ./changelog*.md )" > changelog.md
     last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
-    date_extract="$(echo ${last_tag:-} | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
-    date_version="$(echo ${last_tag:-} | grep -oP '\.\K[0-9]+$' || true)"
+    date_extract="$(echo "${last_tag:-}" | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
+    date_version="$(echo "${last_tag:-}" | grep -oP '\.\K[0-9]+$' || true)"
     if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
         tag="{{ repo_image_name }}-${date_extract:-}.$(( ${date_version:-} + 1 ))"
     else
@@ -582,8 +583,11 @@ _lint-recipe linter recipe *args:
 
 lint-recipes:
     #!/usr/bin/bash
-    for recipe in build rechunk build-iso run-iso; do
-        {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "${recipe}" bluefin
+    for recipe in secureboot push-to-registry gen-sbom sbom-attest build rechunk build-iso run-iso; do
+        {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "$recipe" bluefin
+    done
+    for recipe in lint-recipes merge-changelog; do
+        {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "$recipe"
     done
 
 # Get Cosign if Needed
@@ -613,7 +617,7 @@ login-to-ghcr $user $token:
 
 # Push Images to Registry
 [group('CI')]
-push-to-registry $image $dryrun="true" $destination="":
+push-to-registry image $dryrun="true" $destination="":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
@@ -622,17 +626,17 @@ push-to-registry $image $dryrun="true" $destination="":
     fi
 
     # Get Tag List
-    declare -a TAGS=("$(skopeo inspect oci-archive:{{ repo_image_name }}_$image.tar | jq -r '.Labels["org.opencontainers.image.version"]')")
-    TAGS+=("$image")
+    declare -a TAGS=("$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')")
+    TAGS+=("{{ image }}")
 
     echo "${TAGS[@]}"
     # Push
-    if [[ "$dryrun" == "false" ]]; then
+    if [[ "{{ dryrun }}" == "false" ]]; then
         for tag in "${TAGS[@]}"; do
             skopeo copy "oci-archive:{{ repo_image_name }}_{{ image }}.tar" "$destination/{{ repo_image_name }}:$tag"
         done
     fi
-    digest="$(skopeo inspect "$destination/{{ repo_image_name }}:$image" --format '{{{{ .Digest }}')"
+    digest="$(skopeo inspect "$destination/{{ repo_image_name }}:{{ image }}" --format '{{{{ .Digest }}')"
     if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
         echo "digest=$digest" >> "$GITHUB_OUTPUT"
     fi
@@ -640,13 +644,13 @@ push-to-registry $image $dryrun="true" $destination="":
 
 # Sign Images with Cosign
 [group('CI')]
-cosign-sign $digest $destination="": install-cosign
+cosign-sign digest $destination="": install-cosign
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     if [[ -z "$destination" ]]; then
         destination="{{ IMAGE_REGISTRY }}"
     fi
-    @cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}:$digest"
+    cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}:{{ digest }}"
 
 # Generate SBOM
 [group('CI')]
@@ -679,8 +683,7 @@ gen-sbom $input $output="":
     else
         OUTPUT_PATH="$output"
     fi
-    SYFT_PARALLELISM="$(nproc)"
-    syft scan "$input" -o spdx-json="$OUTPUT_PATH"
+    env SYFT_PARALLELISM="$(nproc)" syft scan "{{ input }}" -o spdx-json="$OUTPUT_PATH"
 
     # Cleanup
     if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then
@@ -715,12 +718,12 @@ sbom-attest $image $dryrun="true" $sbom="" $digest="" $destination="": install-c
 
     # Set Digest
     if [[ -z "$digest" ]]; then
-        digest="$({{ PODMAN }} inspect localhost/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"
+        digest="$({{ PODMAN }} inspect localhost/{{ repo_image_name }}:{{ image }} --format '{{{{ .Digest }}')"
     fi
 
     # set SBOM
     if [[ -z "$sbom" ]]; then
-        sbom="$({{ just }} gen-sbom $image)"
+        sbom="$({{ just }} gen-sbom {{ image }})"
     fi
 
     # ATTEST ARGS
@@ -731,12 +734,12 @@ sbom-attest $image $dryrun="true" $sbom="" $digest="" $destination="": install-c
        "$destination/{{ repo_image_name }}:$digest"
     )
 
-    if [[ "$dryrun" == "true" ]]; then
+    if [[ "{{ dryrun }}" == "true" ]]; then
         COSIGN_ATTEST_ARGS+=(
             "--no-upload=true"
         )
     fi
 
     # Attest with SBOM
-    cd "$(dirname $sbom)" && \
+    cd "$(dirname "$sbom")" && \
     cosign attest -y "${COSIGN_ATTEST_ARGS[@]}"
