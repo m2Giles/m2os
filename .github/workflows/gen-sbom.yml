@@ -87,7 +87,7 @@ jobs:
           SWAP_FILE="/swapfile"
           if [[ ! "${{ matrix.image }}" =~ ucore ]]; then
             sudo fallocate -l 24G "$SWAP_FILE"
-          elif
+          else
             sudo fallocate -l 8G "$SWAP_FILE"
           fi
           sudo chmod 600 "$SWAP_FILE"

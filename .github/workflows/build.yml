@@ -70,10 +70,10 @@ jobs:
       image_flavor: ${{ matrix.image_flavor }}
 
   changelogs:
-    name: ${{ inputs.image_flavor }} Changelogs
+    name: Generate Changelogs
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
-    needs: [build-iso]
+    needs: ["build-iso", "push-image"]
     strategy:
       fail-fast: false
       matrix:
