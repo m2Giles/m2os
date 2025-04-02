@@ -468,10 +468,10 @@ run-iso image="bluefin":
 
 # Test Changelogs
 [group('Changelogs')]
-changelogs branch="stable" urlmd="" handwritten="":
+changelogs target="Desktop" urlmd="" handwritten="":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
-    python3 changelogs.py {{ branch }} ./output-{{ branch }}.env ./changelog-{{ branch }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
+    python3 changelogs.py {{ target }} ./output-{{ target }}.env ./changelog-{{ target }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
 [group('Utility')]

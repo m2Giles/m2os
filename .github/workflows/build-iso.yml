@@ -82,9 +82,9 @@ jobs:
         id: upload
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
-        if: >-
-          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
+        # if: >-
+        #   contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+        #   github.event_name) || github.event.schedule == '41 6 * * 0'
         with:
           name: ${{ matrix.image }}-iso
           path: |
@@ -98,7 +98,7 @@ jobs:
         id: url
         run: |
           echo "|[${{ matrix.image }}](${{ env.ARTIFACT-URL }})|" \
-            > url-${upload}-${{ matrix.image }}.txt
+            > url-${{ inputs.image_flavor }}-${{ matrix.image }}.txt
         env:
           ARTIFACT-URL: ${{ steps.upload.outputs.artifact-url }}
       - name: Upload ISO URL for Changelogs
@@ -106,8 +106,8 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
         with:
-          name: url-${{ steps.url.outputs.url }}-${{ matrix.image }}
-          path: url-${{ steps.url.outputs.url }}-${{ matrix.image }}.txt
+          name: url-${{ inputs.image_flavor }}-${{ matrix.image }}
+          path: url-${{ inputs.image_flavor }}-${{ matrix.image }}.txt
           if-no-files-found: error
           retention-days: 0
           compression-level: 0

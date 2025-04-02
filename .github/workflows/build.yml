@@ -16,7 +16,6 @@ permissions:
   packages: write
   id-token: write
 jobs:
-
   lint:
     name: Lint Project
     uses: ./.github/workflows/lint.yml
@@ -77,11 +76,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ["bazzite", "stable"]
+        target: ["Desktop", "Bazzite"]
     with:
       target: ${{ matrix.target }}
 
   create-release:
     name: Create Release
-    needs: [changelogs]
+    needs: ["changelogs", "gen-sbom"]
     uses: ./.github/workflows/create-release.yml
