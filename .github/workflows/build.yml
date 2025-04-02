@@ -16,9 +16,11 @@ permissions:
   packages: write
   id-token: write
 jobs:
+
   lint:
     name: Lint Project
     uses: ./.github/workflows/lint.yml
+
   build-image:
     name: Build Images
     needs: [lint]
@@ -30,6 +32,7 @@ jobs:
         image_flavor: ["Desktop", "Bazzite", "Server"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+
   push-image:
     name: Push Images
     needs: [build-image]
@@ -41,6 +44,7 @@ jobs:
         image_flavor: ["Desktop", "Bazzite", "Server"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+
   gen-sbom:
     name: Generate SBOMs
     needs: [build-image]
@@ -52,6 +56,7 @@ jobs:
         image_flavor: ["Desktop", "Bazzite", "Server"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+
   build-iso:
     name: Build ISOs
     uses: ./.github/workflows/build-iso.yml
@@ -63,6 +68,19 @@ jobs:
         image_flavor: ["Desktop", "Bazzite"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+
+  changelogs:
+    name: ${{ inputs.image_flavor }} Changelogs
+    uses: ./.github/workflows/changelogs.yml
+    secrets: inherit
+    needs: [build-iso]
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ["bazzite", "stable"]
+    with:
+      target: ${{ matrix.target }}
+
   create-release:
     name: Create Release
     needs: [build-iso]

@@ -72,7 +72,6 @@ jobs:
           set -eoux pipefail
           FQ_IMAGE_NAME="${{ steps.registry_case.outputs.lowercase}}/"
           FQ_IMAGE_NAME+="$IMAGE_NAME:${{ matrix.image }}"
-          tree ${{ runner.temp }}
           digest="$(skopeo inspect \
                     oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }} \
                     --format '{{ .Digest }}')"

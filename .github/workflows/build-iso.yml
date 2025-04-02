@@ -97,17 +97,8 @@ jobs:
         shell: bash
         id: url
         run: |
-          case "${{ inputs.image_flavor }}" in
-          "Bazzite")
-            upload="bazzite"
-            ;;
-          "Desktop")
-            upload="stable"
-            ;;
-          esac
           echo "|[${{ matrix.image }}](${{ env.ARTIFACT-URL }})|" \
             > url-${upload}-${{ matrix.image }}.txt
-          echo "url=${upload}" >> $GITHUB_OUTPUT
         env:
           ARTIFACT-URL: ${{ steps.upload.outputs.artifact-url }}
       - name: Upload ISO URL for Changelogs
@@ -121,10 +112,3 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
-  changelogs:
-    name: ${{ inputs.image_flavor }} Changelogs
-    uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
-    needs: build-iso
-    with:
-      target: ${{ needs.build-iso.outputs.url }}
