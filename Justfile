@@ -623,16 +623,16 @@ push-to-registry $image $dryrun="true" $destination="":
 
     # Get Tag List
     declare -a TAGS=("$(skopeo inspect oci-archive:{{ repo_image_name }}_$image.tar | jq -r '.Labels["org.opencontainers.image.version"]')")
-    TAGS+=("${TAGS[0]%%-*}")
+    TAGS+=("$image")
 
     echo "${TAGS[@]}"
     # Push
     if [[ "$dryrun" == "false" ]]; then
         for tag in "${TAGS[@]}"; do
-            skopeo copy oci-archive:{{ repo_image_name }}_{{ image }}.tar $destination/{{ repo_image_name }}:$tag
+            skopeo copy "oci-archive:{{ repo_image_name }}_{{ image }}.tar" "$destination/{{ repo_image_name }}:$tag"
         done
     fi
-    digest="$(skopeo inspect $destination/{{ repo_image_name }}:$image --format '{{{{ .Digest }}')"
+    digest="$(skopeo inspect "$destination/{{ repo_image_name }}:$image" --format '{{{{ .Digest }}')"
     if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
         echo "digest=$digest" >> "$GITHUB_OUTPUT"
     fi

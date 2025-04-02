@@ -74,7 +74,7 @@ jobs:
           push_args=(
             ${{ matrix.image }}
             false
-            docker://${{ steps.registry_case.outputs.lowercase }}
+            "docker://${{ steps.registry_case.outputs.lowercase }}"
           )
           just push-to-registry "${push_args[@]}"
       - name: Test Login and Push to GHCR
@@ -90,7 +90,7 @@ jobs:
           push_args=(
             ${{ matrix.image }}
             false
-            oci-archive:$(mktemp -d)
+            "oci-archive:$(mktemp -d)"
           )
           just push-to-registry "${push_args[@]}"
       - name: Sign Container Image

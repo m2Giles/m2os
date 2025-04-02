@@ -76,7 +76,7 @@ jobs:
         #   github.event_name) || github.event.schedule == '41 6 * * 0'
         shell: bash
         run: |
-          sudo just build-iso ${{ matrix.image }} 2 1
+          sudo $(which just) build-iso ${{ matrix.image }} 2 1
           tree "./${{ env.IMAGE_NAME }}_build/output/"
       - name: Upload ISOs and Checksum to Job Artifacts
         id: upload
