@@ -419,7 +419,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     if [[ "{{ ghcr }}" == "0" ]]; then
         iso_build_args+=(IMAGE_SRC="containers-storage:${IMAGE_FULL}")
     elif [[ "{{ ghcr }}" == "2" ]]; then
-        iso_build_args+=(--volume "oci-archive:/github/workspace/{{ repo_image_name }}_{{ image }}.tar")
+        iso_build_args+=(IMAGE_SRC="oci-archive:/github/workspace/{{ repo_image_name }}_{{ image }}.tar")
     fi
     iso_build_args+=(IMAGE_TAG="{{ image }}")
     iso_build_args+=(ISO_NAME="/github/workspace/{{ repo_image_name }}_build/output/{{ image }}.iso")
