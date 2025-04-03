@@ -42,8 +42,6 @@ jobs:
       fail-fast: false
       matrix:
         image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
-    env:
-      OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
     steps:
       - name: Checkout
         # yamllint disable-line rule:line-length rule:comments
@@ -65,6 +63,8 @@ jobs:
           string: ${{ env.IMAGE_REGISTRY }}
       - name: Setup
         id: setup
+        env:
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           set -eou pipefail
           digest="$(skopeo inspect --format '{{ .Digest }}' \
@@ -92,6 +92,8 @@ jobs:
         with:
           syft-version: v1.22.0
       - name: Generate SBOM
+        env:
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           just gen-sbom \
                 "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
@@ -111,6 +113,7 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           attest_args=(
               "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}"
