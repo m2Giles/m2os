@@ -101,6 +101,7 @@ build image="bluefin":
         TAG_VERSION="$check"
         {{ just }} verify-container "$BASE_IMAGE":"$TAG_VERSION"
         skopeo inspect docker://ghcr.io/ublue-os/"$BASE_IMAGE":"$TAG_VERSION" > /tmp/inspect-"{{ image }}".json
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < /tmp/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
         # fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/$BASE_IMAGE:"$TAG_VERSION" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         # {{ just }} verify-container akmods:coreos-stable-"${fedora_version}"
         # skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > /tmp/inspect-"{{ image }}".json
