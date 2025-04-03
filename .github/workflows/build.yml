@@ -32,6 +32,18 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
+  build-iso:
+    name: Build ISOs
+    uses: ./.github/workflows/build-iso.yml
+    secrets: inherit
+    needs: [build-image]
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Desktop", "Bazzite"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
   push-image:
     name: Push Images
     needs: [build-image]
@@ -65,18 +77,6 @@ jobs:
       fail-fast: false
       matrix:
         image_flavor: ["Desktop", "Bazzite", "Server"]
-    with:
-      image_flavor: ${{ matrix.image_flavor }}
-
-  build-iso:
-    name: Build ISOs
-    uses: ./.github/workflows/build-iso.yml
-    secrets: inherit
-    needs: [build-image]
-    strategy:
-      fail-fast: false
-      matrix:
-        image_flavor: ["Desktop", "Bazzite"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
