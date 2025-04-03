@@ -41,25 +41,13 @@ default:
 
 # Check Just Syntax
 [group('Just')]
-check:
-    #!/usr/bin/env bash
-    find . -type f -name "*.just" | while read -r file; do
-        echo "Checking syntax: $file"
-        {{ just }} --unstable --fmt --check -f $file
-    done
-    echo "Checking syntax: Justfile"
+@check:
     {{ just }} --unstable --fmt --check -f Justfile
 
 # Fix Just Syntax
 [group('Just')]
-fix:
-    #!/usr/bin/env bash
-    find . -type f -name "*.just" | while read -r file; do
-        echo "Checking syntax: $file"
-        {{ just }} --unstable --fmt -f $file
-    done
-    echo "Checking syntax: Justfile"
-    {{ just }} --unstable --fmt -f Justfile || { exit 1; }
+@fix:
+    {{ just }} --unstable --fmt -f Justfile
 
 # Cleanup
 [group('Utility')]
@@ -160,7 +148,7 @@ build image="bluefin":
     fi
 
 # Rechunk Image
-[private]
+[group('Image')]
 rechunk image="bluefin":
     #!/usr/bin/env bash
     echo "::group:: Rechunk Build Prep"
@@ -258,21 +246,22 @@ rechunk image="bluefin":
     echo "::endgroup::"
 
 # Load Image into Podman and Tag
-[private]
+[group('CI')]
 load-image image="bluefin":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
     if [[ {{ PODMAN }} =~ podman ]]; then
         IMAGE=$(podman pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
-        podman tag ${IMAGE} localhost/{{ repo_image_name }}:{{ image }}
+        podman tag "${IMAGE}" localhost/{{ repo_image_name }}:{{ image }}
     else
         skopeo copy oci-archive:{{ repo_image_name }}_{{ image }}.tar docker-daemon:localhost/{{ repo_image_name }}:{{ image }}
     fi
     VERSION=$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')
-    {{ PODMAN }} tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:${VERSION}
+    {{ PODMAN }} tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:"${VERSION}"
     {{ PODMAN }} images
 
 # Get Tags
+[group('CI')]
 get-tags image="bluefin":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
@@ -492,7 +481,7 @@ verify-container container="" registry="ghcr.io/ublue-os" key="": install-cosign
     fi
 
 # Secureboot Check
-[group('Utility')]
+[group('CI')]
 secureboot image="bluefin":
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
@@ -536,11 +525,13 @@ secureboot image="bluefin":
     exit "$returncode"
 
 # Merge Changelogs
+[group('Changelogs')]
 merge-changelog:
     #!/usr/bin/env bash
     set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
-    cat "$(find ./changelog*.md )" > changelog.md
+    declare -a changelogs=("$(find ./changelog*.md | sort -r)")
+    cat "${changelogs[@]}" > changelog.md
     last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
     date_extract="$(echo "${last_tag:-}" | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
     date_version="$(echo "${last_tag:-}" | grep -oP '\.\K[0-9]+$' || true)"
@@ -556,7 +547,9 @@ merge-changelog:
     }
     EOF
 
-lint:
+# Lint Files
+[group('Utility')]
+@lint:
     # shell
     /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
     # yaml
@@ -566,7 +559,9 @@ lint:
     # just recipes
     {{ just }} lint-recipes
 
-format:
+# Format Files
+[group('Utility')]
+@format:
     # shell
     /usr/bin/find . -iname "*.sh" -type f -exec shfmt --write "{}" ';'
     # yaml
@@ -574,23 +569,50 @@ format:
     # just
     {{ just }} fix
 
+# Linter Helper
+[group('Utility')]
 _lint-recipe linter recipe *args:
-    {{ just }} -n {{ recipe }} {{ args }} 2>&1 | tee /tmp/{{ recipe }} >/dev/null && \
-    echo "Linting {{ recipe }} with {{ linter }}" && \
-    {{ linter }} /tmp/{{ recipe }} && rm /tmp/{{ recipe }} || \
-    rm /tmp/{{ recipe }}
+    #!/usr/bin/bash
+    set -eou pipefail
+    {{ just }} -n {{ recipe }} {{ args }} 2>&1 | tee /tmp/{{ recipe }} >/dev/null
+    linter=({{ linter }})
+    echo "Linting {{ style('warning') }}{{ recipe }}{{ NORMAL }} with {{ style('command') }}${linter[0]}{{ NORMAL }}"
+    {{ linter }} /tmp/{{ recipe }} && rm /tmp/{{ recipe }} || rm /tmp/{{ recipe }}
 
+# Linter Helper
+[group('Utility')]
 lint-recipes:
     #!/usr/bin/bash
-    for recipe in secureboot push-to-registry gen-sbom sbom-attest build rechunk build-iso run-iso; do
+    recipes=(
+        build
+        build-iso
+        changelogs
+        cosign-sign
+        gen-sbom
+        get-tags
+        load-image
+        push-to-registry
+        rechunk
+        run-iso
+        sbom-attest
+        secureboot
+        verify-container
+    )
+    for recipe in "${recipes[@]}"; do
         {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "$recipe" bluefin
     done
-    for recipe in lint-recipes merge-changelog; do
+    recipes=(
+        clean
+        install-cosign
+        lint-recipes
+        merge-changelog
+    )
+    for recipe in "${recipes[@]}"; do
         {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "$recipe"
     done
 
 # Get Cosign if Needed
-[private]
+[group('CI')]
 install-cosign:
     #!/usr/bin/bash
 
@@ -649,7 +671,7 @@ cosign-sign digest $destination="": install-cosign
     if [[ -z "$destination" ]]; then
         destination="{{ IMAGE_REGISTRY }}"
     fi
-    cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}:{{ digest }}"
+    cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@{{ digest }}"
 
 # Generate SBOM
 [group('CI')]
@@ -699,16 +721,9 @@ gen-sbom $input $output="":
 
 # Add SBOM attestation
 [group('CI')]
-sbom-attest $image $dryrun="true" $sbom="" $digest="" $destination="": install-cosign
+sbom-attest image dryrun="true" $sbom="" $digest="" $destination="": install-cosign
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-
-    # Image Name and Version
-    declare -A images={{ images }}
-    check=${images[{{ image }}]-}
-    if [[ -z "$check" ]]; then
-        exit 1
-    fi
 
     # Set Destination
     if [[ -z "$destination" ]]; then
@@ -717,7 +732,9 @@ sbom-attest $image $dryrun="true" $sbom="" $digest="" $destination="": install-c
 
     # Set Digest
     if [[ -z "$digest" ]]; then
-        digest="$({{ PODMAN }} inspect localhost/{{ repo_image_name }}:{{ image }} --format '{{{{ .Digest }}')"
+        digest="$(skopeo inspect {{ image }} --format '{{{{ .Digest }}')"
+    elif [[ -f "{{ digest }}" ]]; then
+        digest="$(cat {{ digest }})"
     fi
 
     # set SBOM
@@ -727,18 +744,14 @@ sbom-attest $image $dryrun="true" $sbom="" $digest="" $destination="": install-c
 
     # ATTEST ARGS
     COSIGN_ATTEST_ARGS=(
-       "--predicate" "./sbom.json"
+       "--predicate" "$sbom"
        "--type" "spdxjson"
        "--key" "env://COSIGN_PRIVATE_KEY"
-       "$destination/{{ repo_image_name }}:$digest"
     )
-
-    if [[ "{{ dryrun }}" == "true" ]]; then
-        COSIGN_ATTEST_ARGS+=(
-            "--no-upload=true"
-        )
+    if [[ "{{ dryrun }}" != "false" ]]; then
+        COSIGN_ATTEST_ARGS+=("--no-upload=true")
     fi
+    COSIGN_ATTEST_ARGS+=("$destination/{{ repo_image_name }}@$digest")
 
     # Attest with SBOM
-    cd "$(dirname "$sbom")" && \
     cosign attest -y "${COSIGN_ATTEST_ARGS[@]}"

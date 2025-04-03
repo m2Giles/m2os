@@ -16,7 +16,7 @@ env:
   SET_X: 1
 jobs:
   get-images:
-    name: Get ${{ inputs.image_flavor }} Images for Build
+    name: Get ${{ inputs.image_flavor }} Images for SBOMs
     outputs:
       images: ${{ steps.images.outputs.images }}
     runs-on: ubuntu-latest
@@ -34,6 +34,8 @@ jobs:
     needs: ["get-images"]
     runs-on: ubuntu-24.04
     continue-on-error: false
+    env:
+      OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
     permissions:
       contents: read
       packages: write
@@ -46,9 +48,6 @@ jobs:
       - name: Checkout
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      # - name: Maximize Build Space
-      #   if: ${{ ! contains(matrix.image, 'ucore') }}
-      #   uses: ublue-os/remove-unwanted-software@v9
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
@@ -66,18 +65,11 @@ jobs:
           string: ${{ env.IMAGE_REGISTRY }}
       - name: Setup
         id: setup
-        env:
-          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
-          set -eoux pipefail
-          FQ_IMAGE_NAME="${{ steps.registry_case.outputs.lowercase}}/"
-          FQ_IMAGE_NAME+="$IMAGE_NAME:${{ matrix.image }}"
-          digest="$(skopeo inspect \
-                    oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }} \
-                    --format '{{ .Digest }}')"
-          echo "digest=$digest" >> $GITHUB_OUTPUT
-          echo "FQ_IMAGE_NAME=$FQ_IMAGE_NAME" >> "$GITHUB_ENV"
-          echo "OCI_ARCHIVE=$OCI_ARCHIVE" >> "$GITHUB_ENV"
+          set -eou pipefail
+          digest="$(skopeo inspect --format '{{ .Digest }}' \
+                    oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }})"
+          echo "$digest" >> ${{ runner.temp }}/${{ matrix.image }}.digest
           echo "=== FREE SPACE ==="
           df -h
           echo "=== MEMORY AND SWAP ==="
@@ -85,11 +77,7 @@ jobs:
           swapon --show
           echo "=== MAKING SWAPFILE ==="
           SWAP_FILE="/mnt/swapfile.new"
-          if [[ ! "${{ matrix.image }}" =~ ucore ]]; then
-            sudo fallocate -l 24G "$SWAP_FILE"
-          else
-            sudo fallocate -l 8G "$SWAP_FILE"
-          fi
+          sudo fallocate -l 24G "$SWAP_FILE"
           sudo chmod 600 "$SWAP_FILE"
           sudo mkswap "$SWAP_FILE"
           sudo swapon "$SWAP_FILE"
@@ -113,20 +101,22 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.image }}.sbom.json
-          path: ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+          path: |
+            ${{ runner.temp }}/${{ matrix.image }}.digest
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
       - name: SBOM Attest
-        if: >-
-          contains(fromJson('["workflow_dispatch", "merge_group"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
+        # if: >-
+        #   contains(fromJson('["workflow_dispatch", "merge_group"]'),
+        #   github.event_name) || github.event.schedule == '41 6 * * 0'
         env:
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         run: |
           attest_args=(
-              ${{ env.FQ_IMAGE_NAME }}
-              false
+              "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}"
+              true
               ${{ runner.temp }}/${{ matrix.image }}.sbom.json
-              ${{ steps.setup.outputs.digest }}
+              ${{ runner.temp }}/${{ matrix.image }}.digest
               ${{ steps.registry_case.outputs.lowercase }}
           )
           just sbom-attest "${attest_args[@]}"
