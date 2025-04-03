@@ -46,8 +46,20 @@ jobs:
 
   gen-sbom:
     name: Generate SBOMs
-    needs: [push-image]
+    needs: [build-image]
     uses: ./.github/workflows/gen-sbom.yml
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Desktop", "Bazzite", "Server"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
+  attest-sbom:
+    name: Attest SBOMs
+    needs: ["gen-sbom", "push-image"]
+    uses: ./.github/workflows/attest-sbom.yml
     secrets: inherit
     strategy:
       fail-fast: false
