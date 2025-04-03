@@ -57,9 +57,9 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@v4
       - name: Maximize Build Space
-        # if: >-
-        #   contains(fromJson('["workflow_dispatch", "workflow_call"]'),
-        #   github.event_name) || github.event.schedule == '41 6 * * 0'
+        if: >-
+          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
         # yamllint disable-line rule:line-length rule:comments
         uses: ublue-os/remove-unwanted-software@v9
       - name: Setup Just
@@ -71,9 +71,9 @@ jobs:
         with:
           name: ${{ matrix.image }}.oci
       - name: Build ISO
-        # if: >-
-        #   contains(fromJson('["workflow_dispatch", "workflow_call"]'),
-        #   github.event_name) || github.event.schedule == '41 6 * * 0'
+        if: >-
+          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
         shell: bash
         run: |
           sudo $(which just) build-iso ${{ matrix.image }} 2 1
@@ -82,9 +82,9 @@ jobs:
         id: upload
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
-        # if: >-
-        #   contains(fromJson('["workflow_dispatch", "workflow_call"]'),
-        #   github.event_name) || github.event.schedule == '41 6 * * 0'
+        if: >-
+          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
         with:
           name: ${{ matrix.image }}-iso
           path: |

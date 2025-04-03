@@ -46,7 +46,7 @@ jobs:
 
   gen-sbom:
     name: Generate SBOMs
-    needs: [build-image]
+    needs: [push-image]
     uses: ./.github/workflows/gen-sbom.yml
     secrets: inherit
     strategy:
