@@ -14,7 +14,6 @@ env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   IMAGE_NAME: ${{ github.event.repository.name }}
   SET_X: 1
-  OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
 jobs:
   get-images:
     name: Get ${{ inputs.image_flavor }} Images for SBOMs
@@ -43,6 +42,8 @@ jobs:
       fail-fast: false
       matrix:
         image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
+    env:
+      OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
     steps:
       - name: Checkout
         # yamllint disable-line rule:line-length rule:comments
