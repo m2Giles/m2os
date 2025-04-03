@@ -83,7 +83,7 @@ jobs:
     name: Check ${{ inputs.image_flavor }} SBOMs Generated
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    needs: [sbom-image]
+    needs: [attest-sbom]
     steps:
       - name: Exit on failure
         if: >-
