@@ -13,5 +13,4 @@ ARG SET_X=""
 ARG VERSION=""
 
 RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
-    --mount=type=bind,src=/usr/bin/gh,dst=/usr/local/bin/gh \
     /ctx/build.sh
