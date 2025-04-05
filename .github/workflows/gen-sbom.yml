@@ -1,0 +1,124 @@
+---
+name: Generate SBOMs
+on: # yamllint disable-line rule:truthy rule:comments
+  workflow_call:
+    inputs:
+      image_flavor:
+        type: string
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref
+    || github.run_id }}-${{ inputs.image_flavor }}-sbom
+  cancel-in-progress: true
+env:
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: ${{ github.event.repository.name }}
+  SET_X: 1
+jobs:
+  get-images:
+    name: Get ${{ inputs.image_flavor }} Images for SBOMs
+    outputs:
+      images: ${{ steps.images.outputs.images }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/checkout@v4
+      - name: Get Images for Build
+        id: images
+        uses: ./.github/actions/get-images
+        with:
+          image_flavor: ${{ inputs.image_flavor }}
+  sbom-image:
+    name: Generate ${{ matrix.image }} SBOM
+    needs: ["get-images"]
+    runs-on: ubuntu-24.04
+    continue-on-error: false
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
+    steps:
+      - name: Checkout
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Setup Just
+        # yamllint disable-line rule:line-length rule:comments
+        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
+      - name: Download OCI-Archive
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.image }}.oci
+          path: ${{ runner.temp }}
+      - name: Lowercase Registry
+        id: registry_case
+        # yamllint disable-line rule:line-length rule:comments
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ env.IMAGE_REGISTRY }}
+      - name: Setup
+        id: setup
+        env:
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        run: |
+          set -eou pipefail
+          digest="$(skopeo inspect --format '{{ .Digest }}' \
+                    oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }})"
+          echo "$digest" >> ${{ runner.temp }}/${{ matrix.image }}.digest
+          echo "=== FREE SPACE ==="
+          df -h
+          echo "=== MEMORY AND SWAP ==="
+          free -h
+          swapon --show
+          echo "=== MAKING SWAPFILE ==="
+          SWAP_FILE="/mnt/swapfile.new"
+          sudo fallocate -l 24G "$SWAP_FILE"
+          sudo chmod 600 "$SWAP_FILE"
+          sudo mkswap "$SWAP_FILE"
+          sudo swapon "$SWAP_FILE"
+          echo "=== FREE SPACE ==="
+          df -h
+          echo "=== MEMORY AND SWAP ==="
+          free -h
+          swapon --show
+      - name: Setup Syft
+        # yamllint disable-line rule:line-length rule:comments
+        uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
+        with:
+          syft-version: v1.22.0
+      - name: Generate SBOM
+        env:
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        run: |
+          just gen-sbom \
+                "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
+                "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
+      - name: Upload SBOM
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.image }}.sbom.json
+          path: |
+            ${{ runner.temp }}/${{ matrix.image }}.digest
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+
+  check-sbom:
+    name: Check ${{ inputs.image_flavor }} SBOMs Generated
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    needs: [sbom-image]
+    steps:
+      - name: Exit on failure
+        if: >-
+          ${{ contains(fromJson('["failure", "skipped"]'),
+          needs.sbom-image.result) }}
+        shell: bash
+        run: exit 1
+      - name: Exit
+        shell: bash
+        run: exit 0

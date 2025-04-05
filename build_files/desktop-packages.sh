@@ -66,12 +66,8 @@ cp {/usr/lib/zed.app,/usr}/share/icons/hicolor/1024x1024/apps/zed.png
 sed -i "s@Exec=zed@Exec=/usr/lib/zed.app/libexec/zed-editor@g" /usr/share/applications/dev.zed.Zed.desktop
 
 # Emacs LSP Booster
-while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" =~ null ]]; do
-    EMACS_LSP_BOOSTER="$(
-        curl -L https://api.github.com/repos/blahgeek/emacs-lsp-booster/releases/latest |
-            jq -r '.assets[].browser_download_url' |
-            grep musl.zip$
-    )"
+while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" == "null" ]]; do
+    EMACS_LSP_BOOSTER="$(curl -L https://api.github.com/repos/blahgeek/emacs-lsp-booster/releases/latest | jq -r '.assets[] | select(.name| test(".*musl[.]zip$")).browser_download_url')" || true
 done
 curl --retry 3 -Lo /tmp/emacs-lsp-booster.zip "$EMACS_LSP_BOOSTER"
 unzip -d /usr/bin/ /tmp/emacs-lsp-booster.zip

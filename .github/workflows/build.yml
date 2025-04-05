@@ -1,9 +1,11 @@
 ---
 name: Build m2os
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy rule:comments
   schedule:
-    - cron: "41 6 * * 0"  # 6:41 UTC Sunday
-    - cron: "41 6 * * 1,2,3,4,5,6"  # 6:41 UTC Monday-Saturday
+    # yamllint disable-line rule:comments
+    - cron: "41 6 * * 0" # 6:41 UTC Sunday
+    # yamllint disable-line rule:comments
+    - cron: "41 6 * * 1,2,3,4,5,6" # 6:41 UTC Monday-Saturday
   pull_request:
     branches:
       - main
@@ -17,6 +19,7 @@ jobs:
   lint:
     name: Lint Project
     uses: ./.github/workflows/lint.yml
+
   build-image:
     name: Build Images
     needs: [lint]
@@ -28,6 +31,7 @@ jobs:
         image_flavor: ["Desktop", "Bazzite", "Server"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+
   build-iso:
     name: Build ISOs
     uses: ./.github/workflows/build-iso.yml
@@ -39,7 +43,44 @@ jobs:
         image_flavor: ["Desktop", "Bazzite"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+
+  gen-sbom:
+    name: Generate SBOMs
+    needs: [build-image]
+    uses: ./.github/workflows/gen-sbom.yml
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Desktop", "Bazzite", "Server"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
+  changelogs:
+    name: Generate Changelogs
+    uses: ./.github/workflows/changelogs.yml
+    secrets: inherit
+    needs: ["build-iso"]
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ["Desktop", "Bazzite"]
+    with:
+      target: ${{ matrix.target }}
+
+  attest-sbom:
+    name: Attest SBOMs
+    needs: ["gen-sbom"]
+    uses: ./.github/workflows/attest-sbom.yml
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Desktop", "Bazzite", "Server"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
   create-release:
     name: Create Release
-    needs: [build-iso]
+    needs: ["changelogs", "gen-sbom"]
     uses: ./.github/workflows/create-release.yml

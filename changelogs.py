@@ -77,7 +77,7 @@ BLACKLIST_VERSIONS = [
 
 
 def get_images(target: str):
-    if "bazzite" in target:
+    if "Bazzite" in target:
         matrix = BAZZITE_IMAGE_MATRIX
     else:
         matrix = IMAGE_MATRIX
@@ -390,7 +390,7 @@ def generate_changelog(
             # Remove target- from curr
             curr_pretty = STRIP_PATTERN(curr_pretty)
             pretty = target.capitalize() + " (F" + curr_pretty
-            if finish and target != "stable":
+            if finish and target != "Desktop":
                 pretty += ", #" + finish[:7]
             pretty += ")"
 
@@ -398,7 +398,7 @@ def generate_changelog(
 
     changelog = CHANGELOG_FORMAT
     
-    if target == "bazzite":
+    if target == "Bazzite":
         changelog = changelog.splitlines()
         del changelog[12:15]
         changelog = '\n'.join(changelog)
@@ -425,7 +425,7 @@ def generate_changelog(
             )
 
     changes = ""
-    if target == "stable":
+    if target == "Desktop":
         changes += get_commits(prev_manifests, manifests, workdir)
     common = calculate_changes(common, prev_versions, versions)
     bazzite = calculate_changes(bazzite, prev_versions, versions)

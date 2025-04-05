@@ -3,9 +3,7 @@ ARG IMAGE="bluefin"
 ARG TAG_VERSION="stable-daily"
 
 FROM scratch AS ctx
-COPY build_files /
-COPY cosign.pub /
-COPY cosign-backup.pub /
+COPY build_files cosign.pub cosign-backup.pub /
 
 FROM ghcr.io/ublue-os/${BASE_IMAGE}:${TAG_VERSION}
 
