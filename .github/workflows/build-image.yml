@@ -67,6 +67,12 @@ jobs:
         shell: bash
         run: |
           sudo $(which just) rechunk ${{ matrix.image }}
+      - name: Lowercase Registry
+        id: registry_case
+        # yamllint disable-line rule:line-length rule:comments
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ env.IMAGE_REGISTRY }}
       - name: Login, Push, and Sign
         id: push
         if: >-
@@ -77,6 +83,7 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         shell: bash
         run: |
+          set -eou pipefail
           just login-to-ghcr ${{ github.actor }} ${{ github.token }}
           push_args=(
             ${{ matrix.image }}
