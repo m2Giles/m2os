@@ -19,10 +19,10 @@
       ]
     }
   ],
-  "customManager": [
+  "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["(^|/|\\.)([Jj]ustfile$", "(^|/)([Jj]ustfile[^/]*$"],
+      "fileMatch": ["(^|/|\\.)[Jj]ustfile$", "(^|/)[Jj]ustfile\\.[^/]*$"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>[a-z-]+?)(?: depName=(?<depName>.+?))? packageName=(?<packageName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:BUILD).+?_VERSION := \"(?<currentValue>.+?)\"\\s"
       ]
