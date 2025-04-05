@@ -106,6 +106,24 @@ jobs:
           path: |
             ${{ runner.temp }}/${{ matrix.image }}.digest
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+      - name: SBOM Attest
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
+        env:
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        run: |
+          just login-to-ghcr ${{ github.actor }} ${{ github.token }}
+          attest_args=(
+              "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}"
+              false
+              ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+              ${{ runner.temp }}/${{ matrix.image }}.digest
+              ${{ steps.registry_case.outputs.lowercase }}
+          )
+          just sbom-attest "${attest_args[@]}"
 
   check-sbom:
     name: Check ${{ inputs.image_flavor }} SBOMs Generated
