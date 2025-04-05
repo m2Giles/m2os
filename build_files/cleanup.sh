@@ -40,7 +40,7 @@ fi
 dnf5 clean all
 
 # Cleanup extra directories in /usr/lib/modules
-KERNEL_VERSION="$(rpm -q kernel-core | sed 's/kernel-core-//g')"
+KERNEL_VERSION="$(rpm -q kernel-core --queryformat '%{EVR}.%{ARCH}')"
 
 for kernel_dir in /usr/lib/modules/*; do
     echo "$kernel_dir"
@@ -49,14 +49,6 @@ for kernel_dir in /usr/lib/modules/*; do
         rm -rf "$kernel_dir"
     fi
 done
-
-# Fixup Groups
-ETC_GROUPS="$(grep -v "root\|wheel" /etc/group)"
-if [[ -n "${ETC_GROUPS:-}" ]]; then
-    echo "Groups being appended to /usr/lib/group..."
-    echo "$ETC_GROUPS"
-    echo "$ETC_GROUPS" >>/usr/lib/group
-fi
 
 rm -rf /tmp/*
 rm -rf /var/*

@@ -20,11 +20,11 @@ images := '(
 
 # Build Containers
 
-isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_DIGEST
-rechunker := "ghcr.io/hhd-dev/rechunk@" + BUILD_RECHUNKER_DIGEST
-qemux := "docker.io/qemux/qemu-docker@" + BUILD_QEMUX_DIGEST
-cosign-installer := "cgr.dev/chainguard/cosign@" + BUILD_COSIGN_DIGEST
-syft-installer := "docker.io/anchore/syft@" + BUILD_SYFT_DIGEST
+isobuilder := "ghcr.io/jasonn3/build-container-installer:" + RENOVATE_ISO_DIGEST
+rechunker := "ghcr.io/hhd-dev/rechunk@" + RENOVATE_RECHUNKER_DIGEST
+qemux := "docker.io/qemux/qemu-docker@" + RENOVATE_QEMUX_DIGEST
+cosign-installer := "cgr.dev/chainguard/cosign@" + RENOVATE_COSIGN_DIGEST
+syft-installer := "docker.io/anchore/syft@" + RENOVATE_SYFT_DIGEST
 
 [private]
 default:
@@ -103,7 +103,7 @@ build image="bluefin":
     skopeo list-tags docker://{{ FQ_IMAGE_NAME }} > /tmp/repotags.json
     if [[ $(jq "any(.Tags[]; contains(\"$VERSION\"))" < /tmp/repotags.json) == "true" ]]; then
         POINT="1"
-        while jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" < /tmp/repotags.json
+        while jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" >/dev/null < /tmp/repotags.json
         do
             (( POINT++ ))
         done
@@ -276,7 +276,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Verify ISO Build Container
-    {{ just }} verify-container "build-container-installer@{{ BUILD_ISO_DIGEST }}" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
+    {{ just }} verify-container "build-container-installer@{{ RENOVATE_ISO_DIGEST }}" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
 
     mkdir -p {{ repo_image_name }}_build/{lorax_templates,flatpak-refs-{{ image }},output}
     echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
@@ -773,25 +773,25 @@ export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/u
 # Build Containers
 # renovate: datasource=docker packageName=ghcr.io/jasonn3/build-container-installer
 
-BUILD_ISO_VERSION := "v1.2.4"
-BUILD_ISO_DIGEST := "sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
+RENOVATE_ISO_VERSION := "v1.2.4"
+RENOVATE_ISO_DIGEST := "sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
 
 # renovate: datasource=docker packageName=ghcr.io/hhd-dev/rechunk
 
-BUILD_RECHUNKER_VERSION := "v1.2.1"
-BUILD_RECHUNKER_DIGEST := "sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
+RENOVATE_RECHUNKER_VERSION := "v1.2.1"
+RENOVATE_RECHUNKER_DIGEST := "sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
 
 # renovate: datasource=docker packageName=anchore/syft
 
-BUILD_SYFT_VERSION := "v1.22.0"
-BUILD_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
+RENOVATE_SYFT_VERSION := "v1.22.0"
+RENOVATE_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
 
 # renovate: datasource=docker packageName=chainguard/cosign
 
-BUILD_COSIGN_VERSION := "latest"
-BUILD_COSIGN_DIGEST := "sha256:7cf22b7c1c58d561779db921ddea1860edf0013ec3d8f0241885f0588d008074"
+RENOVATE_COSIGN_VERSION := "latest"
+RENOVATE_COSIGN_DIGEST := "sha256:7cf22b7c1c58d561779db921ddea1860edf0013ec3d8f0241885f0588d008074"
 
 # renovate: datasource=docker packageName=qemux/qemu-docker
 
-BUILD_QEMUX_VERSION := "latest"
-BUILD_QEMUX_DIGEST := "sha256:e1d9903f334775182f957e80f6867a38685ad9d3ecf23ef4821faefb66e0c8b8"
+RENOVATE_QEMUX_VERSION := "latest"
+RENOVATE_QEMUX_DIGEST := "sha256:e1d9903f334775182f957e80f6867a38685ad9d3ecf23ef4821faefb66e0c8b8"

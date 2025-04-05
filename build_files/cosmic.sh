@@ -39,16 +39,25 @@ PACKAGES=(
     cosmic-desktop
     gnome-keyring
     NetworkManager-openvpn
+    xdg-desktop-portal-gtk
+    fedora-release-cosmic-atomic
 )
 
 # Bluefin Packages
 PACKAGES+=(
+    adcli
+    adw-gtk3-theme
+    bash-color-prompt
+    bcache-tools
     "bluefin-*"
+    borgbackup
+    bootc
     cascadia-code-fonts
     clevis
     evtest
     fastfetch
     firewall-config
+    fish
     foo2zjs
     git-credential-libsecret
     glow
@@ -59,13 +68,20 @@ PACKAGES+=(
     mesa-libGLU
     nerd-fonts
     oddjob-mkhomedir
+    pulseaudio-utils
+    rclone
+    restic
     samba-dcerpc
     samba-ldb-ldap-modules
     samba-winbind-clients
     samba-winbind-modules
     samba
     setools-console
+    sssd-ad
+    sssd-krb5
+    sssd-nfs-idmap
     tailscale
+    tmux
     topgrade
     tuned
     tuned-gtk

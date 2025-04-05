@@ -22,6 +22,11 @@ dnf5 -y copr enable lizardbyte/beta
 # Webapp Manager
 dnf5 -y copr enable kylegospo/webapp-manager
 
+# Terra for Zed/Ghostty
+# shellcheck disable=SC2016
+dnf5 -y install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release{,-extras} || true
+dnf5 config-manager setopt "terra*".enabled=0
+
 # Layered Applications
 LAYERED_PACKAGES=(
     adw-gtk3-theme
@@ -52,18 +57,10 @@ fi
 
 dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
 
-# Zed because why not?
-curl -Lo /tmp/zed.tar.gz \
-    https://zed.dev/api/releases/stable/latest/zed-linux-x86_64.tar.gz
-mkdir -p /usr/lib/zed.app/
-tar -xvf /tmp/zed.tar.gz -C /usr/lib/zed.app/ --strip-components=1
-chown 0:0 -R /usr/lib/zed.app
-ln -s /usr/lib/zed.app/bin/zed /usr/bin/zed-cli
-cp /usr/lib/zed.app/share/applications/zed.desktop /usr/share/applications/dev.zed.Zed.desktop
-mkdir -p /usr/share/icons/hicolor/1024x1024/apps
-cp {/usr/lib/zed.app,/usr}/share/icons/hicolor/512x512/apps/zed.png
-cp {/usr/lib/zed.app,/usr}/share/icons/hicolor/1024x1024/apps/zed.png
-sed -i "s@Exec=zed@Exec=/usr/lib/zed.app/libexec/zed-editor@g" /usr/share/applications/dev.zed.Zed.desktop
+dnf5 install --setopt=install_weak_deps=False --enable-repo="terra*" -y ghostty zed
+
+# Move zed to not conflict with /usr/sbin/zed
+mv /usr/bin/zed /usr/bin/zed-cli
 
 # Emacs LSP Booster
 while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" == "null" ]]; do
