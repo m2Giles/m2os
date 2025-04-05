@@ -18,6 +18,14 @@ images := '(
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
 
+# Build Containers
+
+isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_DIGEST
+rechunker := "ghcr.io/hhd-dev/rechunk@" + BUILD_RECHUNKER_DIGEST
+qemux := "docker.io/qemux/qemu-docker@" + BUILD_QEMUX_DIGEST
+cosign-installer := "cgr.dev/chainguard/cosign@" + BUILD_COSIGN_DIGEST
+syft-installer := "docker.io/anchore/syft@" + BUILD_SYFT_DIGEST
+
 [private]
 default:
     @{{ just }} --list
@@ -268,7 +276,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Verify ISO Build Container
-    {{ just }} verify-container "build-container-installer" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
+    {{ just }} verify-container "build-container-installer@{{ BUILD_ISO_DIGEST }}" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
 
     mkdir -p {{ repo_image_name }}_build/{lorax_templates,flatpak-refs-{{ image }},output}
     echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
@@ -439,7 +447,7 @@ run-iso image="bluefin":
     run_args+=(--env "GPU=Y")
     run_args+=(--device=/dev/kvm)
     run_args+=(--volume "${PWD}/{{ repo_image_name }}_build/output/{{ image }}.iso":"/boot.iso":z)
-    run_args+=(docker.io/qemux/qemu-docker)
+    run_args+=({{ qemux }})
     {{ PODMAN }} run "${run_args[@]}"
 
 # Test Changelogs
@@ -782,7 +790,8 @@ BUILD_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e466335
 
 BUILD_COSIGN_VERSION := "latest"
 BUILD_COSIGN_DIGEST := "sha256:7cf22b7c1c58d561779db921ddea1860edf0013ec3d8f0241885f0588d008074"
-isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
-rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
-cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
-syft-installer := "docker.io/anchore/syft:" + BUILD_SYFT_VERSION
+
+# renovate: datasource=docker packageName=qemux/qemu-docker
+
+BUILD_QEMUX_VERSION := "7.07"
+BUILD_QEMUX_DIGEST := "sha256:05fcb411971186ccd8b5421a94ac968fbd94799ee14d9ded46fa91f9d72fd110"
