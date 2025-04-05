@@ -766,22 +766,22 @@ export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/u
 # renovate: datasource=docker packageName=ghcr.io/jasonn3/build-container-installer
 
 BUILD_ISO_VERSION := "v1.2.4"
-BUILD_ISO_DIGEST := " "
+BUILD_ISO_DIGEST := "sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
 
 # renovate: datasource=docker packageName=ghcr.io/hhd-dev/rechunk
 
 BUILD_RECHUNKER_VERSION := "v1.2.1"
-BUILD_RECHUNKER_DIGEST := " "
+BUILD_RECHUNKER_DIGEST := "sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
 
 # renovate: datasource=docker packageName=anchore/syft
 
 BUILD_SYFT_VERSION := "v1.22.0"
-BUILD_SYFT_DIGEST := " "
+BUILD_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
 
 # renovate: datasource=docker packageName=chainguard/cosign
 
 BUILD_COSIGN_VERSION := "latest"
-BUILD_COSIGN_DIGEST := " "
+BUILD_COSIGN_DIGEST := "sha256:7cf22b7c1c58d561779db921ddea1860edf0013ec3d8f0241885f0588d008074"
 isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
 rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
 cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
