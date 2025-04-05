@@ -1,6 +1,6 @@
 ---
 name: Create Release
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy rule:comments
   workflow_call:
   workflow_dispatch:
     inputs:
@@ -18,19 +18,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: Download Artifacts
+      - name: Download Changelogs
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@v4
         with:
-          pattern: changelogs-*
-          merge-multiple: true
+          pattern: "changelogs-*"
           run-id: ${{ inputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
-      - name: Install Just
-        uses: ./.github/actions/install-just
+          merge-multiple: true
+      - name: Download SBOMs
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*.sbom.json"
+          run-id: ${{ inputs.run-id || github.run_id }}
+          github-token: ${{ github.token }}
+          merge-multiple: true
+      - name: Setup Just
+        # yamllint disable-line rule:line-length rule:comments
+        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
       - name: Prepare Release
         id: prepare-release
         shell: bash
@@ -43,6 +54,7 @@ jobs:
             echo "$k=$(jq -r ".$k" <<< "$output")" >> $GITHUB_OUTPUT
           done
       - name: Upload Changelogs as Artifact
+        # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
         with:
           name: release-changelog
@@ -52,6 +64,7 @@ jobs:
           compression-level: 0
           overwrite: true
       - name: Create Release
+        # yamllint disable-line rule:line-length rule:comments
         uses: softprops/action-gh-release@v2
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
@@ -63,3 +76,6 @@ jobs:
           tag_name: ${{ steps.prepare-release.outputs.tag }}
           body_path: ./changelog.md
           make_latest: true
+          files: |-
+            changelog.md
+            *.sbom.json
