@@ -765,7 +765,7 @@ export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/u
 # Build Containers
 # renovate: datasource=docker packageName=ghcr.io/jasonn3/build-container-installer
 
-BUILD_ISO_VERSION := "v1.2.3"
+BUILD_ISO_VERSION := "v1.2.4"
 
 # renovate: datasource=docker packageName=ghcr.io/hhd-dev/rechunk
 
