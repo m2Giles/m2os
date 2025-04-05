@@ -68,18 +68,6 @@ jobs:
     with:
       target: ${{ matrix.target }}
 
-  attest-sbom:
-    name: Attest SBOMs
-    needs: ["gen-sbom"]
-    uses: ./.github/workflows/attest-sbom.yml
-    secrets: inherit
-    strategy:
-      fail-fast: false
-      matrix:
-        image_flavor: ["Desktop", "Bazzite", "Server"]
-    with:
-      image_flavor: ${{ matrix.image_flavor }}
-
   create-release:
     name: Create Release
     needs: ["changelogs", "gen-sbom"]
