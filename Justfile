@@ -794,4 +794,4 @@ BUILD_COSIGN_DIGEST := "sha256:7cf22b7c1c58d561779db921ddea1860edf0013ec3d8f0241
 # renovate: datasource=docker packageName=qemux/qemu-docker
 
 BUILD_QEMUX_VERSION := "latest"
-BUILD_QEMUX_DIGEST := "sha256:05fcb411971186ccd8b5421a94ac968fbd94799ee14d9ded46fa91f9d72fd110"
+BUILD_QEMUX_DIGEST := "sha256:e1d9903f334775182f957e80f6867a38685ad9d3ecf23ef4821faefb66e0c8b8"
