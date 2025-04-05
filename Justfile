@@ -664,8 +664,8 @@ push-to-registry image $dryrun="true" $destination="":
 
     # Pass Digest
     digest="$(skopeo inspect "oci-archive:{{ repo_image_name }}_{{ image }}.tar" --format '{{{{ .Digest }}')"
-    if [[ -n "${GITHUB_OUTPUTS:-}" ]]; then
-        echo "digest=$digest" >> "$GITHUB_OUTPUTS"
+    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+        echo "digest=$digest" >> "$GITHUB_OUTPUT"
     fi
     echo "$digest"
 
