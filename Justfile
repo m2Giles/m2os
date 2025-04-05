@@ -22,7 +22,7 @@ images := '(
 
 isobuilder := "ghcr.io/jasonn3/build-container-installer:" + RENOVATE_ISO_DIGEST
 rechunker := "ghcr.io/hhd-dev/rechunk@" + RENOVATE_RECHUNKER_DIGEST
-qemux := "docker.io/qemux/qemu-docker@" + RENOVATE_QEMUX_DIGEST
+qemu := "ghcr.io/qemus/qemu@" + RENOVATE_QEMU_DIGEST
 cosign-installer := "cgr.dev/chainguard/cosign@" + RENOVATE_COSIGN_DIGEST
 syft-installer := "docker.io/anchore/syft@" + RENOVATE_SYFT_DIGEST
 
@@ -447,7 +447,7 @@ run-iso image="bluefin":
     run_args+=(--env "GPU=Y")
     run_args+=(--device=/dev/kvm)
     run_args+=(--volume "${PWD}/{{ repo_image_name }}_build/output/{{ image }}.iso":"/boot.iso":z)
-    run_args+=({{ qemux }})
+    run_args+=({{ qemu }})
     {{ PODMAN }} run "${run_args[@]}"
 
 # Test Changelogs
@@ -791,7 +791,7 @@ RENOVATE_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e466
 RENOVATE_COSIGN_VERSION := "latest"
 RENOVATE_COSIGN_DIGEST := "sha256:7cf22b7c1c58d561779db921ddea1860edf0013ec3d8f0241885f0588d008074"
 
-# renovate: datasource=docker packageName=qemux/qemu-docker
+# renovate: datasource=docker packageName=ghcr.io/qemus/qemu
 
-RENOVATE_QEMUX_VERSION := "latest"
-RENOVATE_QEMUX_DIGEST := "sha256:e1d9903f334775182f957e80f6867a38685ad9d3ecf23ef4821faefb66e0c8b8"
+RENOVATE_QEMU_VERSION := "7.08"
+RENOVATE_QEMU_DIGEST := "sha256:f09317d2e6fdb3aefa86456501d1e20c7f893d1d2cedd514515923a1cdffd772"
