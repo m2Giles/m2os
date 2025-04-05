@@ -36,14 +36,14 @@ export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") }
 
 # Build Containers
-# renovate: datasource=docker versioning=docker
-BUILD_ISO_VERSION := "latest"
-# renovate: datasource=docker versioning=docker
-BUILD_RECHUNKER_VERSION := "latest"
-# renovate: datasource=docker versioning=docker
-BUILD_COSIGN_VERSION := "latest"
-# renovate: datasource=docker versioning=docker
-BUILD_SYFT_VERSION := "latest"
+# renovate: datasource=github-tags packageName=jasonn3/build-container-installer versioning=loose
+BUILD_ISO_VERSION := "v1.2.3"
+# renovate: datasource=github-releases packageName=hhd-dev/rechunk versioning=loose
+BUILD_RECHUNKER_VERSION := "v1.2.1"
+# renovate: datasource=github-releases packageName=sigstore/cosign versioning=loose
+BUILD_COSIGN_VERSION := "v2.4.2"
+# renovate: datasource=github-releases packageName=anchore/syft versioning=loose
+BUILD_SYFT_VERSION := "v1.21.0"
 isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
 rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
 cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION

@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices"],
+  "extends": ["config:best-practices", "docker:disable"],
 
   "rebaseWhen": "never",
 
@@ -22,9 +22,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["(^|/|\\.)[Jj]ustfile$", "(^|/)[Jj]ustfile\\.[^/]*$"],
+      "fileMatch": ["^Justfile.*$"],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+?)(?: depName=(?<depName>.+?))? packageName=(?<packageName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:BUILD).+?_VERSION := \"(?<currentValue>.+?)\"\\s"
+        "# renovate: datasource=(?<datasource>[a-z-]+?)(?: depName=(?<depName>.+?))? packageName=(?<packageName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:BUILD)_.+?_VERSION := \"(?<currentValue>.+?)\"\\s"
       ]
     }
   ]
