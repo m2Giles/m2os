@@ -18,41 +18,6 @@ images := '(
     [ucore-nvidia]="stable-nvidia-zfs"
 )'
 
-# Just Executable
-
-export just := just_executable()
-
-# SUDO
-
-export SUDO_DISPLAY := if `if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then echo true; fi` == "true" { "true" } else { "false" }
-export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY == "true" { "sudo --askpass" } else { "sudo" }
-
-# Quiet By Default
-
-export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
-
-# Podman By Default
-
-export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") }
-
-# Build Containers
-# renovate: datasource=github-tags packageName=jasonn3/build-container-installer versioning=loose
-
-BUILD_ISO_VERSION := "v1.2.3"
-
-# renovate: datasource=github-releases packageName=hhd-dev/rechunk versioning=loose
-
-BUILD_RECHUNKER_VERSION := "v1.2.1"
-
-# renovate: datasource=github-releases packageName=anchore/syft versioning=loose
-
-BUILD_SYFT_VERSION := "v1.22.0"
-BUILD_COSIGN_VERSION := "latest"
-isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
-rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
-cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
-syft-installer := "docker.io/anchore/syft:" + BUILD_SYFT_VERSION
-
 [private]
 default:
     @{{ just }} --list
@@ -779,3 +744,41 @@ sbom-attest image dryrun="true" $sbom="" $digest="" $destination="": install-cos
 
     # Attest with SBOM
     cosign attest -y "${COSIGN_ATTEST_ARGS[@]}"
+
+# Just Executable
+
+export just := just_executable()
+
+# SUDO
+
+export SUDO_DISPLAY := if `if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then echo true; fi` == "true" { "true" } else { "false" }
+export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY == "true" { "sudo --askpass" } else { "sudo" }
+
+# Quiet By Default
+
+export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
+
+# Podman By Default
+
+export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") }
+
+# Build Containers
+# renovate: datasource=github-tags packageName=ghcr.io/jasonn3/build-container-installer
+
+BUILD_ISO_VERSION := "v1.2.3"
+
+# renovate: datasource=docker packageName=ghcr.io/hhd-dev/rechunk
+
+BUILD_RECHUNKER_VERSION := "v1.2.1"
+
+# renovate: datasource=docker packageName=anchore/syft
+
+BUILD_SYFT_VERSION := "v1.22.0"
+
+# renovate: datasource=docker packageName=chainguard/cosign
+
+BUILD_COSIGN_VERSION := "latest"
+isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
+rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
+cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
+syft-installer := "docker.io/anchore/syft:" + BUILD_SYFT_VERSION
