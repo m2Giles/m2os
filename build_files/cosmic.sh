@@ -40,7 +40,6 @@ PACKAGES=(
     gnome-keyring
     NetworkManager-openvpn
     xdg-desktop-portal-gtk
-    fedora-release-cosmic-atomic
 )
 
 # Bluefin Packages
