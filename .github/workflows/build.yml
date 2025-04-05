@@ -44,18 +44,6 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
-  push-image:
-    name: Push Images
-    needs: [build-image]
-    uses: ./.github/workflows/push.yml
-    secrets: inherit
-    strategy:
-      fail-fast: false
-      matrix:
-        image_flavor: ["Desktop", "Bazzite", "Server"]
-    with:
-      image_flavor: ${{ matrix.image_flavor }}
-
   gen-sbom:
     name: Generate SBOMs
     needs: [build-image]
@@ -72,7 +60,7 @@ jobs:
     name: Generate Changelogs
     uses: ./.github/workflows/changelogs.yml
     secrets: inherit
-    needs: ["build-iso", "push-image"]
+    needs: ["build-iso"]
     strategy:
       fail-fast: false
       matrix:
@@ -82,7 +70,7 @@ jobs:
 
   attest-sbom:
     name: Attest SBOMs
-    needs: ["gen-sbom", "push-image"]
+    needs: ["gen-sbom"]
     uses: ./.github/workflows/attest-sbom.yml
     secrets: inherit
     strategy:
