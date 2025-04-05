@@ -35,6 +35,24 @@ export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 
 export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/usr/bin/podman") } else if path_exists("/usr/bin/docker") == "true" { env("PODMAN", "docker") } else { env("PODMAN", "exit 1 ; ") }
 
+# Build Containers
+# renovate: datasource=github-tags packageName=jasonn3/build-container-installer versioning=loose
+
+BUILD_ISO_VERSION := "v1.2.3"
+
+# renovate: datasource=github-releases packageName=hhd-dev/rechunk versioning=loose
+
+BUILD_RECHUNKER_VERSION := "v1.2.1"
+
+# renovate: datasource=github-releases packageName=anchore/syft versioning=loose
+
+BUILD_SYFT_VERSION := "v1.21.0"
+BUILD_COSIGN_VERSION := "latest"
+isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
+rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
+cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
+syft-installer := "docker.io/anchore/syft:" + BUILD_SYFT_VERSION
+
 [private]
 default:
     @{{ just }} --list
@@ -194,7 +212,7 @@ rechunk image="bluefin":
         --volume "$MOUNT":/var/tree \
         --env TREE=/var/tree \
         --user 0:0 \
-        ghcr.io/hhd-dev/rechunk:latest \
+        {{ rechunker }} \
         /sources/rechunk/1_prune.sh
     echo "::endgroup::"
 
@@ -207,7 +225,7 @@ rechunk image="bluefin":
         --env REPO=/var/ostree/repo \
         --env RESET_TIMESTAMP=1 \
         --user 0:0 \
-        ghcr.io/hhd-dev/rechunk:latest \
+        {{ rechunker }} \
         /sources/rechunk/2_create.sh
     {{ SUDOIF }} {{ PODMAN }} unmount "$CREF"
     {{ SUDOIF }} {{ PODMAN }} rm "$CREF"
@@ -233,7 +251,7 @@ rechunk image="bluefin":
         --env OUT_REF="oci-archive:$OUT_NAME" \
         --env GIT_DIR="/var/git" \
         --user 0:0 \
-        ghcr.io/hhd-dev/rechunk:latest \
+        {{ rechunker }} \
         /sources/rechunk/3_chunk.sh
     echo "::endgroup::"
 
@@ -401,7 +419,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
         iso_build_args+=(--volume "/var/lib/containers/storage:/var/lib/containers/storage")
     fi
     iso_build_args+=(--volume "${PWD}:/github/workspace/")
-    iso_build_args+=(ghcr.io/jasonn3/build-container-installer:latest)
+    iso_build_args+=({{ isobuilder }})
     iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[*]}")
     iso_build_args+=(ARCH="x86_64")
     iso_build_args+=(ENROLLMENT_PASSWORD="universalblue")
@@ -622,7 +640,7 @@ install-cosign:
 
     # Get Cosign from Chainguard
     if [[ ! $(command -v cosign) ]]; then
-        COSIGN_CONTAINER_ID=$({{ SUDOIF }} {{ PODMAN }} create cgr.dev/chainguard/cosign:latest bash)
+        COSIGN_CONTAINER_ID=$({{ SUDOIF }} {{ PODMAN }} create {{ cosign-installer }} bash)
         {{ SUDOIF }} {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign /usr/local/bin/cosign
         {{ SUDOIF }} {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
     fi
@@ -688,7 +706,7 @@ gen-sbom $input $output="":
     # Get SYFT if needed
     SYFT_ID=""
     if [[ ! $(command -v syft) ]]; then
-        SYFT_ID="$({{ SUDOIF }} podman create --pull=newer docker.io/anchore/syft:latest)"
+        SYFT_ID="$({{ SUDOIF }} podman create --pull=newer {{ syft-installer }})"
         {{ SUDOIF }} {{ PODMAN }} cp "$SYFT_ID":/syft /usr/local/bin/syft
         {{ SUDOIF }} {{ PODMAN }} rm -f "$SYFT_ID" > /dev/null
         {{ SUDOIF }} {{ PODMAN }} rmi -f docker.io/anchore/syft:latest

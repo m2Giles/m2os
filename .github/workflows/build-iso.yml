@@ -112,3 +112,19 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
+
+  check-iso:
+    name: Check all ${{ inputs.image_flavor }} ISOs Created
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    needs: [build-iso]
+    steps:
+      - name: Exit on failure
+        if: >-
+          ${{ contains(fromJson('["failure", "skipped"]'),
+          needs.build-iso.result) }}
+        shell: bash
+        run: exit 1
+      - name: Exit
+        shell: bash
+        run: exit 0
