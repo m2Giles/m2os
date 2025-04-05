@@ -24,13 +24,13 @@ jobs:
     steps:
       - name: Checkout last 500 commits (for <commits> to work)
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 500
       - name: Download Artifacts
         if: contains(fromJson('["Desktop", "Bazzite"]'), inputs.target)
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
         with:
           pattern: url-${{ inputs.target }}-*
           merge-multiple: true
@@ -59,7 +59,7 @@ jobs:
           source ./output-${{ inputs.target }}.env
       - name: Upload Changelogs as Artifact
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: changelogs-${{ inputs.target }}
           path: ./changelog-${{ inputs.target }}.md

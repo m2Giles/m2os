@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Checkout
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Get Images for Build
         id: images
         uses: ./.github/actions/get-images
@@ -49,7 +49,7 @@ jobs:
       - name: Maximize Build Space
         if: ${{ ! contains(matrix.image, 'ucore') }}
         # yamllint disable-line rule:line-length rule:comments
-        uses: ublue-os/remove-unwanted-software@v9
+        uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
@@ -70,7 +70,7 @@ jobs:
       - name: Lowercase Registry
         id: registry_case
         # yamllint disable-line rule:line-length rule:comments
-        uses: ASzc/change-string-case-action@v6
+        uses: ASzc/change-string-case-action@d0603cd0a7dd490be678164909f65c7737470a7f # v6
         with:
           string: ${{ env.IMAGE_REGISTRY }}
       - name: Login and Push to GHCR
@@ -101,7 +101,7 @@ jobs:
           just cosign-sign "${{ steps.push.outputs.digest }}"
       - name: Upload OCI Artifact
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.image }}.oci
           # yamllint disable-line rule:line-length rule:comments
