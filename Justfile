@@ -663,7 +663,11 @@ push-to-registry image $dryrun="true" $destination="":
     fi
 
     # Pass Digest
-    skopeo inspect "oci-archive:{{ repo_image_name }}_{{ image }}.tar" --format '{{{{ .Digest }}'
+    digest="$(skopeo inspect "oci-archive:{{ repo_image_name }}_{{ image }}.tar" --format '{{{{ .Digest }}')"
+    if [[ -n "${GITHUB_OUTPUTS:-}" ]]; then
+        echo "digest=$digest" >> "$GITHUB_OUTPUTS"
+    fi
+    echo "$digest"
 
 # Sign Images with Cosign
 [group('CI')]
