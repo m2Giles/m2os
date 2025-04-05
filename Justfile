@@ -44,7 +44,7 @@ BUILD_RECHUNKER_VERSION := "latest"
 BUILD_COSIGN_VERSION := "latest"
 # renovate: datasource=docker versioning=docker
 BUILD_SYFT_VERSION := "latest"
-isobuild := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
+isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
 rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
 cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
 syft-installer := "docker.io/anchore/syft:" + BUILD_SYFT_VERSION
@@ -415,7 +415,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
         iso_build_args+=(--volume "/var/lib/containers/storage:/var/lib/containers/storage")
     fi
     iso_build_args+=(--volume "${PWD}:/github/workspace/")
-    iso_build_args+=({{ isobuild }})
+    iso_build_args+=({{ isobuilder}})
     iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[*]}")
     iso_build_args+=(ARCH="x86_64")
     iso_build_args+=(ENROLLMENT_PASSWORD="universalblue")
