@@ -47,8 +47,7 @@ BUILD_RECHUNKER_VERSION := "v1.2.1"
 # renovate: datasource=github-releases packageName=anchore/syft versioning=loose
 
 BUILD_SYFT_VERSION := "v1.21.0"
-BUILD_COSIGN_VERSION := "latest" # No free tagged by version
-
+BUILD_COSIGN_VERSION := "latest"
 isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
 rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
 cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
