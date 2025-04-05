@@ -637,8 +637,9 @@ install-cosign:
 
 # Login to GHCR
 [group('CI')]
-login-to-ghcr $user $token:
-    @echo "$token" | {{ PODMAN }} login ghcr.io -u "$user" --password-stdin
+@login-to-ghcr $user $token:
+    echo "$token" | podman login ghcr.io -u "$user" --password-stdin
+    echo "$token" | docker login ghcr.io -u "$user" --password-stdin
 
 # Push Images to Registry
 [group('CI')]
