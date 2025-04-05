@@ -32,7 +32,7 @@ jobs:
   build-image:
     name: Build ${{ matrix.image }} Image
     needs: get-images
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     continue-on-error: false
     permissions:
       contents: read

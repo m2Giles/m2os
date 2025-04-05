@@ -32,7 +32,7 @@ jobs:
   sbom-image:
     name: Generate ${{ matrix.image }} SBOM
     needs: ["get-images"]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     continue-on-error: false
     permissions:
       contents: read
