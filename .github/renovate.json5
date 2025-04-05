@@ -24,7 +24,7 @@
       "customType": "regex",
       "fileMatch": ["^Justfile.*$"],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+?)(?: depName=(?<depName>.+?))? packageName=(?<packageName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:BUILD)_.+?_VERSION := \"(?<currentValue>.+?)\"\\s"
+        "# renovate: datasource=(?<datasource>[a-z-]+?)(?: depName=(?<depName>.+?))? packageName=(?<packageName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s\\s(?:BUILD)_.+?_VERSION := \"(?<currentValue>.+?)\"\\s"
       ]
     }
   ]

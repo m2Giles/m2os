@@ -37,12 +37,19 @@ export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/u
 
 # Build Containers
 # renovate: datasource=github-tags packageName=jasonn3/build-container-installer versioning=loose
+
 BUILD_ISO_VERSION := "v1.2.3"
+
 # renovate: datasource=github-releases packageName=hhd-dev/rechunk versioning=loose
+
 BUILD_RECHUNKER_VERSION := "v1.2.1"
+
 # renovate: datasource=github-releases packageName=sigstore/cosign versioning=loose
+
 BUILD_COSIGN_VERSION := "v2.4.2"
+
 # renovate: datasource=github-releases packageName=anchore/syft versioning=loose
+
 BUILD_SYFT_VERSION := "v1.21.0"
 isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
 rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
@@ -415,7 +422,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
         iso_build_args+=(--volume "/var/lib/containers/storage:/var/lib/containers/storage")
     fi
     iso_build_args+=(--volume "${PWD}:/github/workspace/")
-    iso_build_args+=({{ isobuilder}})
+    iso_build_args+=({{ isobuilder }})
     iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[*]}")
     iso_build_args+=(ARCH="x86_64")
     iso_build_args+=(ENROLLMENT_PASSWORD="universalblue")
