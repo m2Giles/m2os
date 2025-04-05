@@ -766,18 +766,22 @@ export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/u
 # renovate: datasource=docker packageName=ghcr.io/jasonn3/build-container-installer
 
 BUILD_ISO_VERSION := "v1.2.4"
+BUILD_ISO_DIGEST := " "
 
 # renovate: datasource=docker packageName=ghcr.io/hhd-dev/rechunk
 
 BUILD_RECHUNKER_VERSION := "v1.2.1"
+BUILD_RECHUNKER_DIGEST := " "
 
 # renovate: datasource=docker packageName=anchore/syft
 
 BUILD_SYFT_VERSION := "v1.22.0"
+BUILD_SYFT_DIGEST := " "
 
 # renovate: datasource=docker packageName=chainguard/cosign
 
 BUILD_COSIGN_VERSION := "latest"
+BUILD_COSIGN_DIGEST := " "
 isobuilder := "ghcr.io/jasonn3/build-container-installer:" + BUILD_ISO_VERSION
 rechunker := "ghcr.io/hhd-dev/rechunk:" + BUILD_RECHUNKER_VERSION
 cosign-installer := "cgr.dev/chainguard/cosign:" + BUILD_COSIGN_VERSION
