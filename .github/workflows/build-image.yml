@@ -73,14 +73,11 @@ jobs:
         uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ env.IMAGE_REGISTRY }}
-      - name: Login, Push, and Sign
+      - name: Login and Push to GHCR
         id: push
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
-        env:
-          COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         shell: bash
         run: |
           set -eou pipefail
@@ -90,7 +87,18 @@ jobs:
             false
             "docker://${{ steps.registry_case.outputs.lowercase }}"
           )
-          just cosign-sign "$(just push-to-registry "${push_args[@]}")"
+          just push-to-registry "${push_args[@]}"
+      - name: Sign Image with Cosign
+        id: sign
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
+        env:
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+        shell: bash
+        run: |
+          just cosign-sign "${{ steps.push.outputs.digest }}"
       - name: Upload OCI Artifact
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
