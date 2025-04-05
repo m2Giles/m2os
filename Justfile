@@ -655,18 +655,15 @@ push-to-registry image $dryrun="true" $destination="":
     declare -a TAGS=("$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')")
     TAGS+=("{{ image }}")
 
-    echo "${TAGS[@]}"
     # Push
     if [[ "{{ dryrun }}" == "false" ]]; then
         for tag in "${TAGS[@]}"; do
             skopeo copy "oci-archive:{{ repo_image_name }}_{{ image }}.tar" "$destination/{{ repo_image_name }}:$tag"
         done
     fi
-    digest="$(skopeo inspect "$destination/{{ repo_image_name }}:{{ image }}" --format '{{{{ .Digest }}')"
-    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-        echo "digest=$digest" >> "$GITHUB_OUTPUT"
-    fi
-    echo "$digest"
+
+    # Pass Digest
+    skopeo inspect "oci-archive:{{ repo_image_name }}_{{ image }}.tar" --format '{{{{ .Digest }}'
 
 # Sign Images with Cosign
 [group('CI')]

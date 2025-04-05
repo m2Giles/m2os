@@ -67,7 +67,7 @@ jobs:
         shell: bash
         run: |
           sudo $(which just) rechunk ${{ matrix.image }}
-      - name: Login and Push to GHCR
+      - name: Login, Push, and Sign
         id: push
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
@@ -75,6 +75,8 @@ jobs:
         env:
           REGISTRY_USER: ${{ github.actor }}
           REGISTRY_PASSWORD: ${{ github.token }}
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
         shell: bash
         run: |
           just login-to-ghcr ${{ github.actor }} ${{ github.token }}
@@ -83,17 +85,7 @@ jobs:
             false
             "docker://${{ steps.registry_case.outputs.lowercase }}"
           )
-          just push-to-registry "${push_args[@]}"
-      - name: Sign Container Image
-        if: >-
-          contains(fromJson('["workflow_dispatch", "merge_group"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
-        env:
-          COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
-        shell: bash
-        run: |
-          just cosign-sign ${{ steps.push.outputs.digest }}
+          just cosign-sign "$(just push-to-registry "${push_args[@]}")"
       - name: Upload OCI Artifact
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@v4
