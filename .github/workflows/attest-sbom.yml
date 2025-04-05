@@ -70,6 +70,7 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
+          just login-to-ghcr ${{ github.actor }} ${{ github.token }}
           attest_args=(
               "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}"
               false
