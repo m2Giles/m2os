@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Checkout
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Get Images for Build
         id: images
         uses: ./.github/actions/get-images
@@ -51,14 +51,14 @@ jobs:
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
       - name: Download OCI-Archive
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
         with:
           name: ${{ matrix.image }}.oci
           path: ${{ runner.temp }}
       - name: Lowercase Registry
         id: registry_case
         # yamllint disable-line rule:line-length rule:comments
-        uses: ASzc/change-string-case-action@v6
+        uses: ASzc/change-string-case-action@d0603cd0a7dd490be678164909f65c7737470a7f # v6
         with:
           string: ${{ env.IMAGE_REGISTRY }}
       - name: Setup
@@ -100,7 +100,7 @@ jobs:
                 "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.image }}.sbom.json
           path: |
