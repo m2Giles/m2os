@@ -50,6 +50,7 @@ clean:
     {{ SUDOIF }} find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
     find {{ repo_image_name }}_* -maxdepth 0 -exec rm -rf {} \;
     rm -f output*.env changelog*.md version.txt previous.manifest.json
+    rm -f *.sbom.json
 
 # Build Image
 [group('Image')]
@@ -718,40 +719,34 @@ gen-sbom $input $output="":
 
 # Add SBOM attestation
 [group('CI')]
-sbom-attest image dryrun="true" $sbom="" $digest="" $destination="": install-cosign
+sbom-sign image $sbom="": install-cosign
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
-    # Set Destination
-    if [[ -z "$destination" ]]; then
-        destination="{{ IMAGE_REGISTRY }}"
-    fi
-
-    # Set Digest
-    if [[ -z "$digest" ]]; then
-        digest="$(skopeo inspect {{ image }} --format '{{{{ .Digest }}')"
-    elif [[ -f "{{ digest }}" ]]; then
-        digest="$(cat {{ digest }})"
-    fi
-
     # set SBOM
-    if [[ -z "$sbom" ]]; then
+    if [[ ! -f "$sbom" ]]; then
         sbom="$({{ just }} gen-sbom {{ image }})"
     fi
 
-    # ATTEST ARGS
-    COSIGN_ATTEST_ARGS=(
-       "--predicate" "$sbom"
-       "--type" "spdxjson"
+    # Sign-blob Args
+    SBOM_SIGN_ARGS=(
        "--key" "env://COSIGN_PRIVATE_KEY"
+       "--output-signature" "$sbom.sig"
+       "$sbom"
     )
-    if [[ "{{ dryrun }}" != "false" ]]; then
-        COSIGN_ATTEST_ARGS+=("--no-upload=true")
-    fi
-    COSIGN_ATTEST_ARGS+=("$destination/{{ repo_image_name }}@$digest")
 
-    # Attest with SBOM
-    cosign attest -y "${COSIGN_ATTEST_ARGS[@]}"
+    # Sign SBOM
+    cosign sign-blob -y "${SBOM_SIGN_ARGS[@]}"
+
+    # Verify-blob Args
+    SBOM_VERIFY_ARGS=(
+        "--key" "cosign.pub"
+        "--signature" "$sbom.sig"
+        "$sbom"
+    )
+
+    # Verify Signature
+    cosign verify-blob "${SBOM_VERIFY_ARGS[@]}"
 
 # Just Executable
 
