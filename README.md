@@ -65,27 +65,41 @@ Use the coreos installer and in the ignition file switch to one of these images.
 You can rebase to an **m2os** image using the following:
 
 ```console
-$ sudo bootc switch --enforce-container-sigpolicy ghcr.io/m2giles/m2os:TAG
+TAG=bluefin
+sudo bootc switch --enforce-container-sigpolicy "ghcr.io/m2giles/m2os:$TAG"
 ```
 
 Replace TAG with the specified image. This is also the method for switching to Ucore.
 
 ## Verification
 
-All images in this repo are signed with sigstore's cosign. You can verify the signatures by running the following command
+### Image Verification
+All images in this repo are signed with sigstore's [`cosign`](https://github.com/sigstore/cosign). You can verify the signatures by running the following command
 
 ```console
-$ cosign verify --key "https://raw.githubusercontent.com/m2Giles/m2os/refs/heads/main/cosign.pub" "ghcr.io/m2giles/m2os:TAG
+TAG=bluefin
+cosign verify --key "https://raw.githubusercontent.com/m2Giles/m2os/refs/heads/main/cosign.pub" "ghcr.io/m2giles/m2os:$TAG"
 ```
 
 Again replace the TAG with the specified image
 
-## DIY
+### SBOM Verification
 
-This repo was build on the [Universal Blue Image Template](https://github.com/ublue-os/image-template) and added to significantly.
-
-It is possible to build all images and ISOs locally using the provided `Justfile` with `just`. For example to build `m2os:bluefin` just do:
+Every Release has an SBOM generated with anchore's [`syft`](https://github.com/anchore/syft). These SBOM's are also signed with sigstore's `cosign`. Every release tag has the SBOM's attached as an artificat along with the signature file. You can verify the SBOM by running the following command.
 
 ```console
-$ just build bluefin
+TAG=bluefin
+cosign verify-blob --key "https://raw.githubusercontent.com/m2Giles/m2os/refs/heads/main/cosign.pub" --signature "$TAG.sbom.json.sig" "$TAG.sbom.json"
+```
+
+Again replace TAG with the specified image.
+
+## DIY
+
+This repo was built on the [Universal Blue Image Template](https://github.com/ublue-os/image-template) and added to significantly.
+
+It is possible to build all images and ISOs locally using the provided `Justfile` with [`just`](https://github.com/casey/just). For example to build `m2os:bluefin` just do:
+
+```console
+just build bluefin
 ```

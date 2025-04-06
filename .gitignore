@@ -6,3 +6,5 @@ output-*.env
 output.env
 version.txt
 *.key
+*.sbom.*
+*.tmp*
