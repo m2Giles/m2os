@@ -736,7 +736,7 @@ sbom-sign image $sbom="": install-cosign
     )
 
     # Sign SBOM
-    cosign sign-blob -y "${COSIGN_SIGN_ARGS[@]}"
+    cosign sign-blob -y "${SBOM_SIGN_ARGS[@]}"
 
     # Verify-blob Args
     SBOM_VERIFY_ARGS=(
@@ -746,7 +746,7 @@ sbom-sign image $sbom="": install-cosign
     )
 
     # Verify Signature
-    cosign verify-blob -y "${COSIGN_VERIFY_ARGS[@]}"
+    cosign verify-blob -y "${SBOM_VERIFY_ARGS[@]}"
 
 # Just Executable
 
