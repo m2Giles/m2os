@@ -35,7 +35,7 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
         with:
-          pattern: "*.sbom.json"
+          pattern: "*.sbom"
           run-id: ${{ inputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
           merge-multiple: true
@@ -78,4 +78,4 @@ jobs:
           make_latest: true
           files: |-
             changelog.md
-            *.sbom.json
+            *.sbom*

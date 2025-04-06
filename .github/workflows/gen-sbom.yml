@@ -67,9 +67,6 @@ jobs:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           set -eou pipefail
-          digest="$(skopeo inspect --format '{{ .Digest }}' \
-                    oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }})"
-          echo "$digest" >> ${{ runner.temp }}/${{ matrix.image }}.digest
           echo "=== FREE SPACE ==="
           df -h
           echo "=== MEMORY AND SWAP ==="
@@ -96,33 +93,25 @@ jobs:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           just gen-sbom \
-                "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
-                "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
-      - name: Upload SBOM
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: ${{ matrix.image }}.sbom.json
-          path: |
-            ${{ runner.temp }}/${{ matrix.image }}.digest
-            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
-      - name: SBOM Attest
-        if: false
+            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
+            "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
+      - name: SBOM Sign
         env:
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
-          just login-to-ghcr ${{ github.actor }} ${{ github.token }}
-          attest_args=(
-              "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}"
-              false
-              ${{ runner.temp }}/${{ matrix.image }}.sbom.json
-              ${{ runner.temp }}/${{ matrix.image }}.digest
-              ${{ steps.registry_case.outputs.lowercase }}
-          )
-          just sbom-attest "${attest_args[@]}"
-
+          just sbom-sign \
+            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+      - name: Upload SBOM
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.image }}.sbom
+          path: |
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json.sig
   check-sbom:
     name: Check ${{ inputs.image_flavor }} SBOMs Generated
     if: ${{ !cancelled() }}
