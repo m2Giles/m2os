@@ -291,7 +291,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
 
     # Build from GHCR or localhost
     IMAGE_REPO={{ IMAGE_REGISTRY }}
-    TEMPLATES=(/github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl)
+    TEMPLATES=("/github/workspace/{{ repo_image_name }}_build/lorax_templates/remove_root_password_prompt.tmpl")
     if [[ "{{ ghcr }}" -gt "0" ]]; then
         IMAGE_FULL={{ FQ_IMAGE_NAME }}:{{ image }}
         if [[ "{{ ghcr }}" == "1" ]]; then
@@ -371,6 +371,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     tee "${TEMP_FLATPAK_INSTALL_DIR}/install-flatpaks.sh"<<EOF
     mkdir -p /flatpak/flatpak /flatpak/triggers
     mkdir /var/tmp
+    mkdir /var/roothome
     chmod -R 1777 /var/tmp
     flatpak config --system --set languages "*"
     flatpak remote-add --system flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -402,7 +403,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
     iso_build_args+=(--volume "{{ GIT_ROOT }}:/github/workspace/")
     iso_build_args+=({{ isobuilder }})
-    iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[*]}")
+    iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[@]}")
     iso_build_args+=(ARCH="x86_64")
     iso_build_args+=(ENROLLMENT_PASSWORD="universalblue")
     iso_build_args+=(FLATPAK_REMOTE_REFS_DIR="/github/workspace/${FLATPAK_REFS_DIR}")
