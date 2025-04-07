@@ -1,0 +1,44 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "ublue-os-devcontainer",
+	"build": {
+		"dockerfile": "Containerfile",
+		"args": {
+			"USERNAME": "${localEnv:USERNAME}"
+		}
+	},
+	"mounts": [
+		{
+			"source": "/tmp",
+			"target": "/tmp",
+			"type": "bind"
+		},
+		{
+			"source": "/var/run/docker.sock",
+			"target": "/var/run/docker-host.sock",
+			"type": "bind"
+		}
+	],
+	"securityOpt": [
+		"label=disable"
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"eamodio.gitlens",
+				"hangxingliu.vscode-systemd-support",
+				"mads-hartmann.bash-ide-vscode",
+				"ms-azuretools.vscode-docker",
+				"sclu1034.justfile",
+				"timonwong.shellcheck"
+			]
+		}
+	},
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_DIR": "${localWorkspaceFolder}",
+		"PODMAN": "docker",
+		"SET_X": "1"
+	},
+	"init": true,
+	"overrideCommand": false
+}

@@ -71,9 +71,9 @@ jobs:
         with:
           name: ${{ matrix.image }}.oci
       - name: Build ISO
-        if: >-
-          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
+        # if: >-
+        #   contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+        #   github.event_name) || github.event.schedule == '41 6 * * 0'
         shell: bash
         run: |
           sudo $(which just) build-iso ${{ matrix.image }} 2 1
