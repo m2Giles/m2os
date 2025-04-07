@@ -156,7 +156,7 @@ rechunk image="bluefin":
     fi
 
     if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker ]]; then
-        COPYTMP="$(mktemp -p "{{ PWD }}" -d -t podman_scp.XXXXXXXXXX)"
+        COPYTMP="$(mktemp -p "{{ GIT_ROOT }}" -d -t podman_scp.XXXXXXXXXX)"
         {{ SUDOIF }} TMPDIR="${COPYTMP}" {{ PODMAN }} image scp "${UID}"@localhost::localhost/{{ repo_image_name }}:{{ image }} root@localhost::localhost/{{ repo_image_name }}:{{ image }}
         rm -rf "${COPYTMP}"
     fi
@@ -219,8 +219,8 @@ rechunk image="bluefin":
     echo "::group:: Rechunk"
     {{ SUDOIF }} {{ PODMAN }} run --rm \
         --security-opt label=disable \
-        --volume "{{ PWD }}:/workspace" \
-        --volume "{{ PWD }}:/var/git" \
+        --volume "{{ GIT_ROOT }}:/workspace" \
+        --volume "{{ GIT_ROOT }}:/var/git" \
         --volume cache_ostree:/var/ostree \
         --env REPO=/var/ostree/repo \
         --env PREV_REF={{ FQ_IMAGE_NAME }}:{{ image }} \
@@ -326,7 +326,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     TEMP_FLATPAK_INSTALL_DIR="$(mktemp -d -p /tmp flatpak-XXXXX)"
     FLATPAK_REFS_DIR="{{ repo_image_name }}_build/flatpak-refs-{{ image }}"
     mkdir -p "${FLATPAK_REFS_DIR}"
-    FLATPAK_REFS_DIR_ABS="{{ PWD }}/${FLATPAK_REFS_DIR}"
+    FLATPAK_REFS_DIR_ABS="{{ GIT_ROOT }}/${FLATPAK_REFS_DIR}"
     case "{{ image }}" in
     *"aurora"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/aurora/refs/heads/main/aurora_flatpaks/flatpaks"
@@ -400,7 +400,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     elif [[ "{{ ghcr }}" == "0" && "{{ PODMAN }}" =~ docker ]]; then
         iso_build_args+=(--volume "/var/run/docker.sock:/var/run/docker.sock")
     fi
-    iso_build_args+=(--volume "{{ PWD }}:/github/workspace/")
+    iso_build_args+=(--volume "{{ GIT_ROOT }}:/github/workspace/")
     iso_build_args+=({{ isobuilder }})
     iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[*]}")
     iso_build_args+=(ARCH="x86_64")
@@ -425,10 +425,10 @@ build-iso image="bluefin" ghcr="0" clean="0":
     # Build ISO
     {{ SUDOIF }} {{ PODMAN }} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
     if [[ "${UID}" -gt "0" ]]; then
-        {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "${PWD}"
+        {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
         {{ SUDOIF }} {{ PODMAN }} rmi "${IMAGE_FULL}"
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
-        {{ SUDOIF }} chown -R "${SUDO_UID}":"${SUDO_GID}" "${PWD}"
+        {{ SUDOIF }} chown -R "${SUDO_UID}":"${SUDO_GID}" "$PWD"
     fi
 
 # Run ISO
@@ -456,7 +456,7 @@ run-iso image="bluefin":
     run_args+=(--env "TPM=Y")
     run_args+=(--env "GPU=Y")
     run_args+=(--device=/dev/kvm)
-    run_args+=(--volume "{{ PWD }}/{{ repo_image_name }}_build/output/{{ image }}.iso":"/boot.iso":z)
+    run_args+=(--volume "{{ GIT_ROOT }}/{{ repo_image_name }}_build/output/{{ image }}.iso":"/boot.iso":z)
     run_args+=({{ qemu }})
     {{ PODMAN }} run "${run_args[@]}"
 
@@ -776,7 +776,7 @@ export PODMAN := if path_exists("/usr/bin/podman") == "true" { env("PODMAN", "/u
 
 # Workspace Folder
 
-PWD := env("LOCAL_WORKSPACE_DIR", "`$PWD`")
+GIT_ROOT := env("LOCAL_WORKSPACE_DIR", justfile_dir())
 
 # Build Containers
 # renovate: datasource=docker packageName=ghcr.io/jasonn3/build-container-installer
