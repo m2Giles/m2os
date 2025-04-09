@@ -1,10 +1,35 @@
-FROM ghcr.io/ublue-os/base-main:latest
+FROM alpine:edge
 
 ARG USERNAME="vscode"
 
+USER root
+
 RUN <<CONTAINEREOF
 mkdir -p /etc/skel/.bashrc.d
-tee /etc/skel/.bashrc.d/prompt >/dev/null <<'EOF'
+tee /etc/skel/.bashrc >/dev/null <<'EOF'
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+# User specific environment
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
+    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+fi
+export PATH
+
+# User specific aliases and functions
+if [ -d ~/.bashrc.d ]; then
+    for rc in ~/.bashrc.d/*; do
+        if [ -f "$rc" ]; then
+            . "$rc"
+        fi
+    done
+fi
+unset rc
+
 # bash theme - partly inspired by https://github.com/ohmyzsh/ohmyzsh/blob/master/themes/robbyrussell.zsh-theme
 __bash_prompt() {
     local userpart='`export XIT=$? \
@@ -31,27 +56,52 @@ __bash_prompt
 export PROMPT_DIRTRIM=4
 EOF
 
-mkdir -p /var/run /var/{root,}home /var/usrlocal/{share,lib,lib64,bin,sbin,include,src}
-adduser -m "$USERNAME"
+# Install Tools
+mkdir -p /usr/local/bin
+apk add --no-cache \
+    bash \
+    bash-completion \
+    cosign \
+    curl \
+    docker-cli \
+    docker-cli-buildx \
+    docker-cli-compose \
+    fd \
+    git \
+    grep \
+    just \
+    jq \
+    ripgrep \
+    sbsigntool \
+    shadow \
+    shellcheck \
+    shfmt \
+    skopeo \
+    socat \
+    sudo \
+    syft \
+    tar \
+    tmux \
+    xz \
+    yamlfmt \
+    yamllint \
+    zstd
+
+# curl -Ls $(curl -Ls https://api.github.com/repos/google/yamlfmt/releases/latest | jq -r '.assets[] | select(.name | test(".*Linux_x86_64.*")).browser_download_url') | tar -xz -C /usr/local/bin/
+# rm -f /usr/local/bin/LICENSE /usr/local/bin/README.md
+
+# curl -Ls $(curl -Ls https://api.github.com/repos/koalaman/shellcheck/releases/latest | jq -r ".assets[] | select(.name | test(\".*linux.$(uname -m)*\")).browser_download_url") | tar -xJ -C /usr/local/bin/
+# mv /usr/local/bin/shellcheck-*/shellcheck /usr/local/bin/
+# rm -rf /usr/local/bin/shellcheck-*
+
+# mkdir -p /etc/containers
+# echo '{ "default": [ { "type": "insecureAcceptAnything" } ], "transports": { "docker-daemon": { "": [{"type":"insecureAcceptAnything"}] } } }' > /etc/containers/policy.json
+
+# Configure User
+useradd -m -s /bin/bash "$USERNAME"
 echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/vscode
 
-# Docker Repo
-tee /etc/yum.repos.d/docker-ce.repo <<'EOF'
-[docker-ce-stable]
-name=Docker CE Stable - $basearch
-baseurl=https://download.docker.com/linux/fedora/$releasever/$basearch/stable
-enabled=1
-gpgcheck=1
-gpgkey=https://download.docker.com/linux/fedora/gpg
-EOF
-
-# Docker/Socat/Other Tools
-dnf5 install -y docker-buildx-plugin docker-ce-cli docker-compose-plugin socat shellcheck yamllint shfmt
-
-curl -Ls $(curl -Ls https://api.github.com/repos/google/yamlfmt/releases/latest | jq -r '.assets[] | select(.name | test(".*Linux_x86_64.*")).browser_download_url') | tar -xz -C /usr/local/bin/
-rm -f /usr/local/bin/LICENSE /usr/local/bin/README.md
-
-usermod -aG docker "$USERNAME"
+groupadd docker -r -U "$USERNAME"
 
 SOURCE_SOCKET="${SOURCE_SOCKET:-"/var/run/docker-host.sock"}"
 TARGET_SOCKET="${TARGET_SOCKET:-"/var/run/docker.sock"}"
@@ -60,12 +110,14 @@ ENABLE_NONROOT_DOCKER="${ENABLE_NONROOT_DOCKER:-"true"}"
 DOCKER_GID="$(grep -oP '^docker:x:\K[^:]+' /etc/group)"
 
 if [ "${SOURCE_SOCKET}" != "${TARGET_SOCKET}" ]; then
+    mkdir -p "$(dirname $SOURCE_SOCKET)"
     touch "${SOURCE_SOCKET}"
     ln -s "${SOURCE_SOCKET}" "${TARGET_SOCKET}"
 fi
 
 # If enabling non-root access and specified user is found, setup socat and add script
 chown -h "${USERNAME}":root "${TARGET_SOCKET}"
+mkdir -p /usr/local/share
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
 #!/usr/bin/env bash
