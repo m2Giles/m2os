@@ -39,6 +39,7 @@
 		"PODMAN": "docker",
 		"SET_X": "1"
 	},
+	"privileged": true,
 	"init": true,
 	"overrideCommand": false
 }

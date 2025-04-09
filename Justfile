@@ -159,7 +159,8 @@ rechunk image="bluefin":
     fi
 
     if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker ]]; then
-        COPYTMP="$(mktemp -p "{{ GIT_ROOT }}" -d -t podman_scp.XXXXXXXXXX)"
+        mkdir -p "{{ BUILD_DIR }}"
+        COPYTMP="$(mktemp -dp "{{ BUILD_DIR }}")"
         {{ SUDOIF }} TMPDIR="${COPYTMP}" {{ PODMAN }} image scp "${UID}"@localhost::localhost/{{ repo_image_name }}:{{ image }} root@localhost::localhost/{{ repo_image_name }}:{{ image }}
         rm -rf "${COPYTMP}"
     fi
@@ -318,13 +319,15 @@ build-iso image="bluefin" ghcr="0" clean="0":
 
     # Load image into rootful podman
     if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker ]]; then
-        COPYTMP="$(mktemp -p "$PWD" -d -t podman_scp.XXXXXXXXXX)"
+        mkdir -p {{ BUILD_DIR }}
+        COPYTMP="$(mktemp -dp {{ BUILD_DIR }})"
         {{ SUDOIF }} TMPDIR="${COPYTMP}" {{ PODMAN }} image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"
         rm -rf "${COPYTMP}"
     fi
 
     # Generate Flatpak List
-    TEMP_FLATPAK_INSTALL_DIR="$(mktemp -d -p /tmp flatpak-XXXXX)"
+    TEMP_FLATPAK_INSTALL_DIR="$(mktemp -dp {{ BUILD_DIR }})"
+    trap 'rm -rf "$TEMP_FLATPAK_INSTALL_DIR"' EXIT SIGINT
     FLATPAK_REFS_DIR="{{ BUILD_DIR }}/flatpak-refs-{{ image }}"
     mkdir -p "${FLATPAK_REFS_DIR}"
     FLATPAK_REFS_DIR_ABS="{{ GIT_ROOT }}/${FLATPAK_REFS_DIR}"
@@ -335,11 +338,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     *"bazzite"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
     ;;
-    *"bluefin"*)
+    *"bluefin"*|*"cosmic"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/bluefin_flatpaks/flatpaks"
-    ;;
-    *"cosmic"*)
-        FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/cosmic/refs/heads/main/flatpaks.txt"
     ;;
     esac
     curl -Lo "${FLATPAK_REFS_DIR}"/flatpaks.txt "${FLATPAK_LIST_URL}"
@@ -350,16 +350,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
         app/org.libreoffice.LibreOffice/x86_64/stable
         app/org.prismlauncher.PrismLauncher/x86_64/stable
     )
-    if [[ "{{ image }}" =~ cosmic ]]; then
-        ADDITIONAL_FLATPAKS+=(
-            app/org.gnome.World.PikaBackup/x86_64/stable
-            app/it.mijorus.gearlever/x86_64/stable
-            runtime/org.gtk.Gtk3theme.adw-gtk3/x86_64/3.22
-            runtime/org.gtk.Gtk3theme.adw-gtk3-dark/x86_64/3.22
-        )
-    elif [[ "{{ image }}" =~ bazzite ]]; then
+    if [[ "{{ image }}" =~ bazzite ]]; then
         ADDITIONAL_FLATPAKS+=(app/org.gnome.World.PikaBackup/x86_64/stable)
-    elif [[ "{{ image }}" =~ aurora|bluefin ]]; then
+    elif [[ "{{ image }}" =~ aurora|bluefin|cosmic ]]; then
         ADDITIONAL_FLATPAKS+=(app/it.mijorus.gearlever/x86_64/stable)
     fi
     FLATPAK_REFS=()
@@ -386,7 +379,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
     -e FLATPAK_TRIGGERS_DIR=/flatpak/triggers \
     -v "${FLATPAK_REFS_DIR_ABS}":/output \
-    -v "${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
+    -v "{{ GIT_ROOT }}/${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
     "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
 
     VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect ${IMAGE_FULL} | jq -r '.[]["Config"]["Labels"]["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
@@ -426,7 +419,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(WEB_UI="false")
     # Build ISO
     {{ SUDOIF }} {{ PODMAN }} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
-    if [[ "${UID}" -gt "0" ]]; then
+    if [[ "{{ PODMAN}}" =~ docker ]]; then
+        {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
+    elif [[ "${UID}" -gt "0" ]]; then
         {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
         {{ SUDOIF }} {{ PODMAN }} rmi "${IMAGE_FULL}"
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
@@ -447,7 +442,7 @@ run-iso image="bluefin":
     done
     echo "Using Port: ${port}"
     echo "Connect to http://localhost:${port}"
-    (sleep 30 && xdg-open http://localhost:"${port}")&
+    (sleep 30 && xdg-open http://localhost:"${port}" || true)&
     run_args=()
     run_args+=(--rm --privileged)
     run_args+=(--publish "127.0.0.1:${port}:8006")

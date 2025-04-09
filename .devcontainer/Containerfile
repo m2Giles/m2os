@@ -69,8 +69,10 @@ apk add --no-cache \
     fd \
     git \
     grep \
+    iproute2-ss \
     just \
     jq \
+    ncurses \
     ripgrep \
     sbsigntool \
     shadow \
@@ -86,16 +88,6 @@ apk add --no-cache \
     yamlfmt \
     yamllint \
     zstd
-
-# curl -Ls $(curl -Ls https://api.github.com/repos/google/yamlfmt/releases/latest | jq -r '.assets[] | select(.name | test(".*Linux_x86_64.*")).browser_download_url') | tar -xz -C /usr/local/bin/
-# rm -f /usr/local/bin/LICENSE /usr/local/bin/README.md
-
-# curl -Ls $(curl -Ls https://api.github.com/repos/koalaman/shellcheck/releases/latest | jq -r ".assets[] | select(.name | test(\".*linux.$(uname -m)*\")).browser_download_url") | tar -xJ -C /usr/local/bin/
-# mv /usr/local/bin/shellcheck-*/shellcheck /usr/local/bin/
-# rm -rf /usr/local/bin/shellcheck-*
-
-# mkdir -p /etc/containers
-# echo '{ "default": [ { "type": "insecureAcceptAnything" } ], "transports": { "docker-daemon": { "": [{"type":"insecureAcceptAnything"}] } } }' > /etc/containers/policy.json
 
 # Configure User
 useradd -m -s /bin/bash "$USERNAME"
