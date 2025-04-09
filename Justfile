@@ -72,15 +72,15 @@ build image="bluefin":
         BASE_IMAGE="${check}"
         TAG_VERSION=stable-daily
         {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
-        skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > "$TMPDIR"/inspect-"{{ image }}".json
-        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR"/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
+        skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > "$TMPDIR/inspect-{{ image }}.json"
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
         ;;
     "bazzite"*)
         BASE_IMAGE=${check}
         TAG_VERSION=stable
         {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
-        skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > "$TMPDIR"/inspect-"{{ image }}".json
-        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR"/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
+        skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > "$TMPDIR/inspect-{{ image }}.json"
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
         ;;
     "cosmic"*)
         {{ just }} verify-container bluefin:stable-daily
@@ -89,17 +89,17 @@ build image="bluefin":
         BASE_IMAGE=base-main
         TAG_VERSION="${fedora_version}"
         {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
-        skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$TMPDIR"/inspect-"{{ image }}".json
+        skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$TMPDIR/inspect-{{ image }}.json"
         ;;
     "ucore"*)
         BASE_IMAGE=ucore
         TAG_VERSION="$check"
         {{ just }} verify-container "$BASE_IMAGE":"$TAG_VERSION"
-        skopeo inspect docker://ghcr.io/ublue-os/"$BASE_IMAGE":"$TAG_VERSION" > "$TMPDIR"/inspect-"{{ image }}".json
-        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR"/inspect-{{ image }}.json | grep -oP 'fc\K[0-9]+')"
+        skopeo inspect docker://ghcr.io/ublue-os/"$BASE_IMAGE":"$TAG_VERSION" > "$TMPDIR/inspect-{{ image }}.json"
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
         # fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/$BASE_IMAGE:"$TAG_VERSION" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         # {{ just }} verify-container akmods:coreos-stable-"${fedora_version}"
-        # skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$TMPDIR"/inspect-"{{ image }}".json
+        # skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$TMPDIR/inspect-{{ image }}.json"
         ;;
     esac
 
@@ -419,7 +419,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(WEB_UI="false")
     # Build ISO
     {{ SUDOIF }} {{ PODMAN }} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
-    if [[ "{{ PODMAN}}" =~ docker ]]; then
+    if [[ "{{ PODMAN }}" =~ docker ]]; then
         {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
     elif [[ "${UID}" -gt "0" ]]; then
         {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
@@ -442,7 +442,7 @@ run-iso image="bluefin":
     done
     echo "Using Port: ${port}"
     echo "Connect to http://localhost:${port}"
-    (sleep 30 && xdg-open http://localhost:"${port}" || true)&
+    (sleep 30 && (xdg-open http://localhost:"${port}" || true))&
     run_args=()
     run_args+=(--rm --privileged)
     run_args+=(--publish "127.0.0.1:${port}:8006")
