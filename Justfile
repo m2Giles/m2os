@@ -169,10 +169,11 @@ rechunk image="bluefin":
     if [[ {{ PODMAN }} =~ podman ]]; then
         MOUNT=$({{ SUDOIF }} {{ PODMAN }} mount "$CREF")
     else
-        MOUNT="{{ BUILD_DIR }}/{{ image }}_rootfs"
-        {{ SUDOIF }} rm -rf "$MOUNT"
-        mkdir -p "$MOUNT"
-        {{ PODMAN }} export "$CREF" | tar -x -C "$MOUNT"
+        MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
+        {{ SUDOIF }} rm -rf "$MOUNTFS"
+        mkdir -p "$MOUNTFS"
+        {{ PODMAN }} export "$CREF" | tar -x -C "$MOUNTFS"
+        MOUNT="{{ GIT_ROOT }}/$MOUNTFS"
     fi
     OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
     VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect "$CREF" | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')"
@@ -188,7 +189,7 @@ rechunk image="bluefin":
     echo "::group:: Rechunk Prune"
     {{ SUDOIF }} {{ PODMAN }} run --rm \
         --security-opt label=disable \
-        --volume "{{ GIT_ROOT }}/$MOUNT":/var/tree \
+        --volume "$MOUNT":/var/tree \
         --env TREE=/var/tree \
         --user 0:0 \
         {{ rechunker }} \
@@ -198,7 +199,7 @@ rechunk image="bluefin":
     echo "::group:: Create Tree"
     {{ SUDOIF }} {{ PODMAN }} run --rm \
         --security-opt label=disable \
-        --volume "{{ GIT_ROOT }}/$MOUNT":/var/tree \
+        --volume "$MOUNT":/var/tree \
         --volume "cache_ostree:/var/ostree" \
         --env TREE=/var/tree \
         --env REPO=/var/ostree/repo \
@@ -209,7 +210,7 @@ rechunk image="bluefin":
     if [[ "{{ PODMAN }}" =~ podman ]]; then
         {{ SUDOIF }} {{ PODMAN }} unmount "$CREF"
     else
-        {{ SUDOIF }} rm -rf "$MOUNT"
+        {{ SUDOIF }} rm -rf "$MOUNTFS"
     fi
     {{ SUDOIF }} {{ PODMAN }} rm "$CREF"
     if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman ]]; then
