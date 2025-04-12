@@ -1,7 +1,7 @@
 FROM alpine:edge
 
 ARG USERNAME="vscode"
-ARG DOCKER_CONFIG="OUT"
+ARG DOCKER_CONFIG="IN"
 
 USER root
 
@@ -75,6 +75,7 @@ apk add --no-cache \
     just \
     jq \
     ncurses \
+    npm \
     ripgrep \
     sbsigntool \
     shadow \
@@ -86,12 +87,29 @@ apk add --no-cache \
     syft \
     tar \
     tmux \
+    unzip \
     xz \
     yamlfmt \
     yamllint \
+    zip \
     zstd
 
+npm install -g \
+    bash-language-server \
+    dockerfile-language-server-nodejs \
+    pyright \
+    vscode-langservers-extracted \
+    yaml-language-server
+
+# Emacs LSP Booster
+while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" == "null" ]]; do
+    EMACS_LSP_BOOSTER="$(curl -L https://api.github.com/repos/blahgeek/emacs-lsp-booster/releases/latest | jq -r '.assets[] | select(.name| test(".*musl[.]zip$")).browser_download_url')" || (true && sleep 5)
+done
+curl --retry 3 -Lo /tmp/emacs-lsp-booster.zip "$EMACS_LSP_BOOSTER"
+unzip -d /usr/bin/ /tmp/emacs-lsp-booster.zip
+
 # Configure User
+ln -sf /bin/bash /usr/bin/bash
 useradd -m -s /bin/bash "$USERNAME"
 echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${USERNAME}}
 groupadd docker -r -U "$USERNAME"

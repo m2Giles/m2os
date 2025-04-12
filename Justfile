@@ -43,7 +43,7 @@ default:
 # Cleanup
 [group('Utility')]
 clean:
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set -euox pipefail
     touch {{ repo_image_name }}_ || true
     {{ SUDOIF }} find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
@@ -55,7 +55,7 @@ clean:
 # Build Image
 [group('Image')]
 build image="bluefin":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     echo "::group:: Container Build Prep"
     set ${SET_X:+-x} -eou pipefail
     declare -A images={{ images }}
@@ -148,7 +148,7 @@ build image="bluefin":
 # Rechunk Image
 [group('Image')]
 rechunk image="bluefin":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     echo "::group:: Rechunk Build Prep"
     set ${SET_X:+-x} -eou pipefail
 
@@ -253,7 +253,7 @@ rechunk image="bluefin":
 # Load Image into Podman and Tag
 [group('CI')]
 load-image image="bluefin":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     if [[ {{ PODMAN }} =~ podman ]]; then
         IMAGE=$(podman pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
@@ -268,7 +268,7 @@ load-image image="bluefin":
 # Get Tags
 [group('CI')]
 get-tags image="bluefin":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     VERSION=$({{ PODMAN }} inspect {{ repo_image_name }}:{{ image }} | jq -r '.[]["Config"]["Labels"]["org.opencontainers.image.version"]')
     echo "{{ image }} $VERSION"
@@ -276,7 +276,7 @@ get-tags image="bluefin":
 # Build ISO
 [group('ISO')]
 build-iso image="bluefin" ghcr="0" clean="0":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     # Validate
     declare -A images={{ images }}
@@ -432,7 +432,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
 # Run ISO
 [group('ISO')]
 run-iso image="bluefin":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     if [[ ! -f "{{ BUILD_DIR }}/output/{{ image }}.iso" ]]; then
         {{ just }} build-iso {{ image }}
@@ -461,14 +461,14 @@ run-iso image="bluefin":
 # Test Changelogs
 [group('Changelogs')]
 changelogs target="Desktop" urlmd="" handwritten="":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     python3 changelogs.py {{ target }} ./output-{{ target }}.env ./changelog-{{ target }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
 [group('Utility')]
 verify-container container="" registry="ghcr.io/ublue-os" key="": install-cosign
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
     # Public Key for Container Verification
@@ -486,7 +486,7 @@ verify-container container="" registry="ghcr.io/ublue-os" key="": install-cosign
 # Secureboot Check
 [group('CI')]
 secureboot image="bluefin":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     # Get the vmlinuz to check
     kernel_release=$({{ PODMAN }} inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
@@ -531,7 +531,7 @@ secureboot image="bluefin":
 # Merge Changelogs
 [group('Changelogs')]
 merge-changelog:
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
     mapfile -t changelogs < <(find . -type f -name changelog\*.md | sort -r)
@@ -576,7 +576,7 @@ merge-changelog:
 # Linter Helper
 [group('Utility')]
 _lint-recipe linter recipe *args:
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set -eou pipefail
     mkdir -p {{ BUILD_DIR }}
     TMPDIR="$(mktemp -d -p {{ BUILD_DIR }})"
@@ -589,7 +589,7 @@ _lint-recipe linter recipe *args:
 # Linter Helper
 [group('Utility')]
 lint-recipes:
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     recipes=(
         build
         build-iso
@@ -606,7 +606,7 @@ lint-recipes:
         verify-container
     )
     for recipe in "${recipes[@]}"; do
-        {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "$recipe" bluefin
+        {{ just }} _lint-recipe "shellcheck -s bash -e SC2050,SC2194" "$recipe" bluefin
     done
     recipes=(
         clean
@@ -615,13 +615,13 @@ lint-recipes:
         merge-changelog
     )
     for recipe in "${recipes[@]}"; do
-        {{ just }} _lint-recipe "shellcheck -e SC2050,SC2194" "$recipe"
+        {{ just }} _lint-recipe "shellcheck -s bash -e SC2050,SC2194" "$recipe"
     done
 
 # Get Cosign if Needed
 [group('CI')]
 install-cosign:
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
 
     # Get Cosign from Chainguard
     if [[ ! $(command -v cosign) ]]; then
@@ -647,7 +647,7 @@ install-cosign:
 # Push Images to Registry
 [group('CI')]
 push-to-registry image $dryrun="true" $destination="":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
     if [[ -z "$destination" ]]; then
@@ -675,7 +675,7 @@ push-to-registry image $dryrun="true" $destination="":
 # Sign Images with Cosign
 [group('CI')]
 cosign-sign digest $destination="": install-cosign
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     if [[ -z "$destination" ]]; then
         destination="{{ IMAGE_REGISTRY }}"
@@ -685,7 +685,7 @@ cosign-sign digest $destination="": install-cosign
 # Generate SBOM
 [group('CI')]
 gen-sbom $input $output="":
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
     # Get SYFT if needed
@@ -731,7 +731,7 @@ gen-sbom $input $output="":
 # Add SBOM attestation
 [group('CI')]
 sbom-sign image $sbom="": install-cosign
-    #!/usr/bin/env bash
+    #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
     # set SBOM

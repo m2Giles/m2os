@@ -9,18 +9,15 @@
 		}
 	},
 	"mounts": [
-		{
-			"source": "/tmp",
-			"target": "/tmp",
-			"type": "bind"
-		},
+		// Docker Host Socket
 		{
 			"source": "/var/run/docker.sock",
 			"target": "/var/run/docker-host.sock",
 			"type": "bind"
 		},
+		// Docker Volume to persist data
 		{
-			"source": "devcontainer-docker-volume-m2os",
+			"source": "dind-var-lib-docker-${devcontainerId}",
 			"target": "/var/lib/docker",
 			"type": "volume"
 		}
@@ -41,6 +38,7 @@
 			]
 		}
 	},
+	"runArgs": ["--name", "${containerWorkspaceFolderBasename}-devcontainer-${devcontainerId}"],
 	"remoteEnv": {
 		// For Docker out of Docker
 		"LOCAL_WORKSPACE_DIR": "${localWorkspaceFolder}",
