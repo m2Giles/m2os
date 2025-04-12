@@ -68,6 +68,7 @@ apk add --no-cache \
     docker-cli-buildx \
     docker-cli-compose \
     fd \
+    github-cli \
     git \
     grep \
     iproute2-ss \

@@ -39,7 +39,10 @@ ln -sf wine32 /usr/bin/wine
 ln -sf wine32-preloader /usr/bin/wine-preloader
 ln -sf wineserver64 /usr/bin/wineserver
 sed -i 's@\[Desktop Entry\]@\[Desktop Entry\]\nNoDisplay=true@g' /usr/share/applications/winetricks.desktop
-curl -Lo /tmp/latencyflex.tar.xz "$(curl -L https://api.github.com/repos/ishitatsuyuki/LatencyFleX/releases/latest | jq -r '.assets[] | select(.name| test(".*.tar.xz$")).browser_download_url')"
+while [[ -z "${LatencyFleX:-}" ]]; do
+    LatencyFleX="$(curl -L https://api.github.com/repos/ishitatsuyuki/LatencyFleX/releases/latest | jq -r '.assets[] | select(.name| test(".*.tar.xz$")).browser_download_url')" || (true && sleep 5)
+done
+curl -Lo /tmp/latencyflex.tar.xz "$LatencyFleX"
 mkdir -p /tmp/latencyflex
 tar --no-same-owner --no-same-permissions --no-overwrite-dir --strip-components 1 -xvf /tmp/latencyflex.tar.xz -C /tmp/latencyflex
 rm -f /tmp/latencyflex.tar.xz
