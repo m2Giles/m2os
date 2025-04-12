@@ -96,13 +96,6 @@ PACKAGES+=(
     wl-clipboard
 )
 
-RPM_FUSION=(
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-"$(rpm -E %fedora)".noarch.rpm
-    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-"$(rpm -E %fedora)".noarch.rpm
-)
-
-dnf5 install -y "${RPM_FUSION[@]}"
-
 # FWUPD
 dnf5 swap -y \
     --repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
@@ -127,8 +120,6 @@ AKMODS_RPMS=(
     /tmp/rpms/kmods/*framework-laptop-"${QUALIFIED_KERNEL}"-*.rpm
     /tmp/rpms/kmods/*xpadneo-"${QUALIFIED_KERNEL}"-*.rpm
     /tmp/rpms/kmods/*xone-"${QUALIFIED_KERNEL}"-*.rpm
-    /tmp/rpms/kmods/*v4l2loopback-"${QUALIFIED_KERNEL}"-*.rpm
-    v4l2loopback
 )
 
 # Fetch ZFS
@@ -162,8 +153,17 @@ dnf5 install -y /tmp/rpms/ublue-os/ublue-os-akmods-addons*.rpm
 
 # Install
 dnf5 install -y "${KERNEL_RPMS[@]}"
-dnf5 versionlock add kernel kernel-devel kernel-devel-matched kernel-core kernel-modules kernel-modules-core kernel-modules-extra
-dnf5 install -y "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+dnf5 versionlock add kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra
+dnf5 install -y --allowerasing "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
+
+# Terra Pkgs
+# shellcheck disable=SC2016
+dnf5 -y install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release{,-extras} || true
+dnf5 config-manager setopt "terra*".enabled=0
+
+dnf5 -y install --enable-repo="terra*" \
+    /tmp/rpms/kmods/*v4l2loopback-"${QUALIFIED_KERNEL}"-*.rpm \
+    v4l2loopback
 
 # Fetch Nvidia
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
@@ -187,8 +187,6 @@ depmod -a -v "${QUALIFIED_KERNEL}"
 UNINSTALL_PACKAGES=(
     firefox
     firefox-langpacks
-    rpmfusion-free-release
-    rpmfusion-nonfree-release
 )
 
 dnf5 remove -y "${UNINSTALL_PACKAGES[@]}"

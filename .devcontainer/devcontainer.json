@@ -4,7 +4,8 @@
 	"build": {
 		"dockerfile": "Containerfile",
 		"args": {
-			"USERNAME": "${localEnv:USERNAME}"
+			"USERNAME": "${localEnv:USERNAME}",
+			"DOCKER_CONFIG": "IN"
 		}
 	},
 	"mounts": [
@@ -17,10 +18,16 @@
 			"source": "/var/run/docker.sock",
 			"target": "/var/run/docker-host.sock",
 			"type": "bind"
+		},
+		{
+			"source": "devcontainer-docker-volume-m2os",
+			"target": "/var/lib/docker",
+			"type": "volume"
 		}
 	],
 	"securityOpt": [
-		"label=disable"
+		"label=disable",
+		"seccomp=unconfined"
 	],
 	"customizations": {
 		"vscode": {
@@ -35,8 +42,11 @@
 		}
 	},
 	"remoteEnv": {
+		// For Docker out of Docker
 		"LOCAL_WORKSPACE_DIR": "${localWorkspaceFolder}",
+		// Make the Justfile Use docker
 		"PODMAN": "docker",
+		// SET X by default for Justfile
 		"SET_X": "1"
 	},
 	"privileged": true,
