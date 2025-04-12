@@ -53,7 +53,7 @@ EOF
 semanage fcontext -a -t svirt_tmpfs_t /dev/kvmfr0
 checkmodule -M -m -o /etc/kvmfr/selinux/mod/kvmfr.mod /etc/kvmfr/selinux/kvmfr.te
 semodule_package -o /etc/kvmfr/selinux/pp/kvmfr.pp -m /etc/kvmfr/selinux/mod/kvmfr.mod
-semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp
+# semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp # Seems broken with Docker
 
 /usr/bin/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible --zstd -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
 

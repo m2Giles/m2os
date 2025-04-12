@@ -56,13 +56,13 @@ jobs:
       - name: Build Image
         shell: bash
         run: |
-          which gh
           sudo $(which just) build ${{ matrix.image }}
       - name: Check Secureboot
         id: secureboot
         shell: bash
         run: |
-          sudo $(which just) secureboot ${{ matrix.image }}
+          sudo $(which just) secureboot \
+          localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}
       - name: Rechunk Image
         shell: bash
         run: |
