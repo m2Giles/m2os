@@ -57,6 +57,9 @@ __bash_prompt
 export PROMPT_DIRTRIM=4
 EOF
 
+mkdir -p /etc/skel
+cp /etc/bash/prompt.sh /etc/skel/.bashrc
+
 # Install Tools
 mkdir -p /usr/local/bin
 apk add --no-cache \
