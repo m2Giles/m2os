@@ -31,11 +31,11 @@ done
 
 if [[ ! "${IMAGE}" =~ ucore ]]; then
     coprs=()
-    mapfile -t coprs <<<"$(find /etc/yum.repos.d/_copr\*.repo)"
+    mapfile -t coprs <<<"$(find /etc/yum.repos.d/_copr*.repo)"
     for copr in "${coprs[@]}"; do
         sed -i 's@enabled=1@enabled=0@g' "$copr"
     done
-    mapfile -t terras <<<"$(find /etc/yum.repos.d/terra\*.repo)"
+    mapfile -t terras <<<"$(find /etc/yum.repos.d/terra*.repo)"
     for terra in "${terras[@]}"; do
         sed -i 's@enabled=1@enabled=0@g' "$terra"
     done
