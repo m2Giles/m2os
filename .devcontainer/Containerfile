@@ -6,8 +6,8 @@ ARG DOCKER_CONFIG="IN"
 USER root
 
 RUN <<CONTAINEREOF
-mkdir -p /etc/skel/.bashrc.d
-tee /etc/skel/.bashrc >/dev/null <<'EOF'
+mkdir -p /etc/bash
+tee /etc/bash/prompt.sh <<'EOF'
 # .bashrc
 
 # Source global definitions
@@ -68,12 +68,12 @@ apk add --no-cache \
     docker-cli-buildx \
     docker-cli-compose \
     fd \
-    github-cli \
     git \
+    github-cli \
     grep \
     iproute2-ss \
-    just \
     jq \
+    just \
     ncurses \
     npm \
     ripgrep \
@@ -213,7 +213,7 @@ apk add --no-cache \
     docker \
     fuse-overlayfs
 
-echo "if [ -n $LOCAL_WORKSPACE_DIR ]; then unset LOCAL_WORKSPACE_DIR; fi" >> /etc/bash/dind.sh
+echo "if [ -n \$LOCAL_WORKSPACE_DIR ]; then unset LOCAL_WORKSPACE_DIR; fi" >> /etc/bash/dind.sh
 
 tee /usr/local/share/docker-init.sh > /dev/null \
 << EOF
