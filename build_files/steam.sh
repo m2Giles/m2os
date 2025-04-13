@@ -4,18 +4,26 @@ set ${SET_X:+-x} -eou pipefail
 
 sed -i "0,/enabled=0/{s/enabled=0/enabled=1/}" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 
+dnf5 -y swap \
+	--repo copr:copr.fedorainfracloud.org:bazzite-org:bazzite \
+	ibus ibus
+
+dnf5 versionlock add ibus
+
 STEAM_PACKAGES=(
     clinfo
-    gamescope.x86_64
+    dbus-x11
     gamescope-libs.i686
+    gamescope-libs.x86_64
     gamescope-shaders
+    gamescope.x86_64
     gobject-introspection
     latencyflex-vulkan-layer
     libFAudio.i686
     libFAudio.x86_64
     libobs_glcapture.i686
-    libobs_vkcapture.i686
     libobs_glcapture.x86_64
+    libobs_vkcapture.i686
     libobs_vkcapture.x86_64
     lutris
     mangohud.i686
@@ -26,14 +34,17 @@ STEAM_PACKAGES=(
     umu-launcher
     vkBasalt.i686
     vkBasalt.x86_64
-    winetricks
     wine-core.i686
     wine-core.x86_64
     wine-pulseaudio.i686
     wine-pulseaudio.x86_64
+    winetricks
+    xdg-user-dirs
 )
 
-dnf5 install -y "${STEAM_PACKAGES[@]}"
+dnf5 install -y --setopt=install_weak_deps=False "${STEAM_PACKAGES[@]}"
+
+dnf5 remove -y gamemode
 
 ln -sf wine32 /usr/bin/wine
 ln -sf wine32-preloader /usr/bin/wine-preloader
