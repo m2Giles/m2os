@@ -34,8 +34,6 @@ STEAM_PACKAGES=(
     umu-launcher
     vkBasalt.i686
     vkBasalt.x86_64
-    vk_hdr_layer.i686
-    vk_hdr_layer.x86_64
     wine-core.i686
     wine-core.x86_64
     wine-pulseaudio.i686
