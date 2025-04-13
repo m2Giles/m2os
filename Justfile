@@ -803,7 +803,7 @@ RENOVATE_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e466
 # renovate: datasource=docker packageName=chainguard/cosign
 
 RENOVATE_COSIGN_VERSION := "latest"
-RENOVATE_COSIGN_DIGEST := "sha256:ddad5b13b0db7074d321688266149de430b3857b67a7ea2e4a2bac5238b1f139"
+RENOVATE_COSIGN_DIGEST := "sha256:86a197ca63dc0396806632092370749b4060fb745168b7b9e1d196baa43331d3"
 
 # renovate: datasource=docker packageName=ghcr.io/qemus/qemu
 
