@@ -35,18 +35,18 @@ SERVER_PACKAGES=(
 SERVER_PACKAGES+=(
     edk2-ovmf
     genisoimage
+    gvisor-tap-vsock
     incus
     incus-agent
     incus-client
-    gvisor-tap-vsock
     qemu-char-spice
-    qemu-device-display-virtio-vga
     qemu-device-display-virtio-gpu
+    qemu-device-display-virtio-vga
     qemu-device-usb-redirect
     qemu-img
     qemu-kvm-core
-    umoci
     swtpm
+    umoci
     virtiofsd
 )
 

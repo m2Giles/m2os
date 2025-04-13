@@ -36,21 +36,21 @@ dnf5 config-manager addrepo --from-repofile https://pkgs.tailscale.com/stable/fe
 
 # Cosmic Packages
 PACKAGES=(
+    NetworkManager-openvpn
     cosmic-desktop
     gnome-keyring
-    NetworkManager-openvpn
     xdg-desktop-portal-gtk
 )
 
 # Bluefin Packages
 PACKAGES+=(
+    "bluefin-*"
     adcli
     adw-gtk3-theme
     bash-color-prompt
     bcache-tools
-    "bluefin-*"
-    borgbackup
     bootc
+    borgbackup
     cascadia-code-fonts
     clevis
     evtest
@@ -67,14 +67,15 @@ PACKAGES+=(
     mesa-libGLU
     nerd-fonts
     oddjob-mkhomedir
+    ptyxis
     pulseaudio-utils
     rclone
     restic
+    samba
     samba-dcerpc
     samba-ldb-ldap-modules
     samba-winbind-clients
     samba-winbind-modules
-    samba
     setools-console
     sssd-ad
     sssd-krb5
@@ -109,17 +110,17 @@ tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
 KERNEL_RPMS=(
     "/tmp/kernel-rpms/kernel-${QUALIFIED_KERNEL}.rpm"
     "/tmp/kernel-rpms/kernel-core-${QUALIFIED_KERNEL}.rpm"
+    "/tmp/kernel-rpms/kernel-devel-${QUALIFIED_KERNEL}.rpm"
     "/tmp/kernel-rpms/kernel-modules-${QUALIFIED_KERNEL}.rpm"
     "/tmp/kernel-rpms/kernel-modules-core-${QUALIFIED_KERNEL}.rpm"
     "/tmp/kernel-rpms/kernel-modules-extra-${QUALIFIED_KERNEL}.rpm"
     "/tmp/kernel-rpms/kernel-uki-virt-${QUALIFIED_KERNEL}.rpm"
-    "/tmp/kernel-rpms/kernel-devel-${QUALIFIED_KERNEL}.rpm"
 )
 
 AKMODS_RPMS=(
     /tmp/rpms/kmods/*framework-laptop-"${QUALIFIED_KERNEL}"-*.rpm
-    /tmp/rpms/kmods/*xpadneo-"${QUALIFIED_KERNEL}"-*.rpm
     /tmp/rpms/kmods/*xone-"${QUALIFIED_KERNEL}"-*.rpm
+    /tmp/rpms/kmods/*xpadneo-"${QUALIFIED_KERNEL}"-*.rpm
 )
 
 # Fetch ZFS
