@@ -50,8 +50,8 @@ fi
 if [[ "${IMAGE}" =~ bluefin ]]; then
     LAYERED_PACKAGES+=(
         gnome-shell-extension-compiz-windows-effect
-        gnome-shell-extension-just-perfection
         gnome-shell-extension-hotedge
+        gnome-shell-extension-just-perfection
     )
 fi
 
