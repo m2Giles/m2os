@@ -12,12 +12,11 @@ gpgcheck=1
 gpgkey=https://download.docker.com/linux/fedora/gpg
 EOF
 
-# Incus COPR Repo (Ucore does not have python)
-curl -Lo /etc/yum.repos.d/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo \
-    https://copr.fedorainfracloud.org/coprs/ganto/lxc4/repo/fedora-"$(rpm -E %fedora)"/ganto-lxc4-fedora-"$(rpm -E %fedora)".repo
+dnf5 -y install dnf5-plugins
 
-curl -Lo /etc/yum.repos.d/ganto-umoci-fedora-"$(rpm -E %fedora)".repo \
-    https://copr.fedorainfracloud.org/coprs/ganto/umoci/repo/fedora-"$(rpm -E %fedora)"/ganto-umoci-fedora-"$(rpm -E %fedora)".repo
+# Incus/Podman COPR Repo
+dnf5 -y copr enable ganto/lxc4
+dnf5 -y copr enable ganto/umoci
 
 SERVER_PACKAGES=(
     binutils
@@ -39,6 +38,7 @@ SERVER_PACKAGES+=(
     incus
     incus-agent
     incus-client
+    gvisor-tap-vsock
     qemu-char-spice
     qemu-device-display-virtio-vga
     qemu-device-display-virtio-gpu
@@ -47,6 +47,7 @@ SERVER_PACKAGES+=(
     qemu-kvm-core
     umoci
     swtpm
+    virtiofsd
 )
 
 # Docker Packages
@@ -73,6 +74,9 @@ dnf5 swap -y \
 if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin|ucore ]]; then
     /usr/bin/bootupctl backend generate-update-metadata
 fi
+
+# Put virtiofsd on PATH
+ln -sf /usr/libexec/virtiofsd /usr/bin/virtiofsd
 
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d

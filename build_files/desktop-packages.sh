@@ -9,18 +9,18 @@ dnf5 -y copr enable ublue-os/staging
 dnf5 -y copr enable ublue-os/packages
 
 # OBS-VKcapture
-dnf5 -y copr enable kylegospo/obs-vkcapture
+dnf5 -y copr enable bazzite-org/obs-vkcapture
 
 # Bazzite Repos
-dnf5 -y copr enable kylegospo/bazzite
-dnf5 -y copr enable kylegospo/bazzite-multilib
-dnf5 -y copr enable kylegospo/LatencyFleX
+dnf5 -y copr enable bazzite-org/bazzite
+dnf5 -y copr enable bazzite-org/bazzite-multilib
+dnf5 -y copr enable bazzite-org/LatencyFleX
 
 # Sunshine
 dnf5 -y copr enable lizardbyte/beta
 
 # Webapp Manager
-dnf5 -y copr enable kylegospo/webapp-manager
+dnf5 -y copr enable bazzite-org/webapp-manager
 
 # Terra for Zed/Ghostty
 # shellcheck disable=SC2016
@@ -96,11 +96,6 @@ SYSEXTS=(
     neovim
     vscode
 )
-if [[ "${IMAGE}" =~ bluefin|bazzite|cosmic ]]; then
-    FLAVOR=silverblue
-elif [[ "${IMAGE}" =~ aurora ]]; then
-    FLAVOR=kinoite
-fi
 for SYSEXT in "${SYSEXTS[@]}"; do
     tee /etc/sysupdate.d/"$SYSEXT".conf <<EOF
 [Transfer]
@@ -108,7 +103,7 @@ Verify=false
 
 [Source]
 Type=url-file
-Path=https://github.com/travier/fedora-sysexts/releases/download/fedora-$FLAVOR-41/
+Path=https://github.com/m2Giles/fedora-sysexts/releases/download/m2os-$IMAGE/
 MatchPattern=$SYSEXT-@v-%a.raw
 
 [Target]
