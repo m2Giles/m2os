@@ -59,9 +59,6 @@ dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
 
 dnf5 install --setopt=install_weak_deps=False --enable-repo="terra*" -y ghostty zed
 
-# Move zed to not conflict with /usr/sbin/zed
-mv /usr/bin/zed /usr/bin/zed-cli
-
 # Emacs LSP Booster
 while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" == "null" ]]; do
     EMACS_LSP_BOOSTER="$(curl -L https://api.github.com/repos/blahgeek/emacs-lsp-booster/releases/latest | jq -r '.assets[] | select(.name| test(".*musl[.]zip$")).browser_download_url')" || (true && sleep 5)
