@@ -132,7 +132,7 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:$VERSION")
-    if [[ {{ PODMAN }} =~ docker  && "${TERM}" == "dumb" ]]; then
+    if [[ {{ PODMAN }} =~ docker ]] && "[ ${TERM}" = "dumb" ]; then
         BUILD_ARGS+=("--progress" "plain")
     fi
     echo "::endgroup::"
@@ -158,7 +158,7 @@ rechunk image="bluefin":
         {{ just }} build {{ image }}
     fi
 
-    if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker ]]; then
+    if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker|remote ]]; then
         mkdir -p "{{ BUILD_DIR }}"
         COPYTMP="$(mktemp -dp "{{ BUILD_DIR }}")"
         {{ SUDOIF }} TMPDIR="${COPYTMP}" {{ PODMAN }} image scp "${UID}"@localhost::localhost/{{ repo_image_name }}:{{ image }} root@localhost::localhost/{{ repo_image_name }}:{{ image }}
@@ -166,7 +166,7 @@ rechunk image="bluefin":
     fi
 
     CREF=$({{ SUDOIF }} {{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
-    if [[ {{ PODMAN }} =~ podman ]]; then
+    if [[ ! {{ PODMAN }} =~ docker|remote ]]; then
         MOUNT=$({{ SUDOIF }} {{ PODMAN }} mount "$CREF")
     else
         MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
@@ -207,7 +207,7 @@ rechunk image="bluefin":
         --user 0:0 \
         {{ rechunker }} \
         /sources/rechunk/2_create.sh
-    if [[ "{{ PODMAN }}" =~ podman ]]; then
+    if [[ ! {{ PODMAN }} =~ docker|remote ]]; then
         {{ SUDOIF }} {{ PODMAN }} unmount "$CREF"
     else
         {{ SUDOIF }} rm -rf "$MOUNTFS"
@@ -319,7 +319,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Load image into rootful podman
-    if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker ]]; then
+    if [[ "${UID}" -gt "0" && ! {{ PODMAN }} =~ docker|remote ]]; then
         mkdir -p {{ BUILD_DIR }}
         COPYTMP="$(mktemp -dp {{ BUILD_DIR }})"
         {{ SUDOIF }} TMPDIR="${COPYTMP}" {{ PODMAN }} image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"

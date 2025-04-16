@@ -162,9 +162,9 @@ dnf5 install -y --allowerasing "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[
 dnf5 -y install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release{,-extras} || true
 dnf5 config-manager setopt "terra*".enabled=0
 
-dnf5 -y install --enable-repo="terra*" \
-    /tmp/rpms/kmods/*v4l2loopback-"${QUALIFIED_KERNEL}"-*.rpm \
-    v4l2loopback
+# dnf5 -y install --enable-repo="terra*" \
+#     /tmp/rpms/kmods/*v4l2loopback-"${QUALIFIED_KERNEL}"-*.rpm \
+#     v4l2loopback
 
 # Fetch Nvidia
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then

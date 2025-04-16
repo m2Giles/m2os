@@ -1,0 +1,27 @@
+{
+    "id": "docker-outside-of-docker",
+    "name": "Configure Docker Outside of Docker",
+    "version": "latest",
+    "init": true,
+    "securityOpt": [
+        "label=disable"
+    ],
+    "mounts": [
+        {
+            "source": "/var/run/docker.sock",
+            "target": "/var/run/docker-host.sock",
+            "type": "bind"
+        }
+    ],
+    "entrypoint": "/usr/local/share/docker-out-of-docker-init.sh",
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    }
+}

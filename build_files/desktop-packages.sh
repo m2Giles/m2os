@@ -57,7 +57,7 @@ fi
 
 dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
 
-dnf5 install --setopt=install_weak_deps=False --enable-repo="terra*" -y ghostty zed
+dnf5 install --setopt=install_weak_deps=False --enable-repo="terra,terra-extras" -y ghostty zed
 
 # Emacs LSP Booster
 while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" == "null" ]]; do

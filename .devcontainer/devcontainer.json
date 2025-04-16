@@ -1,31 +1,24 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
-	"name": "ublue-os-devcontainer",
+	"name": "m2os-devcontainer",
 	"build": {
 		"dockerfile": "Containerfile",
 		"args": {
-			"USERNAME": "${localEnv:USERNAME}",
-			"DOCKER_CONFIG": "IN"
+			"USERNAME": "${localEnv:USERNAME}"
 		}
 	},
-	"mounts": [
-		// Docker Host Socket
-		{
-			"source": "/var/run/docker.sock",
-			"target": "/var/run/docker-host.sock",
-			"type": "bind"
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": false,
+			"installOhMyZsh": false,
+			"installOhMyZshConfig": false,
+			"username": "${localEnv:USERNAME}"
 		},
-		// Docker Volume to persist data
-		{
-			"source": "dind-var-lib-docker-${devcontainerId}",
-			"target": "/var/lib/docker",
-			"type": "volume"
-		}
-	],
-	"securityOpt": [
-		"label=disable",
-		"seccomp=unconfined"
-	],
+		// Use Docker in Docker or Docker out of Docker
+		// "./local-features/docker-out-of-docker/": ""
+		// Prefer Docker-in-Docker (Cannot do privileged Mounts/No ISOs)
+		"./local-features/docker-in-docker": ""
+	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -38,16 +31,14 @@
 			]
 		}
 	},
-	"runArgs": ["--name", "${containerWorkspaceFolderBasename}-devcontainer-${devcontainerId}"],
+	"runArgs": [
+		"--name",
+		"${containerWorkspaceFolderBasename}-${devcontainerId}"
+	],
 	"remoteEnv": {
-		// For Docker out of Docker
-		"LOCAL_WORKSPACE_DIR": "${localWorkspaceFolder}",
-		// Make the Justfile Use docker
-		"PODMAN": "docker",
 		// SET X by default for Justfile
 		"SET_X": "1"
 	},
-	"privileged": true,
-	"init": true,
-	"overrideCommand": false
+	"remoteUser": "${localEnv:USERNAME}",
+	"containerUser": "${localEnv:USERNAME}"
 }
