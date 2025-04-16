@@ -15,9 +15,9 @@
 			"username": "${localEnv:USERNAME}"
 		},
 		// Use Docker in Docker or Docker out of Docker
-		// "./local-features/docker-out-of-docker/": ""
+		"./local-features/docker-out-of-docker/": ""
 		// Prefer Docker-in-Docker (Cannot do privileged Mounts/No ISOs)
-		"./local-features/docker-in-docker": ""
+		// "./local-features/docker-in-docker": ""
 	},
 	"customizations": {
 		"vscode": {
@@ -35,10 +35,10 @@
 		"--name",
 		"${containerWorkspaceFolderBasename}-${devcontainerId}"
 	],
-	"remoteEnv": {
-		// SET X by default for Justfile
-		"SET_X": "1"
-	},
+    "remoteEnv": {
+		// For Docker out of Docker (Auto Unset for Docker in Docker)
+		"LOCAL_WORKSPACE_DIR": "${localWorkspaceFolder}"
+    },
 	"remoteUser": "${localEnv:USERNAME}",
 	"containerUser": "${localEnv:USERNAME}"
 }
