@@ -15,9 +15,9 @@
 			"username": "${localEnv:USERNAME}"
 		},
 		// Use Docker in Docker or Docker out of Docker
-		"./local-features/docker-out-of-docker/": ""
+		// "./local-features/docker-out-of-docker/": ""
 		// Prefer Docker-in-Docker (Cannot do privileged Mounts for ISOs)
-		// "./local-features/docker-in-docker": ""
+		"./local-features/docker-in-docker": ""
 	},
 	"customizations": {
 		"vscode": {
