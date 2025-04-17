@@ -16,7 +16,7 @@
 		},
 		// Use Docker in Docker or Docker out of Docker
 		"./local-features/docker-out-of-docker/": ""
-		// Prefer Docker-in-Docker (Cannot do privileged Mounts/No ISOs)
+		// Prefer Docker-in-Docker (Cannot do privileged Mounts for ISOs)
 		// "./local-features/docker-in-docker": ""
 	},
 	"customizations": {
@@ -32,13 +32,15 @@
 		}
 	},
 	"runArgs": [
+		// Only Needed for Podman (DevPod autohandles)
+		// "--userns=keep-id",
 		"--name",
 		"${containerWorkspaceFolderBasename}-${devcontainerId}"
 	],
-    "remoteEnv": {
-		// For Docker out of Docker (Auto Unset for Docker in Docker)
+	"remoteEnv": {
+		// For Docker out of Docker (Auto Unsets for Docker in Docker)
 		"LOCAL_WORKSPACE_DIR": "${localWorkspaceFolder}"
-    },
+	},
 	"remoteUser": "${localEnv:USERNAME}",
 	"containerUser": "${localEnv:USERNAME}"
 }
