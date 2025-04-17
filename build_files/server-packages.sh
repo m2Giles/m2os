@@ -14,9 +14,9 @@ EOF
 
 if [[ "$(rpm -E %fedora)" -ge "42" ]]; then
     tee -a /etc/yum.repos.d/docker-ce.repo <<'EOF'
-[docker-ce-testing]
-name=Docker CE Testing - $basearch
-baseurl=https://download.docker.com/linux/fedora/$releasever/$basearch/testing
+[docker-ce-test]
+name=Docker CE Test - $basearch
+baseurl=https://download.docker.com/linux/fedora/$releasever/$basearch/test
 enabled=1
 gpgcheck=1
 gpgkey=https://download.docker.com/linux/fedora/gpg
