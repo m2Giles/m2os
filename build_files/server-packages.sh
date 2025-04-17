@@ -12,6 +12,17 @@ gpgcheck=1
 gpgkey=https://download.docker.com/linux/fedora/gpg
 EOF
 
+if [[ "$(rpm -E %fedora)" -ge "42" ]]; then
+    tee -a /etc/yum.repos.d/docker-ce.repo <<'EOF'
+[docker-ce-testing]
+name=Docker CE Testing - $basearch
+baseurl=https://download.docker.com/linux/fedora/$releasever/$basearch/testing
+enabled=1
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/fedora/gpg
+EOF
+fi
+
 dnf5 -y install dnf5-plugins
 
 # Incus/Podman COPR Repo
@@ -69,11 +80,6 @@ dnf5 install -y "${SERVER_PACKAGES[@]}"
 # The superior default editor
 dnf5 swap -y \
     nano-default-editor vim-default-editor
-
-# Bootupctl fix for ISO
-if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin|ucore ]]; then
-    /usr/bin/bootupctl backend generate-update-metadata
-fi
 
 # Put virtiofsd on PATH
 ln -sf /usr/libexec/virtiofsd /usr/bin/virtiofsd
