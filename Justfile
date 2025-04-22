@@ -621,6 +621,8 @@ lint-recipes:
 install-cosign:
     #!/usr/bin/bash
 
+    set {SET_X:+-x} -euo pipefail
+
     # Get Cosign from Chainguard
     if [[ ! $(command -v cosign) ]]; then
         COSIGN_CONTAINER_ID=$("${SUDOIF}" "${PODMAN}" create {{ cosign-installer }} bash)
