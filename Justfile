@@ -140,9 +140,7 @@ build image="bluefin":
 
     "${PODMAN}" build "${BUILD_ARGS[@]}" .
 
-    if [[ "${UID}" -gt "0" ]]; then
-        {{ just }} rechunk {{ image }}
-    else
+    if [[ -n "${CI:-}" ]]; then
         "${PODMAN}" rmi -f ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     fi
 
