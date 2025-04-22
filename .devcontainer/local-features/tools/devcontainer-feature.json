@@ -1,0 +1,8 @@
+{
+    "id": "tools",
+    "name": "Configure Dev Container Tools",
+    "version": "latest",
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}

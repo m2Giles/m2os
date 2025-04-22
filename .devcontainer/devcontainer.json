@@ -2,10 +2,10 @@
 {
 	"name": "m2os-devcontainer",
 	"build": {
-		"dockerfile": "Containerfile",
-		"args": {
-			"USERNAME": "${localEnv:USERNAME}"
-		}
+       "dockerfile": "Containerfile",
+	   "args": {
+		"USERNAME": "${localEnv:USERNAME}"
+	   }
 	},
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {
@@ -14,10 +14,10 @@
 			"installOhMyZshConfig": false,
 			"username": "${localEnv:USERNAME}"
 		},
-		// Use Docker in Docker or Docker out of Docker
-		// "./local-features/docker-out-of-docker/": ""
-		// Prefer Docker-in-Docker (Cannot do privileged Mounts for ISOs)
-		"./local-features/docker-in-docker": ""
+		// Podman
+		"./local-features/podman": "",
+		// Tools
+		"./local-features/tools": ""
 	},
 	"customizations": {
 		"vscode": {
@@ -32,15 +32,11 @@
 		}
 	},
 	"runArgs": [
-		// Only Needed for Podman (DevPod autohandles)
+		// Only Needed for Podman in VSCode (DevPod autohandles)
 		// "--userns=keep-id",
 		"--name",
-		"${containerWorkspaceFolderBasename}-${devcontainerId}"
+		"devcontainer-${containerWorkspaceFolderBasename}"
 	],
-	"remoteEnv": {
-		// For Docker out of Docker (Auto Unsets for Docker in Docker)
-		"LOCAL_WORKSPACE_DIR": "${localWorkspaceFolder}"
-	},
 	"remoteUser": "${localEnv:USERNAME}",
 	"containerUser": "${localEnv:USERNAME}"
 }
