@@ -87,11 +87,6 @@ jobs:
           echo "=== MEMORY AND SWAP ==="
           free -h
           swapon --show
-      - name: Setup Syft
-        # yamllint disable-line rule:line-length rule:comments
-        uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
-        with:
-          syft-version: v1.22.0
       - name: Generate SBOM
         env:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar

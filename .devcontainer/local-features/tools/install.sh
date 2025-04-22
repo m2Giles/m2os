@@ -84,4 +84,11 @@ curl --retry 3 -L# "${YAMLFMT}" | tar -xz -C /usr/local/bin/
 
 echo -e "LC_ALL='C.utf8'\nexport LC_ALL\n\nLC_CTYPE='C.utf8'\nexport LC_CTYPE\n" >/etc/bashrc
 
+# Linuxbrew Path Compat for tools
+mkdir -p /home/linuxbrew/.linuxbrew/bin/
+for f in /usr/local/bin/*; do
+    ln -sf /usr/local/bin/"$(basename "$f")" /home/linuxbrew/.linuxbrew/bin/"$(basename "$f")"
+done
+
+# Cleanup
 dnf5 clean all
