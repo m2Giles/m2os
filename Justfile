@@ -25,7 +25,7 @@ images := '(
 isobuilder := "ghcr.io/jasonn3/build-container-installer@" + RENOVATE_ISO_DIGEST
 rechunker := "ghcr.io/hhd-dev/rechunk@" + RENOVATE_RECHUNKER_DIGEST
 qemu := "ghcr.io/qemus/qemu@" + RENOVATE_QEMU_DIGEST
-cosign-installer := "cgr.dev/chainguard/cosign@" + RENOVATE_COSIGN_DIGEST
+cosign-installer := "cgr.dev/chainguard/cosign:" + RENOVATE_COSIGN_VERSION
 syft-installer := "docker.io/anchore/syft@" + RENOVATE_SYFT_DIGEST
 
 [private]
