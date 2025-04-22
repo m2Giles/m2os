@@ -1,4 +1,5 @@
 {
+    "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainerFeature.schema.json",
     "id": "podman",
     "name": "Configure Nested Podman",
     "version": "latest",

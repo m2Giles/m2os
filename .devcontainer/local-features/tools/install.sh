@@ -82,7 +82,16 @@ while [[ -z "${YAMLFMT:-}" || "${YAMLFMT:-}" == "null" ]]; do
 done
 curl --retry 3 -L# "${YAMLFMT}" | tar -xz -C /usr/local/bin/
 
-echo -e "LC_ALL='C.utf8'\nexport LC_ALL\n\nLC_CTYPE='C.utf8'\nexport LC_CTYPE\n" >/etc/bashrc
+tee -a /etc/bashrc >/dev/null <<'EOF'
+# Fix Locales
+export LC_ALL='C.utf8'
+export LC_CTYPE='C.utf8'
+
+# Pretty Colors
+alias ll='ls -la'
+alias la='ls -la'
+alias ls='eza'
+EOF
 
 # Linuxbrew Path Compat for tools
 mkdir -p /home/linuxbrew/.linuxbrew/bin/
