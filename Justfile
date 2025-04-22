@@ -1,4 +1,4 @@
-set unstable
+set unstable := true
 
 # Constants
 
@@ -762,6 +762,7 @@ export just := just_executable()
 
 SUDO_DISPLAY := `echo ${DISPLAY:-} || echo ${WAYLAND_DISPLAY:-}`
 export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { "sudo --askpass" } else { "sudo" }
+
 # Quiet By Default
 
 export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }

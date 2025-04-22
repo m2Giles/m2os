@@ -60,7 +60,7 @@ while [[ -z "${DOCKER_FMT:-}" || "${DOCKER_FMT:-}" == "null" ]]; do
 done
 curl --retry 3 -L# "$DOCKER_FMT" | tar -xz -C /usr/local/bin/
 ln -sf /usr/local/bin/dockerfmt /usr/local/bin/dockfmt
-dockerfmt completion bash > /etc/bash_completion.d/dockerfmt
+dockerfmt completion bash >/etc/bash_completion.d/dockerfmt
 
 # Emacs LSP Booster (the superior editor with too many flaws)
 while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" == "null" ]]; do
@@ -82,6 +82,6 @@ while [[ -z "${YAMLFMT:-}" || "${YAMLFMT:-}" == "null" ]]; do
 done
 curl --retry 3 -L# "${YAMLFMT}" | tar -xz -C /usr/local/bin/
 
-echo -e "LC_ALL='C.utf8'\nexport LC_ALL\n\nLC_CTYPE='C.utf8'\nexport LC_CTYPE\n" > /etc/bashrc
+echo -e "LC_ALL='C.utf8'\nexport LC_ALL\n\nLC_CTYPE='C.utf8'\nexport LC_CTYPE\n" >/etc/bashrc
 
 dnf5 clean all
