@@ -239,10 +239,7 @@ rechunk image="bluefin":
     echo "::endgroup::"
 
     echo "::group:: Cleanup"
-    if [[ "${UID}" -gt "0" || "${PODMAN}" =~ podman$ ]]; then
-        {{ just }} load-image {{ image }}
-    fi
-
+    {{ just }} load-image {{ image }}
     "${PODMAN}" volume rm cache_ostree
     echo "::endgroup::"
 

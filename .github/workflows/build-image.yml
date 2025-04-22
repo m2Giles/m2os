@@ -56,17 +56,17 @@ jobs:
       - name: Build Image
         shell: bash
         run: |
-          sudo $(which just) build ${{ matrix.image }}
+          just build ${{ matrix.image }}
       - name: Check Secureboot
         id: secureboot
         shell: bash
         run: |
-          sudo $(which just) secureboot \
+          just secureboot \
           localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}
       - name: Rechunk Image
         shell: bash
         run: |
-          sudo $(which just) rechunk ${{ matrix.image }}
+          just rechunk ${{ matrix.image }}
       - name: Lowercase Registry
         id: registry_case
         # yamllint disable-line rule:line-length rule:comments
