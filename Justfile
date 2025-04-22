@@ -25,7 +25,7 @@ images := '(
 isobuilder := "ghcr.io/jasonn3/build-container-installer@" + RENOVATE_ISO_DIGEST
 rechunker := "ghcr.io/hhd-dev/rechunk@" + RENOVATE_RECHUNKER_DIGEST
 qemu := "ghcr.io/qemus/qemu@" + RENOVATE_QEMU_DIGEST
-cosign-installer := "cgr.dev/chainguard/cosign:" + RENOVATE_COSIGN_VERSION
+cosign-installer := "cgr.dev/chainguard/cosign@" + RENOVATE_COSIGN_DIGEST
 syft-installer := "docker.io/anchore/syft@" + RENOVATE_SYFT_DIGEST
 
 [private]
@@ -795,9 +795,9 @@ RENOVATE_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e466
 # renovate: datasource=docker packageName=chainguard/cosign
 
 RENOVATE_COSIGN_VERSION := "latest"
-RENOVATE_COSIGN_DIGEST := "sha256:86a197ca63dc0396806632092370749b4060fb745168b7b9e1d196baa43331d3"
+RENOVATE_COSIGN_DIGEST := "sha256:278f02c11b91994238bb5cc536956d5ceca3cd4efb4763131ccd6022ff95b026"
 
 # renovate: datasource=docker packageName=ghcr.io/qemus/qemu
 
-RENOVATE_QEMU_VERSION := "7.10"
-RENOVATE_QEMU_DIGEST := "sha256:1765084b0a1d13a8361ff11568f0bda8519b06f1d4e4616b0cc900af5d186be9"
+RENOVATE_QEMU_VERSION := "7.11"
+RENOVATE_QEMU_DIGEST := "sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
