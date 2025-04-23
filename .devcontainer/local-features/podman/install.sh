@@ -34,6 +34,11 @@ dnf5 install -y \
     podman-machine \
     podman-remote
 
+dnf5 install --setopt=install_weak_deps=False -y \
+    docker-buildx \
+    docker-cli \
+    docker-compose \
+
 # Usually only have 65536 within rootless podman
 rm -f /etc/sub{u,g}id
 echo "$USERNAME:50000:10000" >/etc/subuid
@@ -123,7 +128,7 @@ fi
 sudo_if mount --make-rshared / || true
 EOF
 
-tee -a /usr/local/share/podman-in-podman-init.sh >/dev/null <<EOF
+tee -a /usr/local/share/podman-in-podman-init.sh >/dev/null <<'EOF'
 # Bind Mount Volume to User. Podman Unshare works.
 
 if ! mountpoint -q "/home/$USERNAME/.local/share/containers"; then
@@ -135,12 +140,15 @@ if [[ ! -O "/srv/containers" ]]; then
 fi
 
 # Make XDG_RUNTIME_DIR
-if [ "$(id -u)" -ne 0 ] && [ ! -d "/run/user/$(id -u)" ]; then
-    sudo_if mkdir -p "/run/user/$(id -u)"
-    sudo_if chown "$(id -u):$(id -u)" "/run/user/$(id -u)"
+if [ "$(id -u)" -ne 0 ] && [ ! -d "/run/user/$(id -u)/podman" ]; then
+    sudo_if mkdir -p "/run/user/$(id -u)/podman"
+    sudo_if chown "$(id -u):$(id -u)" -R "/run/user/$(id -u)"
 fi
 
-exec "\$@"
+podman system service --time=0 unix:///run/user/"$(id -u)"/podman/podman.sock &
+sudo_if ln -sf /run/user/"$(id -u)"/podman/podman.sock /var/run/docker.sock
+
+exec "$@"
 EOF
 
 chmod +x /usr/local/share/podman-in-podman-init.sh

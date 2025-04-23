@@ -12,6 +12,11 @@
             "source": "podman-srv-containers-${containerWorkspaceFolderBasename}",
             "target": "/srv/containers",
             "type": "volume"
+        },
+        {
+            "source": "podman-var-lib-containers-${containerWorkspaceFolderBasename}",
+            "target": "/var/lib/containers",
+            "type": "volume"
         }
     ],
     "entrypoint": "/usr/local/share/podman-in-podman-init.sh",
