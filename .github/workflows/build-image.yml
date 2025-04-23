@@ -14,6 +14,7 @@ env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   IMAGE_NAME: ${{ github.event.repository.name }}
   SET_X: 1
+
 jobs:
   get-images:
     name: Get ${{ inputs.image_flavor }} Images for Build
@@ -29,6 +30,7 @@ jobs:
         uses: ./.github/actions/get-images
         with:
           image_flavor: ${{ inputs.image_flavor }}
+
   build-image:
     name: Build ${{ matrix.image }} Image
     needs: get-images
@@ -46,33 +48,44 @@ jobs:
       - name: Checkout
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
       - name: Maximize Build Space
         if: ${{ ! contains(matrix.image, 'ucore') }}
         # yamllint disable-line rule:line-length rule:comments
         uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
+
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
+
+      - name: Setup Cosign
+        # yamllint disable-line rule:line-length rule:comments
+        uses: sigstore/cosign-installer@v3.8.2
+
       - name: Build Image
         shell: bash
         run: |
           just build ${{ matrix.image }}
+
       - name: Check Secureboot
         id: secureboot
         shell: bash
         run: |
           just secureboot \
           localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+
       - name: Rechunk Image
         shell: bash
         run: |
           just rechunk ${{ matrix.image }}
+
       - name: Lowercase Registry
         id: registry_case
         # yamllint disable-line rule:line-length rule:comments
         uses: ASzc/change-string-case-action@d0603cd0a7dd490be678164909f65c7737470a7f # v6
         with:
           string: ${{ env.IMAGE_REGISTRY }}
+
       - name: Login and Push to GHCR
         id: push
         if: >-
@@ -88,6 +101,7 @@ jobs:
             "docker://${{ steps.registry_case.outputs.lowercase }}"
           )
           just push-to-registry "${push_args[@]}"
+
       - name: Sign Image with Cosign
         id: sign
         if: >-
@@ -99,6 +113,7 @@ jobs:
         shell: bash
         run: |
           just cosign-sign "${{ steps.push.outputs.digest }}"
+
       - name: Upload OCI Artifact
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

@@ -12,6 +12,7 @@ permissions:
   contents: write
 env:
   SET_X: 1
+
 jobs:
   create-release:
     name: Create Release
@@ -23,6 +24,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+
       - name: Download Changelogs
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
@@ -31,6 +33,7 @@ jobs:
           run-id: ${{ inputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
           merge-multiple: true
+
       - name: Download SBOMs
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
@@ -39,9 +42,11 @@ jobs:
           run-id: ${{ inputs.run-id || github.run_id }}
           github-token: ${{ github.token }}
           merge-multiple: true
+
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
+
       - name: Prepare Release
         id: prepare-release
         shell: bash
@@ -53,6 +58,7 @@ jobs:
           for k in $(jq 'keys[]' <<< "$output" | tr -d \"); do
             echo "$k=$(jq -r ".$k" <<< "$output")" >> $GITHUB_OUTPUT
           done
+
       - name: Upload Changelogs as Artifact
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -63,6 +69,7 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
+
       - name: Create Release
         # yamllint disable-line rule:line-length rule:comments
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2

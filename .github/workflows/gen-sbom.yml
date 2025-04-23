@@ -14,6 +14,7 @@ env:
   IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
   IMAGE_NAME: ${{ github.event.repository.name }}
   SET_X: 1
+
 jobs:
   get-images:
     name: Get ${{ inputs.image_flavor }} Images for SBOMs
@@ -29,6 +30,7 @@ jobs:
         uses: ./.github/actions/get-images
         with:
           image_flavor: ${{ inputs.image_flavor }}
+
   sbom-image:
     name: Generate ${{ matrix.image }} SBOM
     needs: ["get-images"]
@@ -46,29 +48,35 @@ jobs:
       - name: Checkout
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
       - name: Maximize Build Space
         if: ${{ ! contains(matrix.image, 'ucore') }}
         # yamllint disable-line rule:line-length rule:comments
         uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
+
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
+
+      - name: Setup Syft
+        # yamllint disable-line rule:line-length rule:comments
+        uses: anchore/sbom-action/download-syft@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0
+        with:
+          syft-version: v1.22.0
+
+      - name: Setup Cosign
+        # yamllint disable-line rule:line-length rule:comments
+        uses: sigstore/cosign-installer@v3.8.2
+
       - name: Download OCI-Archive
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
         with:
           name: ${{ matrix.image }}.oci
           path: ${{ runner.temp }}
-      - name: Lowercase Registry
-        id: registry_case
-        # yamllint disable-line rule:line-length rule:comments
-        uses: ASzc/change-string-case-action@d0603cd0a7dd490be678164909f65c7737470a7f # v6
-        with:
-          string: ${{ env.IMAGE_REGISTRY }}
+
       - name: Setup
         id: setup
-        env:
-          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           set -eou pipefail
           echo "=== FREE SPACE ==="
@@ -87,6 +95,7 @@ jobs:
           echo "=== MEMORY AND SWAP ==="
           free -h
           swapon --show
+
       - name: Generate SBOM
         env:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
@@ -94,6 +103,7 @@ jobs:
           just gen-sbom \
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
+
       - name: SBOM Sign
         env:
           COSIGN_EXPERIMENTAL: false
@@ -103,6 +113,7 @@ jobs:
           just sbom-sign \
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -111,6 +122,7 @@ jobs:
           path: |
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json.sig
+
   check-sbom:
     name: Check ${{ inputs.image_flavor }} SBOMs Generated
     if: ${{ !cancelled() }}

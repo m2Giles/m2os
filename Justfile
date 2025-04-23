@@ -235,9 +235,10 @@ rechunk image="bluefin":
         {{ rechunker }} \
         /sources/rechunk/3_chunk.sh
     echo "::endgroup::"
-
     echo "::group:: Cleanup"
-    {{ just }} load-image {{ image }}
+    if [[ -z "${CI:-}" ]]; then
+        {{ just }} load-image {{ image }}
+    fi
     "${PODMAN}" volume rm cache_ostree
     echo "::endgroup::"
 

@@ -37,7 +37,7 @@ dnf5 install -y \
 dnf5 install --setopt=install_weak_deps=False -y \
     docker-buildx \
     docker-cli \
-    docker-compose \
+    docker-compose
 
 # Usually only have 65536 within rootless podman
 rm -f /etc/sub{u,g}id
