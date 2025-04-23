@@ -58,10 +58,6 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
 
-      - name: Setup Cosign
-        # yamllint disable-line rule:line-length rule:comments
-        uses: sigstore/cosign-installer@v3.8.2
-
       - name: Build Image
         shell: bash
         run: |

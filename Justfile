@@ -788,7 +788,7 @@ RENOVATE_ISO_DIGEST := "sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7
 RENOVATE_RECHUNKER_VERSION := "v1.2.1"
 RENOVATE_RECHUNKER_DIGEST := "sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
 
-# renovate: datasource=docker packageName=anchore/syft
+# renovate: datasource=docker packageName=ghcr.io/anchore/syft
 
 RENOVATE_SYFT_VERSION := "v1.22.0"
 RENOVATE_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
