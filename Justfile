@@ -691,7 +691,6 @@ gen-sbom $input $output="":
         "${SUDOIF}" "${PODMAN}" cp "$SYFT_ID":/syft /usr/local/bin/syft
         "${SUDOIF}" "${PODMAN}" rm -f "$SYFT_ID" > /dev/null
         "${SUDOIF}" "${PODMAN}" rmi -f docker.io/anchore/syft:latest
-        trap '"${SUDOIF}" rm -f /usr/local/bin/syft; exit 1' SIGINT
     fi
 
     # Enable Podman Socket if needed
