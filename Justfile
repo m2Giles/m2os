@@ -276,7 +276,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Verify ISO Build Container
-    {{ just }} verify-container "build-container-installer@{{ _RENOVATE_ISO_DIGEST }}" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
+    {{ just }} verify-container "{{ isobuilder }}" "" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
 
     mkdir -p {{ BUILD_DIR }}/{lorax_templates,flatpak-refs-{{ image }},output}
     echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
@@ -467,8 +467,13 @@ verify-container container="" registry="ghcr.io/ublue-os" key="": install-cosign
         key="https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub"
     fi
 
+    target="{{ container }}"
+    if [[ "" != "{{ registry }}" ]]; then
+        target="{{ registry }}"/"{{ container }}"
+    fi
+
     # Verify Container using cosign public key
-    if ! cosign verify --key "${key}" "{{ registry }}"/"{{ container }}" >/dev/null; then
+    if ! cosign verify --key "${key}" "${target}" >/dev/null; then
         echo "NOTICE: Verification failed. Please ensure your public key is correct."
         exit 1
     fi
