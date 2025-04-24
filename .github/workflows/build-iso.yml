@@ -61,22 +61,22 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Maximize Build Space
-        if: >-
-          contains(fromJson('["workflow_dispatch", "workflow_call"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
-        # yamllint disable-line rule:line-length rule:comments
-        uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
+      # - name: Maximize Build Space
+      #   if: >-
+      #     contains(fromJson('["workflow_dispatch", "workflow_call"]'),
+      #     github.event_name) || github.event.schedule == '41 6 * * 0'
+      # yamllint disable-line rule:line-length rule:comments
+      #   uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
 
-      - name: Download OCI-Archive
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
-        with:
-          name: ${{ matrix.image }}.oci
+      # - name: Download OCI-Archive
+      # yamllint disable-line rule:line-length rule:comments
+      #   uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
+      #   with:
+      #     name: ${{ matrix.image }}.oci
 
       - name: Build ISO
         if: >-
@@ -84,8 +84,9 @@ jobs:
           github.event_name) || github.event.schedule == '41 6 * * 0'
         shell: bash
         run: |
-          sudo $(which just) build-iso ${{ matrix.image }} 2 1
-          tree "./${{ env.IMAGE_NAME }}_build/output/"
+          echo "No-op"
+          # sudo $(which just) build-iso ${{ matrix.image }} 2 1
+          # tree "./${{ env.IMAGE_NAME }}_build/output/"
 
       - name: Upload ISOs and Checksum to Job Artifacts
         id: upload
