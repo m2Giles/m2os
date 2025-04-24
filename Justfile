@@ -50,8 +50,8 @@ clean:
     #!/usr/bin/bash
     set -euox pipefail
     touch {{ repo_image_name }}_ || true
-    "${SUDOIF}" find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
-    "${SUDOIF}" find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
+    ${SUDOIF} find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
+    ${SUDOIF} find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
     find {{ repo_image_name }}_* -maxdepth 0 -exec rm -rf {} \;
     rm -f output*.env changelog*.md version.txt previous.manifest.json
     rm -f ./*.sbom.*
@@ -461,7 +461,7 @@ changelogs target="Desktop" urlmd="" handwritten="":
 [group('Utility')]
 verify-container container="" registry="ghcr.io/ublue-os" key="": install-cosign
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set "${SET_X:+-x}" -eou pipefail
 
     # Public Key for Container Verification
     key={{ key }}
@@ -616,8 +616,7 @@ lint-recipes:
 [group('CI')]
 install-cosign:
     #!/usr/bin/bash
-
-    set {SET_X:+-x} -euo pipefail
+    set "${SET_X:+-x}" -euo pipefail
 
     # Get Cosign from Chainguard
     if [[ ! $(command -v cosign) ]]; then
@@ -672,7 +671,7 @@ push-to-registry image $dryrun="true" $destination="":
 [group('CI')]
 cosign-sign digest $destination="": install-cosign
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set "${SET_X:+-x}" -eou pipefail
     if [[ -z "$destination" ]]; then
         destination="{{ IMAGE_REGISTRY }}"
     fi
@@ -758,7 +757,7 @@ export just := just_executable()
 # SUDO
 
 SUDO_DISPLAY := `echo ${DISPLAY:-} || echo ${WAYLAND_DISPLAY:-}`
-export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { "sudo --askpass" } else { "sudo" }
+export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { which("sudo") + " --askpass" } else { which("sudo") }
 
 # Quiet By Default
 
