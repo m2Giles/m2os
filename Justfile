@@ -118,7 +118,7 @@ build image="bluefin":
         VERSION="${VERSION}.$POINT"
     fi
     # Pull The image
-    "${PODMAN}" pull "ghcr.io/ublue-os/$BASE_IMAGE:$TAG_VERSION"
+    ${PODMAN} pull "ghcr.io/ublue-os/$BASE_IMAGE:$TAG_VERSION"
 
     #Build Args
     BUILD_ARGS+=("--file" "Containerfile")
@@ -138,12 +138,12 @@ build image="bluefin":
     fi
     echo "::endgroup::"
 
-    "${PODMAN}" build "${BUILD_ARGS[@]}" .
+    ${PODMAN} build "${BUILD_ARGS[@]}" .
 
     if [[ -z "${CI:-}" ]]; then
         {{ just }} rechunk {{ image }}
     else
-        "${PODMAN}" rmi -f ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
+        ${PODMAN} rmi -f ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     fi
 
 # Rechunk Image
@@ -153,40 +153,40 @@ rechunk image="bluefin":
     echo "::group:: Rechunk Build Prep"
     set ${SET_X:+-x} -eou pipefail
 
-    "${PODMAN}" image exists localhost/{{ repo_image_name }}:{{ image }} || {{ just }} build {{ image }}
+    ${PODMAN} image exists localhost/{{ repo_image_name }}:{{ image }} || {{ just }} build {{ image }}
 
     if [[ "${UID}" -gt "0" && "${PODMAN}" =~ podman$ ]]; then
        # Use Podman Unshare, and then exit
-       "${PODMAN}" unshare -- {{ just }} rechunk {{ image }}
+       ${PODMAN} unshare -- {{ just }} rechunk {{ image }}
        # Exit with previous exit code
        exit "$?"
     fi
 
-    CREF=$("${PODMAN}" create localhost/{{ repo_image_name }}:{{ image }} bash)
+    CREF=$(${PODMAN} create localhost/{{ repo_image_name }}:{{ image }} bash)
     OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
-    VERSION="$("${PODMAN}" inspect "$CREF" | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')"
+    VERSION="$(${PODMAN} inspect "$CREF" | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')"
     LABELS="
     org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}
     org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
     org.opencontainers.image.revision=$(git rev-parse HEAD)
-    ostree.linux=$("${PODMAN}" inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
+    ostree.linux=$(${PODMAN} inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
     org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
     "
     if [[ ! "${PODMAN}" =~ docker|remote ]]; then
-        MOUNT=$("${PODMAN}" mount "$CREF")
+        MOUNT=$(${PODMAN} mount "$CREF")
     else
         MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
-        "${SUDOIF}" rm -rf "$MOUNTFS"
+        ${SUDOIF} rm -rf "$MOUNTFS"
         mkdir -p "$MOUNTFS"
-        "${PODMAN}" export "$CREF" | tar -xf - -C "$MOUNTFS"
+        ${PODMAN} export "$CREF" | tar -xf - -C "$MOUNTFS"
         MOUNT="{{ GIT_ROOT }}/$MOUNTFS"
-        "${PODMAN}" rm "$CREF"
-        "${PODMAN}" rmi -f localhost/{{ repo_image_name }}:{{ image }}
+        ${PODMAN} rm "$CREF"
+        ${PODMAN} rmi -f localhost/{{ repo_image_name }}:{{ image }}
     fi
     echo "::endgroup::"
 
     echo "::group:: Rechunk Prune"
-    "${PODMAN}" run --rm \
+    ${PODMAN} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
         --env TREE=/var/tree \
@@ -196,7 +196,7 @@ rechunk image="bluefin":
     echo "::endgroup::"
 
     echo "::group:: Create Tree"
-    "${PODMAN}" run --rm \
+    ${PODMAN} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
         --volume "cache_ostree:/var/ostree" \
@@ -207,16 +207,16 @@ rechunk image="bluefin":
         {{ rechunker }} \
         /sources/rechunk/2_create.sh
     if [[ ! "${PODMAN}" =~ docker|remote ]]; then
-        "${PODMAN}" unmount "$CREF"
-        "${PODMAN}" rm "$CREF"
-        "${PODMAN}" rmi -f localhost/{{ repo_image_name }}:{{ image }}
+        ${PODMAN} unmount "$CREF"
+        ${PODMAN} rm "$CREF"
+        ${PODMAN} rmi -f localhost/{{ repo_image_name }}:{{ image }}
     else
-        "${SUDOIF}" rm -rf "$MOUNTFS"
+        ${SUDOIF} rm -rf "$MOUNTFS"
     fi
     echo "::endgroup::"
 
     echo "::group:: Rechunk"
-    "${PODMAN}" run --rm \
+    ${PODMAN} run --rm \
         --security-opt label=disable \
         --volume "{{ GIT_ROOT }}:/workspace" \
         --volume "{{ GIT_ROOT }}:/var/git" \
@@ -237,7 +237,7 @@ rechunk image="bluefin":
     if [[ -z "${CI:-}" ]]; then
         {{ just }} load-image {{ image }}
     fi
-    "${PODMAN}" volume rm cache_ostree
+    ${PODMAN} volume rm cache_ostree
     echo "::endgroup::"
 
 # Load Image into Podman and Tag
@@ -252,15 +252,15 @@ load-image image="bluefin":
         skopeo copy oci-archive:{{ repo_image_name }}_{{ image }}.tar docker-daemon:localhost/{{ repo_image_name }}:{{ image }}
     fi
     VERSION=$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')
-    "${PODMAN}" tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:"${VERSION}"
-    "${PODMAN}" images
+    ${PODMAN} tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:"${VERSION}"
+    ${PODMAN} images
 
 # Get Tags
 [group('CI')]
 get-tags image="bluefin":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-    VERSION=$("${PODMAN}" inspect {{ repo_image_name }}:{{ image }} | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')
+    VERSION=$(${PODMAN} inspect {{ repo_image_name }}:{{ image }} | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')
     echo "{{ image }} $VERSION"
 
 # Build ISO
@@ -290,14 +290,14 @@ build-iso image="bluefin" ghcr="0" clean="0":
         if [[ "{{ ghcr }}" == "1" ]]; then
             # Verify Container for ISO
             {{ just }} verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
-            "${PODMAN}" pull "${IMAGE_FULL}"
+            ${PODMAN} pull "${IMAGE_FULL}"
         elif [[ "{{ ghcr }}" == "2" ]]; then
             {{ just }} load-image {{ image }}
-            "${PODMAN}" tag localhost/{{ repo_image_name }}:{{ image }} "$IMAGE_FULL"
+            ${PODMAN} tag localhost/{{ repo_image_name }}:{{ image }} "$IMAGE_FULL"
         fi
     else
         IMAGE_FULL=localhost/{{ repo_image_name }}:{{ image }}
-        ID=$("${PODMAN}" images --filter reference=${IMAGE_FULL} --format "'{{ '{{.ID}}' }}'")
+        ID=$(${PODMAN} images --filter reference=${IMAGE_FULL} --format "'{{ '{{.ID}}' }}'")
         if [[ -z "$ID" ]]; then
             {{ just }} build {{ image }}
         fi
@@ -312,7 +312,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     if [[ "${UID}" -gt "0" && ! "${PODMAN}" =~ docker|remote ]]; then
         mkdir -p {{ BUILD_DIR }}
         COPYTMP="$(mktemp -dp {{ BUILD_DIR }})"
-        "${SUDOIF}" TMPDIR="${COPYTMP}" "${PODMAN}" image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"
+        ${SUDOIF} TMPDIR="${COPYTMP}" ${PODMAN} image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"
         rm -rf "${COPYTMP}"
     fi
 
@@ -365,7 +365,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     EOF
     # Create Flatpak List
     [[ ! -f "$FLATPAK_REFS_DIR/flatpaks-with-deps" ]] && \
-    "${SUDOIF}" "${PODMAN}" run --rm --privileged \
+    ${SUDOIF} ${PODMAN} run --rm --privileged \
     --entrypoint /bin/bash \
     -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
     -e FLATPAK_TRIGGERS_DIR=/flatpak/triggers \
@@ -373,9 +373,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
     -v "{{ GIT_ROOT }}/${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
     "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
 
-    VERSION="$("${SUDOIF}" "${PODMAN}" inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+    VERSION="$(${SUDOIF} ${PODMAN} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
     if [[ "{{ ghcr }}" -ge "1" && "{{ clean }}" == "1" ]]; then
-        "${SUDOIF}" "${PODMAN}" rmi ${IMAGE_FULL}
+        ${SUDOIF} ${PODMAN} rmi ${IMAGE_FULL}
     fi
     # list Flatpaks
     cat "${FLATPAK_REFS_DIR}"/flatpaks-with-deps
@@ -409,14 +409,14 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(VERSION="$VERSION")
     iso_build_args+=(WEB_UI="false")
     # Build ISO
-    "${SUDOIF}" "${PODMAN}" run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
+    ${SUDOIF} ${PODMAN} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
     if [[ "${PODMAN}" =~ docker ]]; then
-        "${SUDOIF}" chown -R "${UID}":"${GROUPS[0]}" "$PWD"
+        ${SUDOIF} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
     elif [[ "${UID}" -gt "0" ]]; then
-        "${SUDOIF}" chown -R "${UID}":"${GROUPS[0]}" "$PWD"
-        "${SUDOIF}" "${PODMAN}" rmi "${IMAGE_FULL}"
+        ${SUDOIF} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
+        ${SUDOIF} ${PODMAN} rmi "${IMAGE_FULL}"
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
-        "${SUDOIF}" chown -R "${SUDO_UID}":"${SUDO_GID}" "$PWD"
+        ${SUDOIF} chown -R "${SUDO_UID}":"${SUDO_GID}" "$PWD"
     fi
 
 # Run ISO
@@ -446,7 +446,7 @@ run-iso image="bluefin":
     run_args+=(--device=/dev/kvm)
     run_args+=(--volume "{{ GIT_ROOT }}/{{ BUILD_DIR }}/output/{{ image }}.iso":"/boot.iso":z)
     run_args+=({{ qemu }})
-    "${PODMAN}" run "${run_args[@]}"
+    ${PODMAN} run "${run_args[@]}"
 
 # Test Changelogs
 [group('Changelogs')]
@@ -484,12 +484,12 @@ secureboot image="bluefin":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     # Get the vmlinuz to check
-    kernel_release=$("${PODMAN}" inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
-    TMP=$("${PODMAN}" create "{{ image }}" bash)
+    kernel_release=$(${PODMAN} inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
+    TMP=$(${PODMAN} create "{{ image }}" bash)
     TMPDIR="$(mktemp -d -p .)"
     trap 'rm -rf $TMPDIR' EXIT
-    "${PODMAN}" cp "$TMP":/usr/lib/modules/"${kernel_release}"/vmlinuz "$TMPDIR/vmlinuz"
-    "${PODMAN}" rm "$TMP"
+    ${PODMAN} cp "$TMP":/usr/lib/modules/"${kernel_release}"/vmlinuz "$TMPDIR/vmlinuz"
+    ${PODMAN} rm "$TMP"
 
     # Get the Public Certificates
     curl --retry 3 -Lo "$TMPDIR"/kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
@@ -501,14 +501,14 @@ secureboot image="bluefin":
     CMD="$(command -v sbverify)" || true
     if [[ -z "${CMD:-}" ]]; then
         temp_name="sbverify-${RANDOM}"
-        "${PODMAN}" run -dt \
+        ${PODMAN} run -dt \
             --entrypoint /bin/sh \
             --security-opt label=disable \
             --workdir {{ GIT_ROOT }} \
             --volume "{{ GIT_ROOT }}/$TMPDIR/:{{ GIT_ROOT }}/$TMPDIR" \
             --name ${temp_name} \
             alpine:edge
-        "${PODMAN}" exec "${temp_name}" apk add sbsigntool
+        ${PODMAN} exec "${temp_name}" apk add sbsigntool
         CMD="${PODMAN} exec ${temp_name} /usr/bin/sbverify"
     fi
 
@@ -521,7 +521,7 @@ secureboot image="bluefin":
         returncode=1
     fi
     if [[ -n "${temp_name:-}" ]]; then
-        "${PODMAN}" rm -f "${temp_name}"
+        ${PODMAN} rm -f "${temp_name}"
     fi
     exit "$returncode"
 
@@ -619,13 +619,14 @@ lint-recipes:
 [group('CI')]
 install-cosign:
     #!/usr/bin/bash
+    # shellcheck disable=SC2086
     set "${SET_X:+-x}" -euo pipefail
 
     # Get Cosign from Chainguard
-    if [[ ! $(command -v cosign) ]]; then
-        COSIGN_CONTAINER_ID=$("${SUDOIF}" "${PODMAN}" create {{ cosign-installer }} bash)
-        "${SUDOIF}" "${PODMAN}" cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign /usr/local/bin/cosign
-        "${SUDOIF}" "${PODMAN}" rm -f "${COSIGN_CONTAINER_ID}"
+    if [[ ! "$(command -v cosign)" ]]; then
+        COSIGN_CONTAINER_ID="$(${SUDOIF} ${PODMAN} create {{ cosign-installer }} bash)"
+        ${SUDOIF} ${PODMAN} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign /usr/local/bin/cosign
+        ${SUDOIF} ${PODMAN} rm -f "${COSIGN_CONTAINER_ID}"
     fi
     # Verify Cosign Image Signatures if needed
     if [[ -n "${COSIGN_CONTAINER_ID:-}" ]]; then
@@ -633,7 +634,7 @@ install-cosign:
             echo "NOTICE: Failed to verify cosign image signatures."
             exit 1
         fi
-        "${SUDOIF}" "${PODMAN}" rmi -f cgr.dev/chainguard/cosign:latest
+        ${SUDOIF} ${PODMAN} rmi -f {{ cosign-installer }}
     fi
 
 # Login to GHCR
@@ -684,15 +685,16 @@ cosign-sign digest $destination="": install-cosign
 [group('CI')]
 gen-sbom $input $output="":
     #!/usr/bin/bash
+    # shellcheck disable=SC2086
     set ${SET_X:+-x} -eou pipefail
 
     # Get SYFT if needed
     SYFT_ID=""
-    if [[ ! $(command -v syft) ]]; then
-        SYFT_ID="$("${SUDOIF}" "${PODMAN}" create {{ syft-installer }})"
-        "${SUDOIF}" "${PODMAN}" cp "$SYFT_ID":/syft /usr/local/bin/syft
-        "${SUDOIF}" "${PODMAN}" rm -f "$SYFT_ID" > /dev/null
-        "${SUDOIF}" "${PODMAN}" rmi -f docker.io/anchore/syft:latest
+    if [[ ! "$(command -v syft)" ]]; then
+        SYFT_ID="$(${SUDOIF} ${PODMAN} create {{ syft-installer }})"
+        ${SUDOIF} ${PODMAN} cp "$SYFT_ID":/syft /usr/local/bin/syft
+        ${SUDOIF} ${PODMAN} rm -f "$SYFT_ID" > /dev/null
+        ${SUDOIF} ${PODMAN} rmi -f {{ syft-installer }}
     fi
 
     # Enable Podman Socket if needed
@@ -768,7 +770,7 @@ export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 
 # Podman By Default
 
-export PODMAN := which("podman") || require("podman-remote")
+export PODMAN := env("PODMAN", "") || which("podman") || require("podman-remote")
 
 # Workspace Folder
 
