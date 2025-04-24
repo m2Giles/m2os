@@ -65,7 +65,7 @@ jobs:
       #   if: >-
       #     contains(fromJson('["workflow_dispatch", "workflow_call"]'),
       #     github.event_name) || github.event.schedule == '41 6 * * 0'
-      #   # yamllint disable-line rule:line-length rule:comments
+         # yamllint disable-line rule:line-length rule:comments
       #   uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
       - name: Setup Just
@@ -73,7 +73,7 @@ jobs:
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
 
       # - name: Download OCI-Archive
-      #   # yamllint disable-line rule:line-length rule:comments
+      # yamllint disable-line rule:line-length rule:comments
       #   uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
       #   with:
       #     name: ${{ matrix.image }}.oci
