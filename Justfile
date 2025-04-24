@@ -133,7 +133,7 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "SET_X=${SET_X:-}")
     BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
-    if [[ ${PODMAN} =~ docker ]] && [ "${TERM}" = "dumb" ]; then
+    if [[ "${PODMAN}" =~ docker ]] && [ "${TERM}" = "dumb" ]; then
         BUILD_ARGS+=("--progress" "plain")
     fi
     echo "::endgroup::"
@@ -155,7 +155,7 @@ rechunk image="bluefin":
 
     ${PODMAN} image exists localhost/{{ repo_image_name }}:{{ image }} || {{ just }} build {{ image }}
 
-    if [[ "${UID}" -gt "0" && ${PODMAN} =~ podman$ ]]; then
+    if [[ "${UID}" -gt "0" && "${PODMAN}" =~ podman$ ]]; then
        # Use Podman Unshare, and then exit
        ${PODMAN} unshare -- {{ just }} rechunk {{ image }}
        # Exit with previous exit code
@@ -172,7 +172,7 @@ rechunk image="bluefin":
     ostree.linux=$(${PODMAN} inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
     org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
     "
-    if [[ ! ${PODMAN} =~ docker|remote ]]; then
+    if [[ ! "${PODMAN}" =~ docker|remote ]]; then
         MOUNT=$(${PODMAN} mount "$CREF")
     else
         MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
@@ -206,7 +206,7 @@ rechunk image="bluefin":
         --user 0:0 \
         {{ rechunker }} \
         /sources/rechunk/2_create.sh
-    if [[ ! ${PODMAN} =~ docker|remote ]]; then
+    if [[ ! "${PODMAN}" =~ docker|remote ]]; then
         ${PODMAN} unmount "$CREF"
         ${PODMAN} rm "$CREF"
         ${PODMAN} rmi -f localhost/{{ repo_image_name }}:{{ image }}
@@ -245,7 +245,7 @@ rechunk image="bluefin":
 load-image image="bluefin":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-    if [[ ${PODMAN} =~ podman ]]; then
+    if [[ "${PODMAN}" =~ podman ]]; then
         IMAGE=$(podman pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
         podman tag "${IMAGE}" localhost/{{ repo_image_name }}:{{ image }}
     else
@@ -309,7 +309,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Load image into rootful podman
-    if [[ "${UID}" -gt "0" && ! ${PODMAN} =~ docker|remote ]]; then
+    if [[ "${UID}" -gt "0" && ! "${PODMAN}" =~ docker|remote ]]; then
         mkdir -p {{ BUILD_DIR }}
         COPYTMP="$(mktemp -dp {{ BUILD_DIR }})"
         ${SUDOIF} TMPDIR="${COPYTMP}" ${PODMAN} image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"
@@ -381,9 +381,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
     cat "${FLATPAK_REFS_DIR}"/flatpaks-with-deps
     #ISO Container Args
     iso_build_args=()
-    if [[ "{{ ghcr }}" == "0" && ${PODMAN} =~ podman ]]; then
+    if [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ podman ]]; then
         iso_build_args+=(--volume "/var/lib/containers/storage:/var/lib/containers/storage")
-    elif [[ "{{ ghcr }}" == "0" && ${PODMAN} =~ docker ]]; then
+    elif [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ docker ]]; then
         iso_build_args+=(--volume "/var/run/docker.sock:/var/run/docker.sock")
     fi
     iso_build_args+=(--volume "{{ GIT_ROOT }}:/github/workspace/")
@@ -395,9 +395,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(IMAGE_NAME="{{ repo_image_name }}")
     iso_build_args+=(IMAGE_REPO="${IMAGE_REPO}")
     iso_build_args+=(IMAGE_SIGNED="true")
-    if [[ "{{ ghcr }}" == "0" && ${PODMAN} =~ podman ]]; then
+    if [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ podman ]]; then
         iso_build_args+=(IMAGE_SRC="containers-storage:${IMAGE_FULL}")
-    elif [[ "{{ ghcr }}" == "0" && ${PODMAN} =~ docker ]]; then
+    elif [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ docker ]]; then
         iso_build_args+=(IMAGE_SRC="docker-daemon:${IMAGE_FULL}")
     elif [[ "{{ ghcr }}" == "2" ]]; then
         iso_build_args+=(IMAGE_SRC="oci-archive:/github/workspace/{{ repo_image_name }}_{{ image }}.tar")
@@ -410,7 +410,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(WEB_UI="false")
     # Build ISO
     ${SUDOIF} ${PODMAN} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
-    if [[ ${PODMAN} =~ docker ]]; then
+    if [[ "${PODMAN}" =~ docker ]]; then
         ${SUDOIF} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
     elif [[ "${UID}" -gt "0" ]]; then
         ${SUDOIF} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
@@ -698,10 +698,10 @@ gen-sbom $input $output="":
     fi
 
     # Enable Podman Socket if needed
-    if [[ "$EUID" -eq "0" && ${PODMAN} =~ podman ]] && ! systemctl is-active -q podman.socket; then
+    if [[ "$EUID" -eq "0" && "${PODMAN}" =~ podman ]] && ! systemctl is-active -q podman.socket; then
         systemctl start podman.socket
         started_podman="true"
-    elif ! systemctl is-active -q --user podman.socket && [[ ${PODMAN} =~ podman ]]; then
+    elif ! systemctl is-active -q --user podman.socket && [[ "${PODMAN}" =~ podman ]]; then
         systemctl start --user podman.socket
         started_podman="true"
     fi
