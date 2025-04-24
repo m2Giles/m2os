@@ -3,31 +3,8 @@
   "extends": [
     "config:best-practices"
   ],
+  // Do Not Rebase when the default branch is  updated
   "rebaseWhen": "never",
-  "packageRules": [
-    {
-      "automerge": true,
-      "matchUpdateTypes": [
-        "pin",
-        "pinDigest"
-      ]
-    },
-    {
-      "enabled": false,
-      "matchUpdateTypes": [
-        "digest",
-        "pinDigest",
-        "pin"
-      ],
-      "matchDepTypes": [
-        "container"
-      ],
-      "matchFileNames": [
-        ".github/workflows/**.yaml",
-        ".github/workflows/**.yml"
-      ]
-    }
-  ],
   "customManagers": [
     {
       "customType": "regex",
@@ -38,6 +15,32 @@
         "(?<justName>.+?)\\s:=\\s\"(?<packageName>.+):(?<currentValue>.+)@(?<currentDigest>sha256:[a-f0-9]+?)\""
       ],
       "datasourceTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    // Auto Merge version/digests
+    {
+      "automerge": true,
+      "matchManagers": [
+        "custom.regex",
+        "devcontainer",
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "pin",
+        "digest",
+        "pinDigest"
+      ]
+    },
+    // Auto Merge Dockerfile Digest Updates
+    {
+      "automerge": true,
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ]
     }
   ]
 }
