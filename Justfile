@@ -1,5 +1,7 @@
 set unstable := true
 
+import ".github/sources.just"
+
 # Constants
 
 repo_image_name := "m2os"
@@ -22,11 +24,11 @@ images := '(
 
 # Build Containers
 
-isobuilder := "ghcr.io/jasonn3/build-container-installer@" + RENOVATE_ISO_DIGEST
-rechunker := "ghcr.io/hhd-dev/rechunk@" + RENOVATE_RECHUNKER_DIGEST
-qemu := "ghcr.io/qemus/qemu@" + RENOVATE_QEMU_DIGEST
-cosign-installer := "cgr.dev/chainguard/cosign@" + RENOVATE_COSIGN_DIGEST
-syft-installer := "docker.io/anchore/syft@" + RENOVATE_SYFT_DIGEST
+isobuilder := "ghcr.io/jasonn3/build-container-installer:v1.2.4@sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
+rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.1@sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
+qemu := "ghcr.io/qemus/qemu:7.11@sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
+cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:278f02c11b91994238bb5cc536956d5ceca3cd4efb4763131ccd6022ff95b026"
+syft-installer := "ghcr.io/anchore/syft:v1.22.0@sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
 
 [private]
 default:
@@ -140,7 +142,9 @@ build image="bluefin":
 
     "${PODMAN}" build "${BUILD_ARGS[@]}" .
 
-    if [[ -n "${CI:-}" ]]; then
+    if [[ -z "${CI:-}" ]]; then
+        {{ just }} rechunk {{ image }}
+    else
         "${PODMAN}" rmi -f ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
     fi
 
@@ -151,11 +155,7 @@ rechunk image="bluefin":
     echo "::group:: Rechunk Build Prep"
     set ${SET_X:+-x} -eou pipefail
 
-    ID=$("${PODMAN}" images --filter reference=localhost/{{ repo_image_name }}:{{ image }} --format "'{{ '{{.ID}}' }}'")
-
-    if [[ -z "$ID" ]]; then
-        {{ just }} build {{ image }}
-    fi
+    "${PODMAN}" image exists localhost/{{ repo_image_name }}:{{ image }} || {{ just }} build {{ image }}
 
     if [[ "${UID}" -gt "0" && "${PODMAN}" =~ podman$ ]]; then
        # Use Podman Unshare, and then exit
@@ -166,12 +166,12 @@ rechunk image="bluefin":
 
     CREF=$("${PODMAN}" create localhost/{{ repo_image_name }}:{{ image }} bash)
     OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
-    VERSION="$("${PODMAN}" inspect "$CREF" | jq -r '.[].Labels["org.opencontainers.image.version"]')"
+    VERSION="$("${PODMAN}" inspect "$CREF" | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')"
     LABELS="
     org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}
     org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
     org.opencontainers.image.revision=$(git rev-parse HEAD)
-    ostree.linux=$("${PODMAN}" inspect "$CREF" | jq -r '.[].Labels["ostree.linux"]')
+    ostree.linux=$("${PODMAN}" inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
     org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
     "
     if [[ ! "${PODMAN}" =~ docker|remote ]]; then
@@ -262,7 +262,7 @@ load-image image="bluefin":
 get-tags image="bluefin":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-    VERSION=$("${PODMAN}" inspect {{ repo_image_name }}:{{ image }} | jq -r '.[].Labels["org.opencontainers.image.version"]')
+    VERSION=$("${PODMAN}" inspect {{ repo_image_name }}:{{ image }} | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')
     echo "{{ image }} $VERSION"
 
 # Build ISO
@@ -278,7 +278,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Verify ISO Build Container
-    {{ just }} verify-container "build-container-installer@{{ RENOVATE_ISO_DIGEST }}" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
+    {{ just }} verify-container "build-container-installer@{{ _RENOVATE_ISO_DIGEST }}" "ghcr.io/jasonn3" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
 
     mkdir -p {{ BUILD_DIR }}/{lorax_templates,flatpak-refs-{{ image }},output}
     echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
@@ -375,7 +375,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     -v "{{ GIT_ROOT }}/${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
     "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
 
-    VERSION="$("${SUDOIF}" "${PODMAN}" inspect ${IMAGE_FULL} | jq -r '.[].Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+    VERSION="$("${SUDOIF}" "${PODMAN}" inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
     if [[ "{{ ghcr }}" -ge "1" && "{{ clean }}" == "1" ]]; then
         "${SUDOIF}" "${PODMAN}" rmi ${IMAGE_FULL}
     fi
@@ -481,7 +481,7 @@ secureboot image="bluefin":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     # Get the vmlinuz to check
-    kernel_release=$("${PODMAN}" inspect "{{ image }}" | jq -r '.[].Labels["ostree.linux"]')
+    kernel_release=$("${PODMAN}" inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
     TMP=$("${PODMAN}" create "{{ image }}" bash)
     TMPDIR="$(mktemp -d -p .)"
     trap 'rm -rf $TMPDIR' EXIT
@@ -776,29 +776,3 @@ GIT_ROOT := justfile_dir()
 # Build Dir
 
 BUILD_DIR := repo_image_name + "_build"
-
-# Build Containers
-# renovate: datasource=docker packageName=ghcr.io/jasonn3/build-container-installer
-
-RENOVATE_ISO_VERSION := "v1.2.4"
-RENOVATE_ISO_DIGEST := "sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
-
-# renovate: datasource=docker packageName=ghcr.io/hhd-dev/rechunk
-
-RENOVATE_RECHUNKER_VERSION := "v1.2.1"
-RENOVATE_RECHUNKER_DIGEST := "sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
-
-# renovate: datasource=docker packageName=ghcr.io/anchore/syft
-
-RENOVATE_SYFT_VERSION := "v1.22.0"
-RENOVATE_SYFT_DIGEST := "sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
-
-# renovate: datasource=docker packageName=chainguard/cosign
-
-RENOVATE_COSIGN_VERSION := "latest"
-RENOVATE_COSIGN_DIGEST := "sha256:278f02c11b91994238bb5cc536956d5ceca3cd4efb4763131ccd6022ff95b026"
-
-# renovate: datasource=docker packageName=ghcr.io/qemus/qemu
-
-RENOVATE_QEMU_VERSION := "7.11"
-RENOVATE_QEMU_DIGEST := "sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
