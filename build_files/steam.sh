@@ -5,8 +5,8 @@ set ${SET_X:+-x} -eou pipefail
 sed -i "0,/enabled=0/{s/enabled=0/enabled=1/}" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 
 dnf5 -y swap \
-	--repo copr:copr.fedorainfracloud.org:bazzite-org:bazzite \
-	ibus ibus
+    --repo copr:copr.fedorainfracloud.org:bazzite-org:bazzite \
+    ibus ibus
 
 dnf5 versionlock add ibus
 

@@ -17,6 +17,7 @@ on: # yamllint disable-line rule:truthy rule:comments
       handwritten:
         description: "Handwritten Notes"
         type: string
+
 jobs:
   generate-release:
     name: Generate ${{ inputs.target }} Changelog
@@ -27,6 +28,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 500
+
       - name: Download Artifacts
         if: contains(fromJson('["Desktop", "Bazzite"]'), inputs.target)
         # yamllint disable-line rule:line-length rule:comments
@@ -34,6 +36,7 @@ jobs:
         with:
           pattern: url-${{ inputs.target }}-*
           merge-multiple: true
+
       - name: Merge Artifacts into url.md
         id: merge-artifacts
         if: contains(fromJson('["Desktop", "Bazzite"]'), inputs.target)
@@ -45,6 +48,7 @@ jobs:
             cat $artifact >> url.md
           done
           echo "urlmd=url.md" >> $GITHUB_OUTPUT
+
       - name: Generate Release Text
         id: generate-release
         run: |
@@ -57,6 +61,7 @@ jobs:
             --handwritten "${{ inputs.handwritten }}" \
             --urlmd "${{ steps.merge-artifacts.outputs.urlmd }}"
           source ./output-${{ inputs.target }}.env
+
       - name: Upload Changelogs as Artifact
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
