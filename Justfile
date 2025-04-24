@@ -1,7 +1,5 @@
 set unstable := true
 
-import ".github/sources.just"
-
 # Constants
 
 repo_image_name := "m2os"
