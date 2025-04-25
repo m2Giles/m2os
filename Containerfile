@@ -1,6 +1,6 @@
 ARG BASE_IMAGE="bluefin"
 ARG IMAGE="bluefin"
-ARG TAG_VERSION="stable-daily@sha256:0f25cf6693464fdba45f6896f3d024c1b71a40916088b523bd7cdc2dd9fc089f"
+ARG TAG_VERSION="stable-daily@sha256:753c4a0a9232a9e1b69c690923fb38f6ab305a96e5911089d43a6211dbd302c0"
 
 FROM scratch AS ctx
 COPY build_files cosign.pub cosign-backup.pub /
