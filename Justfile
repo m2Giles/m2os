@@ -25,7 +25,7 @@ images := '(
 isobuilder := "ghcr.io/jasonn3/build-container-installer:v1.2.4@sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
 rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.1@sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
 qemu := "ghcr.io/qemus/qemu:7.11@sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
-cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:278f02c11b91994238bb5cc536956d5ceca3cd4efb4763131ccd6022ff95b026"
+cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:0222cde7f7ebe430c88fddc33b237434b67e34034daa140353c78b1937810faf"
 syft-installer := "ghcr.io/anchore/syft:v1.22.0@sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
 
 [private]
