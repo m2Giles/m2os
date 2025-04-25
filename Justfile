@@ -26,7 +26,7 @@ isobuilder := "ghcr.io/jasonn3/build-container-installer:v1.2.4@sha256:99156bea5
 rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.1@sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
 qemu := "ghcr.io/qemus/qemu:7.11@sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
 cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:0222cde7f7ebe430c88fddc33b237434b67e34034daa140353c78b1937810faf"
-syft-installer := "ghcr.io/anchore/syft:v1.22.0@sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
+syft-installer := "ghcr.io/anchore/syft:v1.23.0@sha256:9d83ba262a965bea598fe94366c36cd4cb91bdd4eb2fb36511b6ab731dde48f7"
 
 [private]
 default:
