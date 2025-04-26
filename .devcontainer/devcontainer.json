@@ -27,7 +27,7 @@
 				"hangxingliu.vscode-systemd-support",
 				"mads-hartmann.bash-ide-vscode",
 				"ms-azuretools.vscode-docker",
-				"sclu1034.justfile",
+				"nefrob.vscode-just-syntax",
 				"timonwong.shellcheck"
 			]
 		}

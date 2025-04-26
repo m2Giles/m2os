@@ -16,6 +16,8 @@ if [[ "${IMAGE}" =~ cosmic|ucore ]]; then
 EOF
 fi
 
+BASE_IMAGE="${BASE_IMAGE##*/}"
+
 case "${IMAGE}" in
 "bazzite"* | "bluefin"*)
     base_image="silverblue"
@@ -25,10 +27,10 @@ case "${IMAGE}" in
     ;;
 "cosmic"*)
     #shellcheck disable=2153
-    base_image="${BASE_IMAGE}"
+    base_image="base-atomic"
     ;;
 "ucore"*)
-    base_image="${BASE_IMAGE}"
+    base_image="coreos"
     ;;
 esac
 
@@ -42,7 +44,7 @@ cat <<<"$(jq ".\"image-name\" |= \"m2os\" |
               .\"image-flavor\" |= \"${image_flavor}\" |
               .\"image-vendor\" |= \"m2giles\" |
               .\"image-ref\" |= \"ostree-image-signed:docker://ghcr.io/m2giles/m2os\" |
-              .\"image-tag\" |= \"${IMAGE}${BETA:-}\" |
+              .\"image-tag\" |= \"${IMAGE}\" |
               .\"base-image-name\" |= \"${base_image}\" |
               .\"fedora-version\" |= \"$(rpm -E %fedora)\"" \
     </usr/share/ublue-os/image-info.json)" \
@@ -55,18 +57,18 @@ fi
 
 # OS Release File for Cosmic
 if [[ "$IMAGE" =~ cosmic ]]; then
-    sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"Bluefin $(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION} / FROM Universal Blue ${BASE_IMAGE} $(rpm -E %fedora))\"|" /usr/lib/os-release
+    sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"Bluefin $(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION})\"|" /usr/lib/os-release
     sed -i "s/^VARIANT_ID=.*/VARIANT_ID=${IMAGE}/" /usr/lib/os-release
     sed -i "s/^NAME=.*/NAME=\"${IMAGE^} Atomic\"/" /usr/lib/os-release
-    sed -i "s/^DEFAULT_HOSTNAME=.*/DEFAULT_HOSTNAME=\"${IMAGE^}-atomic\"/" /usr/lib/os-release
+    sed -i "s/^DEFAULT_HOSTNAME=.*/DEFAULT_HOSTNAME=\"${IMAGE^}\"/" /usr/lib/os-release
     sed -i "s/^ID=fedora/ID=${IMAGE^}\nID_LIKE=\"fedora\"/" /usr/lib/os-release
     sed -i "/^REDHAT_BUGZILLA_PRODUCT=/d; /^REDHAT_BUGZILLA_PRODUCT_VERSION=/d; /^REDHAT_SUPPORT_PRODUCT=/d; /^REDHAT_SUPPORT_PRODUCT_VERSION=/d" /usr/lib/os-release
 else
-    sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"$(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION} / FROM ${BASE_IMAGE^} $(rpm -E %fedora))\"|" /usr/lib/os-release
+    sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"$(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION})\"|" /usr/lib/os-release
 fi
 
-sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (${base_image^})\"|" /usr/lib/os-release
-sed -i "s|^OSTREE_VERSION=.*|OSTREE_VERSION=\'${VERSION}\'|" /usr/lib/os-release
-echo "IMAGE_ID=\"${IMAGE}\"" >>/usr/lib/os-release
-echo "IMAGE_VERSION=\"${VERSION}\"" >>/usr/lib/os-release
+sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (FROM Universal Blue $(echo "${BASE_IMAGE^}" | cut -d - -f1)\"|" /usr/lib/os-release
+sed -i "s|^OSTREE_VERSION=.*|OSTREE_VERSION=\"${VERSION}\"|" /usr/lib/os-release
+sed -i "s|^IMAGE_ID=.*|IMAGE_ID=\"${IMAGE}\"|" /usr/lib/os-release || (echo "IMAGE_ID=\"${IMAGE}\"" >>/usr/lib/os-release)
+sed -i "s|^IMAGE_VERSION=.*|IMAGE_VERSION=\"${VERSION}\"|" /usr/lib/os-release || (echo "IMAGE_VERSION=\"${VERSION}\"" >>/usr/lib/os-release)
 ln -sf /usr/lib/os-release /etc/os-release
