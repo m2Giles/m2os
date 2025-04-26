@@ -40,21 +40,21 @@ syft-installer := "ghcr.io/anchore/syft:v1.22.0@sha256:b7b38b51897feb0a8118bbfe8
 # Base Containers
 
 [private]
-aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:41196cfdab6ddf5f1fa5114000413f162e46035635bc63ed3fa14f7e3317c43c"
+aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:aecd7bad218fb7a016faef1237032492fdf33327f26f37fd31fd74859113953d"
 [private]
-aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:4d2a782456cfe5ce51f678bc17e62a1c870f77053592f519d4236a40e603467f"
+aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:ab33e07f1c48f401496d1510902bbee41afe3136da1935ceddcc48cfe4632366"
 [private]
-bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:e0d3c81542c86a3ad306cdf6ab32f9294121aa89b95b05ee3f37b20dc202757a"
+bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:b0adb3b9bb0c6d9f09b0d49ffd31eb2c89462fee993464f13e6b3550cabdf300"
 [private]
-bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:ee244813f12fd096c953b4feeb9381c06f0974f11935c2a031494e4d87c1d2b7"
+bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:fe98382767afe56e00cc27af4b5c87df0de9d337f09239f7f3750417a068575c"
 [private]
 bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:18c6bb746f07ed7014584abd29ed56d09f05e43439bb844ae64991e8a996cb8d"
 [private]
 bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open@sha256:19faa3af1723250917a709ed11763a6d1e381afd4488a4676e02fffa68572a93"
 [private]
-ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:d06455bbe954f716c6959a5f0e99fd86c87cd10f0d49108f3bd4626a8518efaf"
+ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:873f2629ecb2eb1287ea6d9a9523c021cbd05a837dc0ca09ca533705ba930d4b"
 [private]
-ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:95b32912d4ea3edd5c5b61b135ded4f28a3e644f47dd806cd8800492b8be9ae7"
+ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:719b5ac989c006ac5ef255c31837510793bbead9888c025f661971b4f9a946df"
 
 [private]
 default:
