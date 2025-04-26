@@ -5,28 +5,56 @@ set unstable := true
 repo_image_name := "m2os"
 repo_name := "m2giles"
 username := "m2"
-IMAGE_REGISTRY := "ghcr.io/" + repo_name
-FQ_IMAGE_NAME := IMAGE_REGISTRY + "/" + repo_image_name
+IMAGE_REGISTRY := "ghcr.io" / repo_name
+FQ_IMAGE_NAME := IMAGE_REGISTRY / repo_image_name
+
+# Images
+
+[private]
 images := '(
-    [aurora]="aurora"
-    [aurora-nvidia]="aurora-nvidia-open"
-    [bazzite]="bazzite-gnome-nvidia-open"
-    [bazzite-deck]="bazzite-deck-gnome"
-    [bluefin]="bluefin"
-    [bluefin-nvidia]="bluefin-nvidia-open"
+    [aurora]=' + aurora + '
+    [aurora-nvidia]=' + aurora_nvidia + '
+    [bazzite]=' + bazzite + '
+    [bazzite-deck]=' + bazzite_deck + '
+    [bluefin]=' + bluefin + '
+    [bluefin-nvidia]=' + bluefin_nvidia + '
     [cosmic]="cosmic"
     [cosmic-nvidia]="cosmic-nvidia-open"
-    [ucore]="stable-zfs"
-    [ucore-nvidia]="stable-nvidia-zfs"
+    [ucore]=' + ucore + '
+    [ucore-nvidia]=' + ucore_nvidia + '
 )'
 
 # Build Containers
 
+[private]
 isobuilder := "ghcr.io/jasonn3/build-container-installer:v1.2.4@sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
+[private]
 rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.1@sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
+[private]
 qemu := "ghcr.io/qemus/qemu:7.11@sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
+[private]
 cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:278f02c11b91994238bb5cc536956d5ceca3cd4efb4763131ccd6022ff95b026"
+[private]
 syft-installer := "ghcr.io/anchore/syft:v1.22.0@sha256:b7b38b51897feb0a8118bbfe8e43a1eb94aaef31f8d0e4663354e42834a12126"
+
+# Base Containers
+
+[private]
+aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:41196cfdab6ddf5f1fa5114000413f162e46035635bc63ed3fa14f7e3317c43c"
+[private]
+aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:4d2a782456cfe5ce51f678bc17e62a1c870f77053592f519d4236a40e603467f"
+[private]
+bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:e0d3c81542c86a3ad306cdf6ab32f9294121aa89b95b05ee3f37b20dc202757a"
+[private]
+bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:ee244813f12fd096c953b4feeb9381c06f0974f11935c2a031494e4d87c1d2b7"
+[private]
+bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:18c6bb746f07ed7014584abd29ed56d09f05e43439bb844ae64991e8a996cb8d"
+[private]
+bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open@sha256:19faa3af1723250917a709ed11763a6d1e381afd4488a4676e02fffa68572a93"
+[private]
+ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:d06455bbe954f716c6959a5f0e99fd86c87cd10f0d49108f3bd4626a8518efaf"
+[private]
+ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:95b32912d4ea3edd5c5b61b135ded4f28a3e644f47dd806cd8800492b8be9ae7"
 
 [private]
 default:
@@ -70,38 +98,22 @@ build image="bluefin":
     TMPDIR="$(mktemp -d -p {{ BUILD_DIR }})"
     trap 'rm -rf $TMPDIR' EXIT SIGINT
     case "{{ image }}" in
-    "aurora"*|"bluefin"*)
-        BASE_IMAGE="${check}"
-        TAG_VERSION=stable-daily
-        {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
-        skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > "$TMPDIR/inspect-{{ image }}.json"
-        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
-        ;;
-    "bazzite"*)
-        BASE_IMAGE=${check}
-        TAG_VERSION=stable
-        {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
-        skopeo inspect docker://ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}" > "$TMPDIR/inspect-{{ image }}.json"
+    "aurora"*|"bazzite"*|"bluefin"*|"ucore"*)
+        {{ just }} verify-container "${check#*-os/}"
+        skopeo inspect docker://"${check/:*@/@}" > "$TMPDIR/inspect-{{ image }}.json"
         fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
         ;;
     "cosmic"*)
-        {{ just }} verify-container bluefin:stable-daily
-        fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/bluefin:stable-daily | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+        bluefin="${images[bluefin]}"
+        {{ just }} verify-container "${bluefin#*-os/}"
+        fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         {{ just }} verify-container akmods:coreos-stable-"${fedora_version}"
-        BASE_IMAGE=base-main
-        TAG_VERSION="${fedora_version}"
-        {{ just }} verify-container "${BASE_IMAGE}":"${TAG_VERSION}"
+        {{ just }} verify-container akmods-zfs:coreos-stable-"${fedora_version}"
         skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$TMPDIR/inspect-{{ image }}.json"
-        ;;
-    "ucore"*)
-        BASE_IMAGE=ucore
-        TAG_VERSION="$check"
-        {{ just }} verify-container "$BASE_IMAGE":"$TAG_VERSION"
-        skopeo inspect docker://ghcr.io/ublue-os/"$BASE_IMAGE":"$TAG_VERSION" > "$TMPDIR/inspect-{{ image }}.json"
-        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
-        # fedora_version="$(skopeo inspect docker://ghcr.io/ublue-os/$BASE_IMAGE:"$TAG_VERSION" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        # {{ just }} verify-container akmods:coreos-stable-"${fedora_version}"
-        # skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$TMPDIR/inspect-{{ image }}.json"
+        BASE_IMAGE=base-main
+        DIGEST="$(skopeo inspect docker://ghcr.io/ublue-os/base-main:"${fedora_version}" --format '{{ '{{ .Digest }}' }}')"
+        {{ just }} verify-container "${BASE_IMAGE}:${fedora_version}@${DIGEST}"
+        check="ghcr.io/ublue-os/${BASE_IMAGE}:${fedora_version}@${DIGEST}"
         ;;
     esac
 
@@ -118,7 +130,7 @@ build image="bluefin":
         VERSION="${VERSION}.$POINT"
     fi
     # Pull The image
-    ${PODMAN} pull "ghcr.io/ublue-os/$BASE_IMAGE:$TAG_VERSION"
+    ${PODMAN} pull "$check"
 
     #Build Args
     BUILD_ARGS+=("--file" "Containerfile")
@@ -128,8 +140,8 @@ build image="bluefin":
     BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR"/inspect-{{ image }}.json)")
     BUILD_ARGS+=("--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.")
     BUILD_ARGS+=("--build-arg" "IMAGE={{ image }}")
-    BUILD_ARGS+=("--build-arg" "BASE_IMAGE=$BASE_IMAGE")
-    BUILD_ARGS+=("--build-arg" "TAG_VERSION=$TAG_VERSION")
+    BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${check%%:*}")
+    BUILD_ARGS+=("--build-arg" "TAG_VERSION=${check#*:}")
     BUILD_ARGS+=("--build-arg" "SET_X=${SET_X:-}")
     BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
@@ -141,6 +153,7 @@ build image="bluefin":
     ${PODMAN} build "${BUILD_ARGS[@]}" .
 
     if [[ -z "${CI:-}" ]]; then
+        {{ just }} secureboot {{ image }}
         {{ just }} rechunk {{ image }}
     else
         ${PODMAN} rmi -f ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
@@ -297,10 +310,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
         fi
     else
         IMAGE_FULL=localhost/{{ repo_image_name }}:{{ image }}
-        ID=$(${PODMAN} images --filter reference=${IMAGE_FULL} --format "'{{ '{{.ID}}' }}'")
-        if [[ -z "$ID" ]]; then
-            {{ just }} build {{ image }}
-        fi
+        ${PODMAN} image exists "$IMAGE_FULL" || {{ just }} build {{ image }}
     fi
 
     # Check if ISO already exists. Remove it.
@@ -463,7 +473,7 @@ verify-container container="" registry="ghcr.io/ublue-os" key="": install-cosign
 
     # Public Key for Container Verification
     key={{ key }}
-    if [[ -z "${key:-}" && "{{ registry }}" == "ghcr.io/ublue-os" ]]; then
+    if [[ -z "${key:-}" ]] && [[ "{{ container }}" =~ ghcr.io/ublue-os || "{{ registry }}" == "ghcr.io/ublue-os" ]]; then
         key="https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub"
     fi
 
@@ -755,9 +765,11 @@ sbom-sign image $sbom="": install-cosign
     # Verify Signature
     cosign verify-blob "${SBOM_VERIFY_ARGS[@]}"
 
-# Just Executable
+# Utils
 
-export just := just_executable()
+GIT_ROOT := justfile_dir()
+BUILD_DIR := repo_image_name + "_build"
+just := just_executable()
 
 # SUDO
 
@@ -772,10 +784,3 @@ export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 
 export PODMAN := env("PODMAN", "") || which("podman") || require("podman-remote")
 
-# Workspace Folder
-
-GIT_ROOT := justfile_dir()
-
-# Build Dir
-
-BUILD_DIR := repo_image_name + "_build"
