@@ -783,4 +783,3 @@ export SET_X := if `id -u` == "0" { "1" } else { env('SET_X', '') }
 # Podman By Default
 
 export PODMAN := env("PODMAN", "") || which("podman") || require("podman-remote")
-
