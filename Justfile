@@ -156,7 +156,7 @@ build image="bluefin":
         {{ just }} secureboot {{ image }}
         {{ just }} rechunk {{ image }}
     else
-        ${PODMAN} rmi -f ghcr.io/ublue-os/"${BASE_IMAGE}":"${TAG_VERSION}"
+        ${PODMAN} rmi -f "${check%@*}"
     fi
 
 # Rechunk Image
