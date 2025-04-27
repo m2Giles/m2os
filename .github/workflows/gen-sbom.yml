@@ -121,19 +121,3 @@ jobs:
           name: ${{ matrix.image }}.sbom
           path: |
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json*
-
-  check-sbom:
-    name: Check ${{ inputs.image_flavor }} SBOMs Generated
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
-    needs: [sbom-image]
-    steps:
-      - name: Exit on failure
-        if: >-
-          ${{ contains(fromJson('["failure", "skipped"]'),
-          needs.sbom-image.result) }}
-        shell: bash
-        run: exit 1
-      - name: Exit
-        shell: bash
-        run: exit 0
