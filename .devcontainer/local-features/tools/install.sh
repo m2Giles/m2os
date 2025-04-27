@@ -23,6 +23,7 @@ dnf5 install -y \
     tmux \
     xorriso \
     yamllint \
+    yq \
     zstd
 
 # TODO: Handle arm64

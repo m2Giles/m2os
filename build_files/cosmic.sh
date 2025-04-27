@@ -90,7 +90,6 @@ PACKAGES+=(
     ublue-bling
     ublue-brew
     ublue-fastfetch
-    ublue-motd
     ublue-setup-services
     usbmuxd
     wireguard-tools
