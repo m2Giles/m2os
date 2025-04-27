@@ -65,6 +65,13 @@ sed -i 's@/usr/lib/wine/@/usr/lib64/wine/@g' /usr/bin/latencyflex
 sed -i 's@"dxvk.conf"@"/usr/share/latencyflex/dxvk.conf"@g' /usr/bin/latencyflex
 chmod +x /usr/bin/latencyflex
 
+mkdir -p /usr/share/gamescope-session-plus
+curl -Lo /usr/share/gamescope-session-plus/bootstrap_steam.tar.gz https://large-package-sources.nobaraproject.org/bootstrap_steam.tar.gz
+dnf5 install -y \
+    --repo copr:copr.fedorainfracloud.org:bazzite-org:bazzite \
+    gamescope-session-plus \
+    gamescope-session-steam
+
 sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 
 # this allows mangohud to read CPU power wattage

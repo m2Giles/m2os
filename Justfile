@@ -95,13 +95,13 @@ build image="bluefin":
     fi
     BUILD_ARGS=()
     mkdir -p {{ BUILD_DIR }}
-    TMPDIR="$(mktemp -d -p {{ BUILD_DIR }})"
-    trap 'rm -rf $TMPDIR' EXIT SIGINT
+    BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
+    trap 'rm -rf $BUILDTMP' EXIT SIGINT
     case "{{ image }}" in
     "aurora"*|"bazzite"*|"bluefin"*|"ucore"*)
         {{ just }} verify-container "${check#*-os/}"
-        skopeo inspect docker://"${check/:*@/@}" > "$TMPDIR/inspect-{{ image }}.json"
-        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
+        skopeo inspect docker://"${check/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
         ;;
     "cosmic"*)
         bluefin="${images[bluefin]}"
@@ -109,7 +109,7 @@ build image="bluefin":
         fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         {{ just }} verify-container akmods:coreos-stable-"${fedora_version}"
         {{ just }} verify-container akmods-zfs:coreos-stable-"${fedora_version}"
-        skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$TMPDIR/inspect-{{ image }}.json"
+        skopeo inspect docker://ghcr.io/ublue-os/akmods:coreos-stable-"${fedora_version}" > "$BUILDTMP/inspect-{{ image }}.json"
         BASE_IMAGE=base-main
         DIGEST="$(skopeo inspect docker://ghcr.io/ublue-os/base-main:"${fedora_version}" --format '{{ '{{ .Digest }}' }}')"
         {{ just }} verify-container "${BASE_IMAGE}:${fedora_version}@${DIGEST}"
@@ -118,10 +118,10 @@ build image="bluefin":
     esac
 
     VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
-    skopeo list-tags docker://{{ FQ_IMAGE_NAME }} > "$TMPDIR"/repotags.json
-    if [[ $(jq "any(.Tags[]; contains(\"$VERSION\"))" < "$TMPDIR"/repotags.json) == "true" ]]; then
+    skopeo list-tags docker://{{ FQ_IMAGE_NAME }} > "$BUILDTMP"/repotags.json
+    if [[ $(jq "any(.Tags[]; contains(\"$VERSION\"))" < "$BUILDTMP"/repotags.json) == "true" ]]; then
         POINT="1"
-        while jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" >/dev/null < "$TMPDIR"/repotags.json
+        while jq -e "any(.Tags[]; contains(\"$VERSION.$POINT\"))" >/dev/null < "$BUILDTMP"/repotags.json
         do
             (( POINT++ ))
         done
@@ -137,7 +137,7 @@ build image="bluefin":
     BUILD_ARGS+=("--label" "org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}")
     BUILD_ARGS+=("--label" "org.opencontainers.image.title={{ repo_image_name }}")
     BUILD_ARGS+=("--label" "org.opencontainers.image.version=$VERSION")
-    BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$TMPDIR"/inspect-{{ image }}.json)")
+    BUILD_ARGS+=("--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)")
     BUILD_ARGS+=("--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.")
     BUILD_ARGS+=("--build-arg" "IMAGE={{ image }}")
     BUILD_ARGS+=("--build-arg" "BASE_IMAGE=${check%%:*}")
@@ -153,7 +153,7 @@ build image="bluefin":
     ${PODMAN} build "${BUILD_ARGS[@]}" .
 
     if [[ -z "${CI:-}" ]]; then
-        {{ just }} secureboot {{ image }}
+        {{ just }} secureboot localhost/{{ repo_image_name }}:{{ image }}
         {{ just }} rechunk {{ image }}
     else
         ${PODMAN} rmi -f "${check%@*}"
