@@ -132,6 +132,6 @@ cd /tmp/
 chmod +x /tmp/ghostty.appimage
 /tmp/ghostty.appimage --appimage-extract
 mkdir -p /usr/share/icons/hicolor/256x256/apps/
-cp "$(realpath "$(readlink /tmp/squashfs-root/*.png)")" /usr/share/icons/hicolor/256x256/apps/
-cp "$(realpath "$(readlink /tmp/squashfs-root/*.desktop)")" /usr/share/applications/
+cp /tmp/AppDir/"$(readlink /tmp/squashfs-root/*.png)" /usr/share/icons/hicolor/256x256/apps/
+cp /tmp/AppDir/"$(readlink /tmp/squashfs-root/*.desktop)" /usr/share/applications/
 install -m 0755 /tmp/ghostty.appimage /usr/bin/ghostty
