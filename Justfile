@@ -29,7 +29,7 @@ images := '(
 [private]
 isobuilder := "ghcr.io/jasonn3/build-container-installer:v1.2.4@sha256:99156bea504884d10b2c9fe85f7b171deea18a2619269d7a7e6643707e681ad7"
 [private]
-rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.1@sha256:3db87ea9548cc15d5f168e3d58ede27b943bbadc30afee4e39b7cd6d422338b5"
+rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.2@sha256:e799d89f9a9965b5b0e89941a9fc6eaab62e9d2d73a0bfb92e6a495be0706907"
 [private]
 qemu := "ghcr.io/qemus/qemu:7.11@sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
 [private]
