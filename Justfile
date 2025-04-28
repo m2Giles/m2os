@@ -52,9 +52,9 @@ bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:d940d29df99fd5628f39268
 [private]
 bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open@sha256:19faa3af1723250917a709ed11763a6d1e381afd4488a4676e02fffa68572a93"
 [private]
-ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:fe588d0a4c33ae5a878e8ebb106140af486f2abcffebca0a874498d6c5ab0b85"
+ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:948e21ceb2b92218225125a2bfdab08e3c99a4493a372159dd14d9f93c9e8298"
 [private]
-ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:3095b1b74cb7546f104aceedcbf8d6ac8a4e366babf413ddcc2223fb9a6ac621"
+ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:83a865cb71800b0f21080dc76e0fc640d73ced9c73c74f636f4b7af6eefda53f"
 
 [private]
 default:
