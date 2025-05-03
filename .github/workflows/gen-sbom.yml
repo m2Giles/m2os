@@ -114,6 +114,19 @@ jobs:
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
 
+      - name: SBOM Attest
+        # if: >-
+        #   contains(fromJson('["workflow_dispatch", "merge_group"]'),
+        #   github.event_name) || github.event.schedule == '41 6 * * 0'
+        env:
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        run: |
+          just sbom-attest \
+            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
