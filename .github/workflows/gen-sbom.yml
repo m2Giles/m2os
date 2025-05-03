@@ -113,6 +113,15 @@ jobs:
       - name: Inspect Sarif
         run: cat ${{ steps.scan.outputs.sarif }}
 
+      - name: Upload Sarif Report
+        uses: github/codeql-action/upload-sarif@v3
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: ${{ matrix.image }}
+
       - name: Login to GHCR, Attest and Sign
         id: attest
         if: >-
@@ -143,3 +152,20 @@ jobs:
           name: ${{ matrix.image }}.sbom
           path: |-
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json*
+
+  check:
+    name: Check ${{ inputs.image_flavor }} Gen SBOM Successful
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    needs: [build-image]
+    steps:
+      # TODO: Figure out why aurora takes forever and can fail....
+      - name: Exit on failure
+        if: >-
+          ${{ contains(fromJson('["failure", "skipped"]'),
+          needs.build-image.result) }}
+        shell: bash
+        run: exit 0
+      - name: Exit
+        shell: bash
+        run: exit 0

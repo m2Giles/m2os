@@ -370,7 +370,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     -v "{{ GIT_ROOT }}/${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
     "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
 
-    VERSION="$(${SUDOIF} ${PODMAN} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+    # VERSION="$(${SUDOIF} ${PODMAN} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+    VERSION="41"
     if [[ "{{ ghcr }}" -ge "1" && "{{ clean }}" == "1" ]]; then
         ${SUDOIF} ${PODMAN} rmi ${IMAGE_FULL}
     fi
@@ -400,7 +401,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(SECURE_BOOT_KEY_URL="https://github.com/ublue-os/akmods/raw/main/certs/public_key.der")
     iso_build_args+=(VARIANT="Kinoite")
     # Use F41 for installing
-    iso_build_args+=(VERSION="41")
+    iso_build_args+=(VERSION="$VERSION")
     iso_build_args+=(WEB_UI="false")
     # Build ISO
     ${SUDOIF} ${PODMAN} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
