@@ -35,10 +35,10 @@ SERVER_PACKAGES=(
 SERVER_PACKAGES+=(
     edk2-ovmf
     genisoimage
-    gvisor-tap-vsock
     incus
     incus-agent
     incus-client
+    podman-machine
     qemu-char-spice
     qemu-device-display-virtio-gpu
     qemu-device-display-virtio-vga
@@ -47,7 +47,6 @@ SERVER_PACKAGES+=(
     qemu-kvm-core
     swtpm
     umoci
-    virtiofsd
 )
 
 # Docker Packages
@@ -69,14 +68,6 @@ dnf5 install -y "${SERVER_PACKAGES[@]}"
 # The superior default editor
 dnf5 swap -y \
     nano-default-editor vim-default-editor
-
-# Bootupctl fix for ISO
-if [[ $(rpm -E %fedora) -eq "40" && ! "${IMAGE}" =~ aurora|bluefin|ucore ]]; then
-    /usr/bin/bootupctl backend generate-update-metadata
-fi
-
-# Put virtiofsd on PATH
-ln -sf /usr/libexec/virtiofsd /usr/bin/virtiofsd
 
 # Docker sysctl.d
 mkdir -p /usr/lib/sysctl.d

@@ -2,18 +2,16 @@
 
 set ${SET_X:+-x} -eou pipefail
 
-if [[ -z "${KERNEL_FLAVOR:-}" ]]; then
-    KERNEL_FLAVOR=coreos-stable
-fi
+: "${KERNEL_FLAVOR:=coreos-stable}"
 
-KERNEL_SUFFIX=""
-QUALIFIED_KERNEL="$(rpm -qa | grep -P 'kernel-(|'"$KERNEL_SUFFIX"'-)(\d+\.\d+\.\d+)' | sed -E 's/kernel-(|'"$KERNEL_SUFFIX"'-)//')"
+KERNEL_VERSION="$(rpm -q --queryformat="%{EVR}.%{ARCH}" kernel-core)"
 
 # KVMFR KMOD
 dnf5 -y copr enable hikariknight/looking-glass-kvmfr
 
 if [[ ! "${IMAGE}" =~ bazzite ]]; then
-    skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
+    #shellcheck disable=SC2154
+    skopeo copy docker://ghcr.io/ublue-os/akmods@"${akmods_digest}" dir:/tmp/akmods
     AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
     dnf5 install -y /tmp/rpms/kmods/*kvmfr*.rpm
@@ -53,11 +51,11 @@ EOF
 semanage fcontext -a -t svirt_tmpfs_t /dev/kvmfr0
 checkmodule -M -m -o /etc/kvmfr/selinux/mod/kvmfr.mod /etc/kvmfr/selinux/kvmfr.te
 semodule_package -o /etc/kvmfr/selinux/pp/kvmfr.pp -m /etc/kvmfr/selinux/mod/kvmfr.mod
-# semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp # Seems broken with Docker
+semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp # Seems broken with Docker
 
-/usr/bin/dracut --no-hostonly --kver "$QUALIFIED_KERNEL" --reproducible --zstd -v --add ostree -f "/lib/modules/$QUALIFIED_KERNEL/initramfs.img"
+/usr/bin/dracut --no-hostonly --kver "$KERNEL_VERSION" --reproducible --zstd -v --add ostree -f "/lib/modules/$KERNEL_VERSION/initramfs.img"
 
-chmod 0600 /lib/modules/"$QUALIFIED_KERNEL"/initramfs.img
+chmod 0600 /lib/modules/"$KERNEL_VERSION"/initramfs.img
 
 # VFIO Kargs
 tee /usr/libexec/vfio-kargs.sh <<'EOF'

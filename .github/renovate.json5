@@ -12,7 +12,17 @@
         "^Justfile$"
       ],
       "matchStrings": [
-        "(?<justName>.+?)\\s:=\\s\"(?<packageName>.+):(?<currentValue>.+)@(?<currentDigest>sha256:[a-f0-9]+?)\""
+        "(?<justName>.+?)\\s:=\\s\"(?<packageName>\\S+):(?<currentValue>\\S+)@(?<currentDigest>sha256:[a-f0-9]+?)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "^image-versions.yml$"
+      ],
+      "matchStrings": [
+        "image:\\s*(?<packageName>\\S+)\\s*tag:\\s*(?<currentValue>\\S+)\\s*digest:\\s*(?<currentDigest>sha256:[a-f0-9]+)"
       ],
       "datasourceTemplate": "docker"
     }
@@ -24,7 +34,23 @@
       "groupName": "Base Images",
       "matchPackageNames": [
         "ghcr.io/ublue-os/*",
+      ],
+      "matchUpdateTypes": [
+        "pin",
+        "digest",
+        "pinDigest"
       ]
+    },
+    {
+      "matchPackageNames": [
+        "ghcr.io/ublue-os/*",
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "enabled": false
     },
     {
       "automerge": true,
@@ -51,6 +77,7 @@
     // Auto Merge Dockerfile Digest Updates
     {
       "automerge": true,
+      "groupName": "Base Images",
       "matchManagers": [
         "devcontainer",
         "dockerfile"
