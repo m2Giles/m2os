@@ -805,7 +805,7 @@ just := just_executable()
 
 # SUDO
 
-SUDO_DISPLAY := env("DISPLAY","") || env("WAYLAND_DISPLAY", "")
+SUDO_DISPLAY := env("DISPLAY", "") || env("WAYLAND_DISPLAY", "")
 export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { which("sudo") + " --askpass" } else { which("sudo") }
 
 # Quiet By Default
