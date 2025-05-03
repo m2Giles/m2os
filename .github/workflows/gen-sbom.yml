@@ -101,7 +101,8 @@ jobs:
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
 
-      - name: SBOM Sign
+      - name: Login to GHCR, Attest and Sign
+        id: attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
@@ -109,21 +110,17 @@ jobs:
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        shell: bash
         run: |
-          just sbom-sign \
+          set -eou pipefail
+
+          just login-to-ghcr ${{ github.actor }} ${{ github.token }}
+
+          just sbom-attest \
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
 
-      - name: SBOM Attest
-        # if: >-
-        #   contains(fromJson('["workflow_dispatch", "merge_group"]'),
-        #   github.event_name) || github.event.schedule == '41 6 * * 0'
-        env:
-          COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
-          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
-        run: |
-          just sbom-attest \
+          just sbom-sign \
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
 
@@ -132,5 +129,5 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.image }}.sbom
-          path: |
+          path: |-
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json*

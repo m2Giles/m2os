@@ -329,11 +329,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     *"aurora"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/aurora/refs/heads/main/aurora_flatpaks/flatpaks"
     ;;
-    *"bazzite"*)
+    *"bazzite"*|*"bluefin"*|*"cosmic"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
-    ;;
-    *"bluefin"*|*"cosmic"*)
-        FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/iso_files/system-flatpaks.txt"
     ;;
     esac
     curl -Lo "${FLATPAK_REFS_DIR}"/flatpaks.txt "${FLATPAK_LIST_URL}"
@@ -343,12 +340,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
         app/org.gimp.GIMP/x86_64/stable
         app/org.libreoffice.LibreOffice/x86_64/stable
         app/org.prismlauncher.PrismLauncher/x86_64/stable
+        app/org.gnome.World.PikaBackup/x86_64/stable
+        app/it.mijorus.gearlever/x86_64/stable
     )
-    if [[ "{{ image }}" =~ bazzite ]]; then
-        ADDITIONAL_FLATPAKS+=(app/org.gnome.World.PikaBackup/x86_64/stable)
-    elif [[ "{{ image }}" =~ aurora|bluefin|cosmic ]]; then
-        ADDITIONAL_FLATPAKS+=(app/it.mijorus.gearlever/x86_64/stable)
-    fi
     FLATPAK_REFS=()
     while IFS= read -r line; do
     FLATPAK_REFS+=("$line")
@@ -405,7 +399,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(ISO_NAME="/github/workspace/{{ BUILD_DIR }}/output/{{ image }}.iso")
     iso_build_args+=(SECURE_BOOT_KEY_URL="https://github.com/ublue-os/akmods/raw/main/certs/public_key.der")
     iso_build_args+=(VARIANT="Kinoite")
-    iso_build_args+=(VERSION="$VERSION")
+    # Use F41 for installing
+    iso_build_args+=(VERSION="41")
     iso_build_args+=(WEB_UI="false")
     # Build ISO
     ${SUDOIF} ${PODMAN} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
