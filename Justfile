@@ -760,7 +760,7 @@ sbom-attest input $sbom="" $destination="": install-cosign
     fi
 
     # Compress
-    sbom_type="urn:{{ repo_image_name }}:attestation:spdx+json+zstd:v1"
+    sbom_type="application/spdx+json+zstd"
     compress_sbom="$sbom.zst"
     zstd "$sbom" -o "$compress_sbom"
 
