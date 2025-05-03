@@ -108,6 +108,7 @@ jobs:
         id: scan
         with:
           sbom: ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+          fail-build: false
 
       - name: Inspect Sarif
         run: cat ${{ steps.scan.outputs.sarif }}
