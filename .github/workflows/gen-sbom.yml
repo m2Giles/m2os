@@ -157,7 +157,7 @@ jobs:
     name: Check ${{ inputs.image_flavor }} Gen SBOM Successful
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    needs: [build-image]
+    needs: [sbom-image]
     steps:
       # TODO: Figure out why aurora takes forever and can fail....
       - name: Exit on failure
