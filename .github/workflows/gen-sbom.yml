@@ -101,6 +101,17 @@ jobs:
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
 
+      - name: Scan SBOM
+        env:
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        uses: anchore/scan-action@v6
+        id: scan
+        with:
+          sbom: ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+
+      - name: Inspect Sarif
+        run: cat ${{ steps.scan.outputs.sarif }}
+
       - name: Login to GHCR, Attest and Sign
         id: attest
         if: >-
