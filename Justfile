@@ -40,21 +40,21 @@ syft-installer := "ghcr.io/anchore/syft:v1.23.1@sha256:d4c82a5ea021455ac8d645b5d
 # Base Containers
 
 [private]
-aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:f17b108c3be8e0e8192af6169234840528810180938af53fc53e84ad6be98def"
+aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:372ce740328ef1226ec94dab4e00c99ff2bd955c405e5112548594206c616b31"
 [private]
-aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:702f686c963cd2500c08420e70dce07615074d8f55a3f0e4ba62e74d92f0a19b"
+aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:db300eb75e7f7cc167bc0fba422c3bbb0ef91e6da1a17e9fcd59a65eb111f3b6"
 [private]
-bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:b0adb3b9bb0c6d9f09b0d49ffd31eb2c89462fee993464f13e6b3550cabdf300"
+bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:eb2983ddedf93b3c8f0217014e863cd932ce5b6cbd2f4a1bb8ef8474e4d476bb"
 [private]
-bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:fe98382767afe56e00cc27af4b5c87df0de9d337f09239f7f3750417a068575c"
+bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:bc9bd11fa8a7c0cc89e6c3e5be11fce9d685be4b0c127ada581e8de9b75decb3"
 [private]
-bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:5b42ba617c89bf565afc86cfafd446cd6f2762078ed2056e318653995b0cc683"
+bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:f84577139c8e31f07b58a3d0d55049639d555a649cf21c8b996cda195709ab70"
 [private]
 bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open@sha256:19faa3af1723250917a709ed11763a6d1e381afd4488a4676e02fffa68572a93"
 [private]
-ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:948e21ceb2b92218225125a2bfdab08e3c99a4493a372159dd14d9f93c9e8298"
+ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:3d91a38dd5bd8bcb3fecffd5bbb5e6c7c9a364dcd81732f8855e310dced7a59c"
 [private]
-ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:83a865cb71800b0f21080dc76e0fc640d73ced9c73c74f636f4b7af6eefda53f"
+ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:1fcd729dbad24a6a193a416cae54b305a8fdf827175118f5572de265e773e3f8"
 
 [private]
 default:
