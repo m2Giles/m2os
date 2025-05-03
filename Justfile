@@ -145,9 +145,6 @@ build image="bluefin":
     BUILD_ARGS+=("--build-arg" "SET_X=${SET_X:-}")
     BUILD_ARGS+=("--build-arg" "VERSION=$VERSION")
     BUILD_ARGS+=("--tag" "localhost/{{ repo_image_name }}:{{ image }}")
-    if [[ "${PODMAN}" =~ docker ]] && [ "${TERM}" = "dumb" ]; then
-        BUILD_ARGS+=("--progress" "plain")
-    fi
     echo "::endgroup::"
 
     ${PODMAN} build "${BUILD_ARGS[@]}" .
@@ -185,7 +182,7 @@ rechunk image="bluefin":
     ostree.linux=$(${PODMAN} inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
     org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
     "
-    if [[ ! "${PODMAN}" =~ docker|remote ]]; then
+    if [[ ! "${PODMAN}" =~ remote ]]; then
         MOUNT=$(${PODMAN} mount "$CREF")
     else
         MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
@@ -219,7 +216,7 @@ rechunk image="bluefin":
         --user 0:0 \
         {{ rechunker }} \
         /sources/rechunk/2_create.sh
-    if [[ ! "${PODMAN}" =~ docker|remote ]]; then
+    if [[ ! "${PODMAN}" =~ remote ]]; then
         ${PODMAN} unmount "$CREF"
         ${PODMAN} rm "$CREF"
         ${PODMAN} rmi -f localhost/{{ repo_image_name }}:{{ image }}
@@ -258,12 +255,8 @@ rechunk image="bluefin":
 load-image image="bluefin":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-    if [[ "${PODMAN}" =~ podman ]]; then
-        IMAGE=$(podman pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
-        podman tag "${IMAGE}" localhost/{{ repo_image_name }}:{{ image }}
-    else
-        skopeo copy oci-archive:{{ repo_image_name }}_{{ image }}.tar docker-daemon:localhost/{{ repo_image_name }}:{{ image }}
-    fi
+    IMAGE=$({{ PODMAN }} pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
+    podman tag "${IMAGE}" localhost/{{ repo_image_name }}:{{ image }}
     VERSION=$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')
     ${PODMAN} tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:"${VERSION}"
     ${PODMAN} images
@@ -319,7 +312,7 @@ build-iso image="bluefin" ghcr="0" clean="0":
     fi
 
     # Load image into rootful podman
-    if [[ "${UID}" -gt "0" && ! "${PODMAN}" =~ docker|remote ]]; then
+    if [[ "${UID}" -gt "0" && ! "${PODMAN}" =~ remote ]]; then
         mkdir -p {{ BUILD_DIR }}
         COPYTMP="$(mktemp -dp {{ BUILD_DIR }})"
         ${SUDOIF} TMPDIR="${COPYTMP}" ${PODMAN} image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"
@@ -336,11 +329,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     *"aurora"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/aurora/refs/heads/main/aurora_flatpaks/flatpaks"
     ;;
-    *"bazzite"*)
+    *"bazzite"*|*"bluefin"*|*"cosmic"*)
         FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
-    ;;
-    *"bluefin"*|*"cosmic"*)
-        FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bluefin/refs/heads/main/iso_files/system-flatpaks.txt"
     ;;
     esac
     curl -Lo "${FLATPAK_REFS_DIR}"/flatpaks.txt "${FLATPAK_LIST_URL}"
@@ -350,12 +340,9 @@ build-iso image="bluefin" ghcr="0" clean="0":
         app/org.gimp.GIMP/x86_64/stable
         app/org.libreoffice.LibreOffice/x86_64/stable
         app/org.prismlauncher.PrismLauncher/x86_64/stable
+        app/org.gnome.World.PikaBackup/x86_64/stable
+        app/it.mijorus.gearlever/x86_64/stable
     )
-    if [[ "{{ image }}" =~ bazzite ]]; then
-        ADDITIONAL_FLATPAKS+=(app/org.gnome.World.PikaBackup/x86_64/stable)
-    elif [[ "{{ image }}" =~ aurora|bluefin|cosmic ]]; then
-        ADDITIONAL_FLATPAKS+=(app/it.mijorus.gearlever/x86_64/stable)
-    fi
     FLATPAK_REFS=()
     while IFS= read -r line; do
     FLATPAK_REFS+=("$line")
@@ -383,7 +370,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     -v "{{ GIT_ROOT }}/${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
     "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
 
-    VERSION="$(${SUDOIF} ${PODMAN} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+    # VERSION="$(${SUDOIF} ${PODMAN} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+    VERSION="41"
     if [[ "{{ ghcr }}" -ge "1" && "{{ clean }}" == "1" ]]; then
         ${SUDOIF} ${PODMAN} rmi ${IMAGE_FULL}
     fi
@@ -391,10 +379,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     cat "${FLATPAK_REFS_DIR}"/flatpaks-with-deps
     #ISO Container Args
     iso_build_args=()
-    if [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ podman ]]; then
+    if [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ podman$ ]]; then
         iso_build_args+=(--volume "/var/lib/containers/storage:/var/lib/containers/storage")
-    elif [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ docker ]]; then
-        iso_build_args+=(--volume "/var/run/docker.sock:/var/run/docker.sock")
     fi
     iso_build_args+=(--volume "{{ GIT_ROOT }}:/github/workspace/")
     iso_build_args+=({{ isobuilder }})
@@ -405,10 +391,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(IMAGE_NAME="{{ repo_image_name }}")
     iso_build_args+=(IMAGE_REPO="${IMAGE_REPO}")
     iso_build_args+=(IMAGE_SIGNED="true")
-    if [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ podman ]]; then
+    if [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ podman$ ]]; then
         iso_build_args+=(IMAGE_SRC="containers-storage:${IMAGE_FULL}")
-    elif [[ "{{ ghcr }}" == "0" && "${PODMAN}" =~ docker ]]; then
-        iso_build_args+=(IMAGE_SRC="docker-daemon:${IMAGE_FULL}")
     elif [[ "{{ ghcr }}" == "2" ]]; then
         iso_build_args+=(IMAGE_SRC="oci-archive:/github/workspace/{{ repo_image_name }}_{{ image }}.tar")
     fi
@@ -416,13 +400,12 @@ build-iso image="bluefin" ghcr="0" clean="0":
     iso_build_args+=(ISO_NAME="/github/workspace/{{ BUILD_DIR }}/output/{{ image }}.iso")
     iso_build_args+=(SECURE_BOOT_KEY_URL="https://github.com/ublue-os/akmods/raw/main/certs/public_key.der")
     iso_build_args+=(VARIANT="Kinoite")
+    # Use F41 for installing
     iso_build_args+=(VERSION="$VERSION")
     iso_build_args+=(WEB_UI="false")
     # Build ISO
     ${SUDOIF} ${PODMAN} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
-    if [[ "${PODMAN}" =~ docker ]]; then
-        ${SUDOIF} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
-    elif [[ "${UID}" -gt "0" ]]; then
+    if [[ "${UID}" -gt "0" ]]; then
         ${SUDOIF} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
         ${SUDOIF} ${PODMAN} rmi "${IMAGE_FULL}"
     elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
@@ -670,7 +653,7 @@ push-to-registry image $dryrun="true" $destination="":
     # Push
     if [[ "{{ dryrun }}" == "false" ]]; then
         for tag in "${TAGS[@]}"; do
-            skopeo copy "oci-archive:{{ repo_image_name }}_{{ image }}.tar" "$destination/{{ repo_image_name }}:$tag"
+            skopeo copy "oci-archive:{{ repo_image_name }}_{{ image }}.tar" "$destination/{{ repo_image_name }}:$tag" >&2
         done
     fi
 
@@ -734,15 +717,15 @@ gen-sbom $input $output="":
     # Output Path
     echo "$OUTPUT_PATH"
 
-# Add SBOM attestation
+# Add SBOM Signing
 [group('CI')]
-sbom-sign image $sbom="": install-cosign
+sbom-sign input $sbom="": install-cosign
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
 
     # set SBOM
     if [[ ! -f "$sbom" ]]; then
-        sbom="$({{ just }} gen-sbom {{ image }})"
+        sbom="$({{ just }} gen-sbom {{ input }})"
     fi
 
     # Sign-blob Args
@@ -765,6 +748,51 @@ sbom-sign image $sbom="": install-cosign
     # Verify Signature
     cosign verify-blob "${SBOM_VERIFY_ARGS[@]}"
 
+# SBOM Attest
+[group('CI')]
+sbom-attest input $sbom="" $destination="": install-cosign
+    #!/usr/bin/bash
+    set ${SET_X:+-x} -eou pipefail
+
+    # set SBOM
+    if [[ ! -f "$sbom" ]]; then
+        sbom="$({{ just }} gen-sbom {{ input }})"
+    fi
+
+    # Compress
+    sbom_type="urn:{{ repo_image_name }}:attestation:spdx+json+zstd:v1"
+    compress_sbom="$sbom.zst"
+    zstd "$sbom" -o "$compress_sbom"
+
+    # Generate Payload
+    base64_payload="payload.b64"
+    base64 "$compress_sbom" | tr -d '\n' > "$base64_payload"
+
+    # Generate Predicate
+    predicate_file="wrapped-predicate.json"
+    jq -n \
+            --arg compression "zstd" \
+            --arg mediaType "application/spdx+json" \
+            --rawfile payload "$base64_payload" \
+            '{compression: $compression, mediaType: $mediaType, payload: $payload}' \
+            > "$predicate_file"
+
+    rm "$base64_payload"
+
+    # SBOM Attest args
+    SBOM_ATTEST_ARGS=(
+        "--predicate" "$predicate_file"
+        "--type" "$sbom_type"
+        "--key" "env://COSIGN_PRIVATE_KEY"
+    )
+
+    : "${destination:={{ IMAGE_REGISTRY }}}"
+    digest="$(skopeo inspect "{{ input }}" --format '{{{{ .Digest }}')"
+
+    cosign attest -y \
+        "${SBOM_ATTEST_ARGS[@]}" \
+        "$destination/{{ repo_image_name }}@${digest}"
+
 # Utils
 
 GIT_ROOT := justfile_dir()
@@ -773,7 +801,7 @@ just := just_executable()
 
 # SUDO
 
-SUDO_DISPLAY := `echo ${DISPLAY:-} || echo ${WAYLAND_DISPLAY:-}`
+SUDO_DISPLAY := env("DISPLAY", "") || env("WAYLAND_DISPLAY", "")
 export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { which("sudo") + " --askpass" } else { which("sudo") }
 
 # Quiet By Default

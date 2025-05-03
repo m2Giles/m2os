@@ -101,7 +101,29 @@ jobs:
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
 
-      - name: SBOM Sign
+      - name: Scan SBOM
+        env:
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        uses: anchore/scan-action@v6
+        id: scan
+        with:
+          sbom: ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+          fail-build: false
+
+      - name: Inspect Sarif
+        run: cat ${{ steps.scan.outputs.sarif }}
+
+      - name: Upload Sarif Report
+        uses: github/codeql-action/upload-sarif@v3
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
+          category: ${{ matrix.image }}
+
+      - name: Login to GHCR, Attest and Sign
+        id: attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
@@ -109,7 +131,16 @@ jobs:
           COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        shell: bash
         run: |
+          set -eou pipefail
+
+          just login-to-ghcr ${{ github.actor }} ${{ github.token }}
+
+          just sbom-attest \
+            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+
           just sbom-sign \
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
@@ -119,5 +150,22 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ matrix.image }}.sbom
-          path: |
+          path: |-
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json*
+
+  check:
+    name: Check ${{ inputs.image_flavor }} Gen SBOM Successful
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    needs: [sbom-image]
+    steps:
+      # TODO: Figure out why aurora takes forever and can fail....
+      - name: Exit on failure
+        if: >-
+          ${{ contains(fromJson('["failure", "skipped"]'),
+          needs.build-image.result) }}
+        shell: bash
+        run: exit 0
+      - name: Exit
+        shell: bash
+        run: exit 0

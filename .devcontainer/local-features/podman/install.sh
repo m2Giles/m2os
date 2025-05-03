@@ -46,6 +46,10 @@ echo "$USERNAME:50000:10000" >/etc/subgid
 chmod u+s /usr/bin/new{u,g}idmap
 
 mkdir -p "/home/$USERNAME/.local/share/containers/"
+chown -R "$USERNAME:$USERNAME" "/home/$USERNAME"
+
+mkdir -p /run/user
+chmod 777 /run/user
 
 mkdir -p /usr/local/share
 tee /usr/local/share/podman-in-podman-init.sh >/dev/null <<'EOF'
@@ -139,16 +143,7 @@ if [[ ! -O "/srv/containers" ]]; then
     sudo_if chown "$USERNAME:$USERNAME" /srv/containers
 fi
 
-# Make XDG_RUNTIME_DIR
-if [ "$(id -u)" -ne 0 ] && [ ! -d "/run/user/$(id -u)/podman" ]; then
-    sudo_if mkdir -p "/run/user/$(id -u)/podman"
-    sudo_if chown "$(id -u):$(id -u)" -R "/run/user/$(id -u)"
-fi
-
-podman system service --time=0 unix:///run/user/"$(id -u)"/podman/podman.sock &
-sudo_if ln -sf /run/user/"$(id -u)"/podman/podman.sock /var/run/docker.sock
-
-exec "$@"
+exec "\$@"
 EOF
 
 chmod +x /usr/local/share/podman-in-podman-init.sh
