@@ -2,12 +2,7 @@
 
 set ${SET_X:+-x} -eou pipefail
 
-if [[ -z "${KERNEL_FLAVOR:-}" ]]; then
-    KERNEL_FLAVOR=coreos-stable
-fi
-
-# Get Kernel Version
-QUALIFIED_KERNEL=$(skopeo inspect docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}-$(rpm -E %fedora)" | jq -r '.Labels["ostree.linux"]')
+: "${KERNEL_FLAVOR:=coreos-stable}"
 
 # Add Cosmic Repo
 dnf5 -y copr enable ryanabx/cosmic-epoch
@@ -102,35 +97,39 @@ dnf5 swap -y \
     fwupd fwupd
 
 # Fetch KERNEL/AKMODS
-skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods
+# shellcheck disable=SC2154
+skopeo copy docker://ghcr.io/ublue-os/akmods@"${akmods_digest}" dir:/tmp/akmods
 AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
 tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
 
+KERNEL_VERSION="$(find /tmp/kernel-rpms/kernel-core-*.rpm -prune -printf "%f\n" | sed 's/kernel-core-//g;s/.rpm//g')"
+
 KERNEL_RPMS=(
-    "/tmp/kernel-rpms/kernel-${QUALIFIED_KERNEL}.rpm"
-    "/tmp/kernel-rpms/kernel-core-${QUALIFIED_KERNEL}.rpm"
-    "/tmp/kernel-rpms/kernel-devel-${QUALIFIED_KERNEL}.rpm"
-    "/tmp/kernel-rpms/kernel-modules-${QUALIFIED_KERNEL}.rpm"
-    "/tmp/kernel-rpms/kernel-modules-core-${QUALIFIED_KERNEL}.rpm"
-    "/tmp/kernel-rpms/kernel-modules-extra-${QUALIFIED_KERNEL}.rpm"
-    "/tmp/kernel-rpms/kernel-uki-virt-${QUALIFIED_KERNEL}.rpm"
+    "/tmp/kernel-rpms/kernel-${KERNEL_VERSION}.rpm"
+    "/tmp/kernel-rpms/kernel-core-${KERNEL_VERSION}.rpm"
+    "/tmp/kernel-rpms/kernel-modules-${KERNEL_VERSION}.rpm"
+    "/tmp/kernel-rpms/kernel-modules-core-${KERNEL_VERSION}.rpm"
+    "/tmp/kernel-rpms/kernel-modules-extra-${KERNEL_VERSION}.rpm"
+    "/tmp/kernel-rpms/kernel-uki-virt-${KERNEL_VERSION}.rpm"
 )
+# "/tmp/kernel-rpms/kernel-devel-${KERNEL_VERSION}.rpm"
 
 AKMODS_RPMS=(
-    /tmp/rpms/kmods/*framework-laptop-"${QUALIFIED_KERNEL}"-*.rpm
-    /tmp/rpms/kmods/*xone-"${QUALIFIED_KERNEL}"-*.rpm
-    /tmp/rpms/kmods/*xpadneo-"${QUALIFIED_KERNEL}"-*.rpm
+    /tmp/rpms/kmods/*framework-laptop-"${KERNEL_VERSION}"-*.rpm
+    /tmp/rpms/kmods/*xone-"${KERNEL_VERSION}"-*.rpm
+    /tmp/rpms/kmods/*xpadneo-"${KERNEL_VERSION}"-*.rpm
 )
 
 # Fetch ZFS
 if [[ "${KERNEL_FLAVOR}" =~ coreos ]]; then
-    skopeo copy docker://ghcr.io/ublue-os/akmods-zfs:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-zfs
+    # shellcheck disable=SC2154
+    skopeo copy docker://ghcr.io/ublue-os/akmods-zfs@"${akmods_zfs_digest}" dir:/tmp/akmods-zfs
     ZFS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-zfs/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
     echo "zfs" >/usr/lib/modules-load.d/zfs.conf
 
     ZFS_RPMS=(
-        /tmp/rpms/kmods/zfs/kmod-zfs-"${QUALIFIED_KERNEL}"-*.rpm
+        /tmp/rpms/kmods/zfs/kmod-zfs-"${KERNEL_VERSION}"-*.rpm
         /tmp/rpms/kmods/zfs/libnvpair3-*.rpm
         /tmp/rpms/kmods/zfs/libuutil3-*.rpm
         /tmp/rpms/kmods/zfs/libzfs5-*.rpm
@@ -158,13 +157,14 @@ dnf5 install -y --allowerasing "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[
 
 # Fetch Nvidia
 if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
-    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia-open:"${KERNEL_FLAVOR}"-"$(rpm -E %fedora)"-"${QUALIFIED_KERNEL}" dir:/tmp/akmods-rpms
+    # shellcheck disable=SC2154
+    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia-open@"${akmods_nvidia_digest}" dir:/tmp/akmods-rpms
     dnf5 config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-nvidia.repo
     NVIDIA_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-rpms/manifest.json | cut -d : -f 2)
     tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
     mv /tmp/rpms/* /tmp/akmods-rpms/
     # Install Nvidia RPMs
-    curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/hwe/main/nvidia-install.sh
+    curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/main/refs/heads/main/build_files/nvidia-install.sh
     chmod +x /tmp/nvidia-install.sh
     IMAGE_NAME="" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
     rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
@@ -172,7 +172,7 @@ if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
     dnf5 config-manager setopt fedora-multimedia.enabled=1 fedora-nvidia.enabled=0
 fi
 
-depmod -a -v "${QUALIFIED_KERNEL}"
+depmod -a -v "${KERNEL_VERSION}"
 
 # Remove Unneeded and Disable Repos
 UNINSTALL_PACKAGES=(

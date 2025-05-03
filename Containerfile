@@ -11,6 +11,10 @@ ARG BASE_IMAGE=""
 ARG IMAGE=""
 ARG SET_X=""
 ARG VERSION=""
+ARG KERNEL_FLAVOR=""
+ARG akmods_digest=""
+ARG akmods_nvidia_digest=""
+ARG akmods_zfs_digest=""
 
 RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \

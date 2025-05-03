@@ -1,0 +1,8 @@
+# Shell
+shell=bash
+
+# Disable Expression Is Constant
+disable=SC2050
+
+# Disable Word is Constant
+disable=SC2194
