@@ -12,9 +12,8 @@ on: # yamllint disable-line rule:truthy rule:comments
   merge_group:
   workflow_dispatch:
 permissions:
-  contents: write
-  packages: write
-  id-token: write
+  contents: read
+  packages: read
 
 jobs:
   lint:
