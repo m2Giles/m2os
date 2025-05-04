@@ -113,7 +113,7 @@ build image="bluefin":
         bluefin="${images[bluefin]}"
         {{ just }} verify-container "${bluefin#*-os/}"
         kernel_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]')"
-        fedora_version="$(echo $kernel_version | grep -oP 'fc\K[0-9]+')"
+        fedora_version="$(echo "$kernel_version" | grep -oP 'fc\K[0-9]+')"
         akmods_tag="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .tag" {{ image-file }})"
         akmods_digest="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .digest" {{ image-file }})"
         akmods_nvidia_tag="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\") | .tag" {{ image-file }})"
