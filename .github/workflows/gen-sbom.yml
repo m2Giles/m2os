@@ -5,6 +5,9 @@ on: # yamllint disable-line rule:truthy rule:comments
     inputs:
       image_flavor:
         type: string
+    secrets:
+      SIGNING_SECRET:
+        required: true
 concurrency:
   group: >-
     ${{ github.workflow }}-${{ github.ref
