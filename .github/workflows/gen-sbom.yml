@@ -43,7 +43,7 @@ jobs:
     continue-on-error: false
     permissions:
       contents: read
-      packages: read
+      packages: write
       security-events: write
     strategy:
       fail-fast: false
