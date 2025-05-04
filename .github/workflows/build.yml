@@ -41,6 +41,7 @@ jobs:
     permissions:
       actions: read
       contents: read
+      packages: read
     needs: [build-image]
     strategy:
       fail-fast: false
