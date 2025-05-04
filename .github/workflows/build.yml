@@ -60,7 +60,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-      packages: read
+      packages: write
       security-events: write
     secrets:
       SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
