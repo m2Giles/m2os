@@ -21,6 +21,8 @@ on: # yamllint disable-line rule:truthy rule:comments
 jobs:
   generate-release:
     name: Generate ${{ inputs.target }} Changelog
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout last 500 commits (for <commits> to work)

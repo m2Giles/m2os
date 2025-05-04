@@ -11,21 +11,22 @@ on: # yamllint disable-line rule:truthy rule:comments
       - main
   merge_group:
   workflow_dispatch:
-permissions:
-  contents: write
-  packages: write
-  id-token: write
 
 jobs:
   lint:
     name: Lint Project
+    permissions:
+      contents: read
     uses: ./.github/workflows/lint.yml
 
   build-image:
     name: Build Images
     needs: [lint]
     uses: ./.github/workflows/build-image.yml
-    secrets: inherit
+    permissions:
+      actions: read
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -37,7 +38,10 @@ jobs:
     name: Build ISOs
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     uses: ./.github/workflows/build-iso.yml
-    secrets: inherit
+    permissions:
+      actions: read
+      contents: read
+      packages: read
     needs: [build-image]
     strategy:
       fail-fast: false
@@ -51,7 +55,11 @@ jobs:
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     needs: [build-image]
     uses: ./.github/workflows/gen-sbom.yml
-    secrets: inherit
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+      security-events: write
     strategy:
       fail-fast: false
       matrix:
@@ -63,7 +71,8 @@ jobs:
     name: Generate Changelogs
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     uses: ./.github/workflows/changelogs.yml
-    secrets: inherit
+    permissions:
+      contents: read
     needs: ["build-iso"]
     strategy:
       fail-fast: false
@@ -77,3 +86,5 @@ jobs:
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     needs: ["changelogs", "gen-sbom"]
     uses: ./.github/workflows/create-release.yml
+    permissions:
+      contents: write

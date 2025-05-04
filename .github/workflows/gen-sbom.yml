@@ -18,6 +18,8 @@ env:
 jobs:
   get-images:
     name: Get ${{ inputs.image_flavor }} Images for SBOMs
+    permissions:
+      actions: read
     outputs:
       images: ${{ steps.images.outputs.images }}
     runs-on: ubuntu-latest
@@ -38,8 +40,8 @@ jobs:
     continue-on-error: false
     permissions:
       contents: read
-      packages: write
-      id-token: write
+      packages: read
+      security-events: write
     strategy:
       fail-fast: false
       matrix:
@@ -157,6 +159,8 @@ jobs:
 
   check:
     name: Check ${{ inputs.image_flavor }} Gen SBOM Successful
+    permissions:
+      actions: read
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs: [sbom-image]

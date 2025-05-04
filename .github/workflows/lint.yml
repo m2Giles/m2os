@@ -3,6 +3,8 @@ name: Lint Project
 on: # yamllint disable-line rule:truthy rule:comments
   workflow_call:
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   lint:
     name: Lint
