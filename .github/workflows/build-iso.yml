@@ -9,6 +9,7 @@ on: # yamllint disable-line rule:truthy rule:comments
         options:
           - "Desktop"
           - "Bazzite"
+          - "Beta"
         default: "Desktop"
   workflow_call:
     inputs:

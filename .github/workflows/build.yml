@@ -36,7 +36,7 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
-  build-beta:
+  build-image-beta:
     name: Build Beta Images
     needs: [lint]
     uses: ./.github/workflows/build-image.yml
@@ -66,6 +66,22 @@ jobs:
       fail-fast: false
       matrix:
         image_flavor: ["Desktop", "Bazzite"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
+  build-iso-beta:
+    name: Build Beta ISOs
+    if: ${{ ! contains(github.head_ref, 'renovate') }}
+    uses: ./.github/workflows/build-iso.yml
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+    needs: [build-image-beta]
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Beta"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
 

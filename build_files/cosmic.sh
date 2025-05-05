@@ -3,7 +3,9 @@
 set ${SET_X:+-x} -eou pipefail
 
 # Add Cosmic Repo
-dnf5 -y copr enable ryanabx/cosmic-epoch
+if [[ "${IMAGE}" =~ beta ]]; then
+    dnf5 -y copr enable ryanabx/cosmic-epoch
+fi
 
 # Add Staging repo
 dnf5 -y copr enable ublue-os/staging
@@ -30,9 +32,19 @@ dnf5 config-manager addrepo --from-repofile https://pkgs.tailscale.com/stable/fe
 # Cosmic Packages
 PACKAGES=(
     NetworkManager-openvpn
-    cosmic-desktop
-    gnome-keyring
-    xdg-desktop-portal-gtk
+    ark
+    cosmic-edit
+    cosmic-files
+    cosmic-player
+    cosmic-session
+    cosmic-store
+    cosmic-term
+    flatpak
+    gnome-disk-utility
+    gnome-keyring-pam
+    initial-setup-gui
+    plymouth-system-theme
+    toolbox
 )
 
 # Bluefin Packages
