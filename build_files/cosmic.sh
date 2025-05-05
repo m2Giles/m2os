@@ -32,17 +32,18 @@ dnf5 config-manager addrepo --from-repofile https://pkgs.tailscale.com/stable/fe
 # Cosmic Packages
 PACKAGES=(
     NetworkManager-openvpn
-    ark
     cosmic-edit
     cosmic-files
     cosmic-player
     cosmic-session
     cosmic-store
     cosmic-term
+    distrobox
     flatpak
+    gdisk
     gnome-disk-utility
+    gnome-keyring
     gnome-keyring-pam
-    initial-setup-gui
     plymouth-system-theme
     toolbox
 )
@@ -106,7 +107,10 @@ dnf5 swap -y \
     --repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
     fwupd fwupd
 
-dnf5 install -y --allowerasing "${PACKAGES[@]}"
+dnf5 install -y --allowerasing \
+    --setopt=install_weak_deps=False \
+    -x bluefin-readymade-config \
+    "${PACKAGES[@]}"
 
 # Remove Unneeded and Disable Repos
 UNINSTALL_PACKAGES=(
