@@ -2,9 +2,10 @@
 name: Create Release
 on: # yamllint disable-line rule:truthy rule:comments
   workflow_call:
-    type:
-      type: string
-      required: true
+    inputs:
+      type:
+        type: string
+        required: true
   workflow_dispatch:
     inputs:
       run-id:
