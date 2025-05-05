@@ -2,8 +2,6 @@
 
 set ${SET_X:+-x} -eou pipefail
 
-: "${KERNEL_FLAVOR:=coreos-stable}"
-
 # Add Cosmic Repo
 dnf5 -y copr enable ryanabx/cosmic-epoch
 
@@ -96,83 +94,7 @@ dnf5 swap -y \
     --repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
     fwupd fwupd
 
-# Fetch KERNEL/AKMODS
-# shellcheck disable=SC2154
-skopeo copy docker://ghcr.io/ublue-os/akmods@"${akmods_digest}" dir:/tmp/akmods
-AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
-tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
-
-KERNEL_VERSION="$(find /tmp/kernel-rpms/kernel-core-*.rpm -prune -printf "%f\n" | sed 's/kernel-core-//g;s/.rpm//g')"
-
-KERNEL_RPMS=(
-    "/tmp/kernel-rpms/kernel-${KERNEL_VERSION}.rpm"
-    "/tmp/kernel-rpms/kernel-core-${KERNEL_VERSION}.rpm"
-    "/tmp/kernel-rpms/kernel-modules-${KERNEL_VERSION}.rpm"
-    "/tmp/kernel-rpms/kernel-modules-core-${KERNEL_VERSION}.rpm"
-    "/tmp/kernel-rpms/kernel-modules-extra-${KERNEL_VERSION}.rpm"
-    "/tmp/kernel-rpms/kernel-uki-virt-${KERNEL_VERSION}.rpm"
-)
-# "/tmp/kernel-rpms/kernel-devel-${KERNEL_VERSION}.rpm"
-
-AKMODS_RPMS=(
-    /tmp/rpms/kmods/*framework-laptop-"${KERNEL_VERSION}"-*.rpm
-    /tmp/rpms/kmods/*xone-"${KERNEL_VERSION}"-*.rpm
-    /tmp/rpms/kmods/*xpadneo-"${KERNEL_VERSION}"-*.rpm
-)
-
-# Fetch ZFS
-if [[ "${KERNEL_FLAVOR}" =~ coreos ]]; then
-    # shellcheck disable=SC2154
-    skopeo copy docker://ghcr.io/ublue-os/akmods-zfs@"${akmods_zfs_digest}" dir:/tmp/akmods-zfs
-    ZFS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-zfs/manifest.json | cut -d : -f 2)
-    tar -xvzf /tmp/akmods-zfs/"$ZFS_TARGZ" -C /tmp/
-    echo "zfs" >/usr/lib/modules-load.d/zfs.conf
-
-    ZFS_RPMS=(
-        /tmp/rpms/kmods/zfs/kmod-zfs-"${KERNEL_VERSION}"-*.rpm
-        /tmp/rpms/kmods/zfs/libnvpair3-*.rpm
-        /tmp/rpms/kmods/zfs/libuutil3-*.rpm
-        /tmp/rpms/kmods/zfs/libzfs6-*.rpm
-        /tmp/rpms/kmods/zfs/libzpool6-*.rpm
-        /tmp/rpms/kmods/zfs/python3-pyzfs-*.rpm
-        /tmp/rpms/kmods/zfs/zfs-*.rpm
-        pv
-    )
-else
-    ZFS_RPMS=()
-fi
-
-# Delete Kernel Packages for Install
-for pkg in kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra kernel-uki-virt; do
-    rpm --erase $pkg --nodeps
-done
-
-# Enable Akmods-Addons
-dnf5 install -y /tmp/rpms/ublue-os/ublue-os-akmods-addons*.rpm
-
-# Install
-dnf5 install -y "${KERNEL_RPMS[@]}"
-dnf5 versionlock add kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra kernel-uki-virt
-dnf5 install -y --allowerasing "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
-
-# Fetch Nvidia
-if [[ "${IMAGE}" =~ cosmic-nvidia ]]; then
-    # shellcheck disable=SC2154
-    skopeo copy docker://ghcr.io/ublue-os/akmods-nvidia-open@"${akmods_nvidia_digest}" dir:/tmp/akmods-rpms
-    dnf5 config-manager addrepo --from-repofile=https://negativo17.org/repos/fedora-nvidia.repo
-    NVIDIA_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods-rpms/manifest.json | cut -d : -f 2)
-    tar -xvzf /tmp/akmods-rpms/"$NVIDIA_TARGZ" -C /tmp/
-    mv /tmp/rpms/* /tmp/akmods-rpms/
-    # Install Nvidia RPMs
-    curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/main/refs/heads/main/build_files/nvidia-install.sh
-    chmod +x /tmp/nvidia-install.sh
-    IMAGE_NAME="" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
-    rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json
-    ln -sf libnvidia-ml.so.1 /usr/lib64/libnvidia-ml.so
-    dnf5 config-manager setopt fedora-multimedia.enabled=1 fedora-nvidia.enabled=0
-fi
-
-depmod -a -v "${KERNEL_VERSION}"
+dnf5 install -y --allowerasing "${PACKAGES[@]}"
 
 # Remove Unneeded and Disable Repos
 UNINSTALL_PACKAGES=(

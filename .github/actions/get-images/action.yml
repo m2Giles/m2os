@@ -32,6 +32,13 @@ runs:
         "Server")
           images+=("ucore" "ucore-nvidia")
           ;;
+        "Beta")
+          images+=("bazzite-beta" "bazzite-deck-beta")
+          images+=("aurora-beta" "aurora-nvidia-beta")
+          images+=("bluefin-beta" "bluefin-nvidia-beta")
+          images+=("cosmic-beta" "cosmic-nvidia-beta")
+          # images+=("ucore-beta" "ucore-nvidia-beta")
+          ;;
         esac
 
         # Make into Json Array

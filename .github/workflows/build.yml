@@ -36,6 +36,23 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
+  build-beta:
+    name: Build Beta Images
+    needs: [lint]
+    uses: ./.github/workflows/build-image.yml
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    secrets:
+      SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Beta"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
   build-iso:
     name: Build ISOs
     if: ${{ ! contains(github.head_ref, 'renovate') }}

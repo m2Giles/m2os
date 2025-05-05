@@ -69,17 +69,17 @@ ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:3d91a38dd5bd8bcb3fecffd5bbb5e
 [private]
 ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:1fcd729dbad24a6a193a416cae54b305a8fdf827175118f5572de265e773e3f8"
 [private]
-aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:0"
+aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:fb08d2fe6455879b736b7ad954b0acc46001d8da63eb4818ab54dab96975e247"
 [private]
-aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:6"
+aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:85ea21d9fc7701f3e8b2402930f7c67cdd849b16239a2d1af5b34c8b676b4343"
 [private]
-bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:e"
+bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:70039bed6c445774d39099403a4fcacb664befe9bd51a7f8fbf6ed4e65ba42c8"
 [private]
-bazzite_deck_beta := "ghcr.io/ublue-os/bazzite-deck-gnome:testing@sha256:b"
+bazzite_deck_beta := "ghcr.io/ublue-os/bazzite-deck-gnome:testing@sha256:e468120230204bb245c3b7b68b3be11d0ee6db37fc60bf90ca3319fbc6a09a29"
 [private]
-bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:5"
+bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:4f7ae5a1d0d777232e9c6eb0d6cc409311e035187bf2ccb282c26fb8de9ac08e"
 [private]
-bluefin_nvidia_beta := "ghcr.io/ublue-os/bluefin-nvidia-open:latest@sha256:1"
+bluefin_nvidia_beta := "ghcr.io/ublue-os/bluefin-nvidia-open:latest@sha256:5262d86d2e9922bae8bf8a9427cbe9b9965d19e1004dcfbf66f2fd8e12f8f7d0"
 [private]
 ucore_beta := "ghcr.io/ublue-os/ucore:testing-zfs@sha256:3"
 [private]
@@ -136,6 +136,13 @@ build image="bluefin":
         if [[ "{{ image }}" =~ bazzite ]]; then
             KERNEL_FLAVOR="bazzite"
         elif [[ "{{ image }}" =~ beta ]]; then
+            akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+            akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+            akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+            {{ just }} verify-container "${akmods#*-os/}"
+            {{ just }} verify-container "${akmods_nvidia#*-os/}"
+            {{ just }} verify-container "${akmods_zfs#*-os/}"
+            skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
             KERNEL_FLAVOR="coreos-testing"
         else
             KERNEL_FLAVOR="coreos-stable"
@@ -147,11 +154,10 @@ build image="bluefin":
             bluefin="${images[bluefin-beta]}"
         fi
         {{ just }} verify-container "${bluefin#*-os/}"
-        kernel_version="-$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]')"
-        fedora_version="$(echo "$kernel_version" | grep -oP 'fc\K[0-9]+')"
-        akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)$kernel_version@\(.digest)\"")"
-        akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)$kernel_version@\(.digest)\"")"
-        akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)$kernel_version@\(.digest)\"")"
+        fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+        akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+        akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+        akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
         {{ just }} verify-container "${akmods#*-os/}"
         {{ just }} verify-container "${akmods_nvidia#*-os/}"
         {{ just }} verify-container "${akmods_zfs#*-os/}"
@@ -195,7 +201,7 @@ build image="bluefin":
         "--build-arg" "KERNEL_FLAVOR=$KERNEL_FLAVOR"
         "--tag" "localhost/{{ repo_image_name }}:{{ image }}"
     )
-    if [[ "{{ image }}" =~ cosmic ]]; then
+    if [[ "{{ image }}" =~ cosmic || "{{ image }}" =~ beta ]]; then
     BUILD_ARGS+=(
        "--build-arg" "akmods_digest=${akmods#*@}"
        "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
@@ -819,7 +825,7 @@ sbom-attest input $sbom="" $destination="": install-cosign
     fi
 
     # Compress
-    sbom_type="urn:{{ repo_image_name }}:attestation:spdx+json+zstd:v1"
+    sbom_type="urn:ublue-os:attestation:spdx+json+zstd:v1"
     compress_sbom="$sbom.zst"
     zstd "$sbom" -o "$compress_sbom"
 
