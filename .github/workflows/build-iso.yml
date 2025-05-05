@@ -46,7 +46,7 @@ jobs:
           image_flavor: ${{ inputs.image_flavor }}
 
   build-iso:
-    name: Build ${{ inputs.image_flavor }} ISOs (${{ matrix.image }})
+    name: ${{ matrix.image }}
     needs: get-images
     outputs:
       url: ${{ steps.url.outputs.url }}
@@ -127,7 +127,7 @@ jobs:
           overwrite: true
 
   check-iso:
-    name: Check all ${{ inputs.image_flavor }} ISOs Created
+    name: Check all ISOs Created
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     needs: [build-iso]

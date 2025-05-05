@@ -32,7 +32,10 @@ jobs:
           fetch-depth: 500
 
       - name: Download Artifacts
-        if: contains(fromJson('["Desktop", "Bazzite"]'), inputs.target)
+        if:
+          # yamllint disable-line rule:line-length rule:comments
+          contains(fromJson('["Desktop", "Bazzite", "Desktop-Beta", "Bazzite-Beta"]'),
+          inputs.target)
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
@@ -41,7 +44,10 @@ jobs:
 
       - name: Merge Artifacts into url.md
         id: merge-artifacts
-        if: contains(fromJson('["Desktop", "Bazzite"]'), inputs.target)
+        if:
+          # yamllint disable-line rule:line-length rule:comments
+          contains(fromJson('["Desktop", "Bazzite", "Desktop-Beta", "Bazzite-Beta"]'),
+          inputs.target)
         shell: bash
         run: |
           set -eoux pipefail

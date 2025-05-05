@@ -20,7 +20,7 @@ env:
 
 jobs:
   get-images:
-    name: Get ${{ inputs.image_flavor }} Images for SBOMs
+    name: Get Images for SBOMs
     permissions:
       actions: read
     outputs:
@@ -37,7 +37,7 @@ jobs:
           image_flavor: ${{ inputs.image_flavor }}
 
   sbom-image:
-    name: Generate ${{ matrix.image }} SBOM
+    name: ${{ matrix.image }}
     needs: ["get-images"]
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -162,7 +162,7 @@ jobs:
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json*
 
   check:
-    name: Check ${{ inputs.image_flavor }} Gen SBOM Successful
+    name: Check Gen SBOM Successful
     permissions:
       actions: read
     if: ${{ !cancelled() }}
