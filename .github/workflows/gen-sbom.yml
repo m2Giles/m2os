@@ -40,7 +40,7 @@ jobs:
     name: Generate ${{ matrix.image }} SBOM
     needs: ["get-images"]
     runs-on: ubuntu-latest
-    continue-on-error: false
+    continue-on-error: true
     permissions:
       contents: read
       packages: write
@@ -99,6 +99,7 @@ jobs:
           swapon --show
 
       - name: Generate SBOM
+        id: gen
         env:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
@@ -168,13 +169,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sbom-image]
     steps:
-      # TODO: Figure out why aurora takes forever and can fail....
       - name: Exit on failure
         if: >-
           ${{ contains(fromJson('["failure", "skipped"]'),
           needs.build-image.result) }}
         shell: bash
-        run: exit 0
+        run: exit 1
       - name: Exit
         shell: bash
         run: exit 0

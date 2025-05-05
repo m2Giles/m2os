@@ -9,7 +9,7 @@ KERNEL_VERSION="$(rpm -q --queryformat="%{EVR}.%{ARCH}" kernel-core)"
 # KVMFR KMOD
 dnf5 -y copr enable hikariknight/looking-glass-kvmfr
 
-if [[ ! "${IMAGE}" =~ bazzite ]]; then
+if [[ ! "${IMAGE}" =~ bazzite && ! "${IMAGE}" =~ beta ]]; then
     #shellcheck disable=SC2154
     skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}-$(rpm -E %fedora)-${KERNEL_VERSION}" dir:/tmp/akmods
     AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)

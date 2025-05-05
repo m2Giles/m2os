@@ -57,7 +57,9 @@ else
 fi
 
 # Delete Kernel Packages for Install
-OLD_PACKAGES="$(rpm -qa --queryformat='%{NAME} ' 'kernel-*' 'kmod-*')"
+OLD_PACKAGES="$(rpm -qa --queryformat='%{NAME} ' 'kernel-*')"
+# shellcheck disable=SC2086
+dnf5 remove -y --setopt=disable_excludes='*' $OLD_PACKAGES
 # shellcheck disable=SC2086
 dnf5 versionlock delete $OLD_PACKAGES
 

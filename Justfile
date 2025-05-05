@@ -201,7 +201,7 @@ build image="bluefin":
         "--build-arg" "KERNEL_FLAVOR=$KERNEL_FLAVOR"
         "--tag" "localhost/{{ repo_image_name }}:{{ image }}"
     )
-    if [[ "{{ image }}" =~ cosmic || "{{ image }}" =~ beta ]]; then
+    if [[ "{{ image }}" =~ cosmic || "{{ image }}" =~ (aurora|bluefin)(|.*)-beta ]]; then
     BUILD_ARGS+=(
        "--build-arg" "akmods_digest=${akmods#*@}"
        "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
