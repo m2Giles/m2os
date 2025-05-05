@@ -114,21 +114,17 @@ build image="bluefin":
         {{ just }} verify-container "${bluefin#*-os/}"
         kernel_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]')"
         fedora_version="$(echo "$kernel_version" | grep -oP 'fc\K[0-9]+')"
-        akmods_tag="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .tag" {{ image-file }})"
-        akmods_digest="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .digest" {{ image-file }})"
-        akmods_nvidia_tag="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\") | .tag" {{ image-file }})"
-        akmods_nvidia_digest="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\") | .digest" {{ image-file }})"
-        akmods_zfs_tag="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\") | .tag" {{ image-file }})"
-        akmods_zfs_digest="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\") | .digest" {{ image-file }})"
-        {{ just }} verify-container akmods:"$akmods_tag-$kernel_version@$akmods_digest"
-        {{ just }} verify-container akmods-nvidia-open:"$akmods_nvidia_tag-$kernel_version@$akmods_nvidia_digest"
-        {{ just }} verify-container akmods-zfs:"$akmods_zfs_tag-$kernel_version@$akmods_zfs_digest"
-        skopeo inspect docker://ghcr.io/ublue-os/akmods:"$akmods_tag" > "$BUILDTMP/inspect-{{ image }}.json"
-        BASE_IMAGE=base-main
-        DIGEST="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\") | .digest" {{ image-file }})"
-        {{ just }} verify-container "${BASE_IMAGE}:${fedora_version}@${DIGEST}"
-        check="ghcr.io/ublue-os/${BASE_IMAGE}:${fedora_version}@${DIGEST}"
-        KERNEL_FLAVOR="${akmods_tag%-*}"
+        akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)-$kernel_version@\(.digest)\"")"
+        akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)-$kernel_version@\(.digest)\"")"
+        akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)-$kernel_version@\(.digest)\"")"
+        {{ just }} verify-container "${akmods#*-os/}"
+        {{ just }} verify-container "${akmods_nvidia#*-os/}"
+        {{ just }} verify-container "${akmods_zfs#*-os/}"
+        skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
+        check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r '"\(.image):\(.tag)@\(.digest)"')"
+        {{ just }} verify-container "${check#*-os/}"
+        KERNEL_FLAVOR="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .tag" {{ image-file }})"
+        KERNEL_FLAVOR="${KERNEL_FLAVOR%-*}"
         ;;
     esac
 
@@ -166,9 +162,9 @@ build image="bluefin":
     )
     if [[ "{{ image }}" =~ cosmic ]]; then
     BUILD_ARGS+=(
-       "--build-arg" "akmods_digest=$akmods_digest"
-       "--build-arg" "akmods_nvidia_digest=$akmods_nvidia_digest"
-       "--build-arg" "akmods_zfs_digest=$akmods_zfs_digest"
+       "--build-arg" "akmods_digest=${akmods#*@}"
+       "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
+       "--build-arg" "akmods_zfs_digest=${akmods_zfs#*@}"
     )
     fi
     echo "::endgroup::"
@@ -642,16 +638,24 @@ install-cosign:
 
     # Get Cosign from Chainguard
     if ! command -v cosign >/dev/null; then
-        COSIGN_CONTAINER_ID="$({{ SUDOIF }} {{ PODMAN }} create {{ cosign-installer }} bash)"
-        {{ SUDOIF }} {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign /usr/local/bin/cosign
-        {{ SUDOIF }} {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
+        # TMPDIR
+        TMPDIR="$(mktemp -d)"
+        trap 'rm -rf $TMPDIR' EXIT SIGINT
+
+        # Get Binary
+        COSIGN_CONTAINER_ID="$({{ PODMAN }} create {{ cosign-installer }} bash)"
+        {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign "$TMPDIR"/cosign
+        {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
+        {{ PODMAN }} rmi -f {{ cosign-installer }}
+
+        # Install
+        {{ SUDOIF }} install -c -m 0755 "$TMPDIR"/cosign /usr/local/bin/cosign
 
         # Verify Cosign Image Signatures if needed
         if ! cosign verify --certificate-oidc-issuer=https://token.actions.githubusercontent.com --certificate-identity=https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main cgr.dev/chainguard/cosign >/dev/null; then
             echo "NOTICE: Failed to verify cosign image signatures."
             exit 1
         fi
-        {{ SUDOIF }} {{ PODMAN }} rmi -f {{ cosign-installer }}
     fi
 
 # Login to GHCR
@@ -700,27 +704,9 @@ cosign-sign digest $destination="": install-cosign
 
 # Generate SBOM
 [group('CI')]
-gen-sbom $input $output="":
+gen-sbom $input $output="": install-syft
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-
-    # Get SYFT if needed
-    SYFT_ID=""
-    if ! command -v syft >/dev/null; then
-        SYFT_ID="$({{ SUDOIF }} {{ PODMAN }} create {{ syft-installer }})"
-        {{ SUDOIF }} {{ PODMAN }} cp "$SYFT_ID":/syft /usr/local/bin/syft
-        {{ SUDOIF }} {{ PODMAN }} rm -f "$SYFT_ID" > /dev/null
-        {{ SUDOIF }} {{ PODMAN }} rmi -f {{ syft-installer }}
-    fi
-
-    # Enable Podman Socket if needed
-    if [[ "$EUID" -eq "0" && "{{ PODMAN }}" =~ podman ]] && ! systemctl is-active -q podman.socket; then
-        systemctl start podman.socket
-        started_podman="true"
-    elif ! systemctl is-active -q --user podman.socket && [[ "{{ PODMAN }}" =~ podman ]]; then
-        systemctl start --user podman.socket
-        started_podman="true"
-    fi
 
     # Make SBOM
     if [[ -z "$output" ]]; then
@@ -728,17 +714,32 @@ gen-sbom $input $output="":
     else
         OUTPUT_PATH="$output"
     fi
-    env SYFT_PARALLELISM="$(nproc)" syft scan "{{ input }}" -o spdx-json="$OUTPUT_PATH"
-
-    # Cleanup
-    if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then
-        systemctl stop podman.socket
-    elif [[ "${started_podman:-}" == "true" ]]; then
-        systemctl stop --user podman.socket
-    fi
+    syft scan "{{ input }}" -o spdx-json="$OUTPUT_PATH" --select-catalogers "rpm,+sbom-cataloger"
 
     # Output Path
     echo "$OUTPUT_PATH"
+
+# Install Syft
+[group('CI')]
+install-syft:
+    #!/usr/bin/bash
+    set ${SET_X:+-x} -eou pipefail
+
+    # Get SYFT if needed
+    if ! command -v syft >/dev/null; then
+        # Make TMPDIR
+        TMPDIR="$(mktemp -d)"
+        trap 'rm -rf $TMPDIR' EXIT SIGINT
+
+        # Get Binary
+        SYFT_ID="$({{ PODMAN }} create {{ syft-installer }})"
+        {{ PODMAN }} cp "$SYFT_ID":/syft "$TMPDIR"/syft
+        {{ PODMAN }} rm -f "$SYFT_ID" > /dev/null
+        {{ PODMAN }} rmi -f {{ syft-installer }}
+
+        # Install
+        {{ SUDOIF }} install -c -m 0755 "$TMPDIR"/syft /usr/local/bin/syft
+    fi
 
 # Add SBOM Signing
 [group('CI')]

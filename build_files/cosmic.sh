@@ -132,8 +132,8 @@ if [[ "${KERNEL_FLAVOR}" =~ coreos ]]; then
         /tmp/rpms/kmods/zfs/kmod-zfs-"${KERNEL_VERSION}"-*.rpm
         /tmp/rpms/kmods/zfs/libnvpair3-*.rpm
         /tmp/rpms/kmods/zfs/libuutil3-*.rpm
-        /tmp/rpms/kmods/zfs/libzfs5-*.rpm
-        /tmp/rpms/kmods/zfs/libzpool5-*.rpm
+        /tmp/rpms/kmods/zfs/libzfs6-*.rpm
+        /tmp/rpms/kmods/zfs/libzpool6-*.rpm
         /tmp/rpms/kmods/zfs/python3-pyzfs-*.rpm
         /tmp/rpms/kmods/zfs/zfs-*.rpm
         pv
@@ -143,7 +143,7 @@ else
 fi
 
 # Delete Kernel Packages for Install
-for pkg in kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra; do
+for pkg in kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra kernel-uki-virt; do
     rpm --erase $pkg --nodeps
 done
 
@@ -152,7 +152,7 @@ dnf5 install -y /tmp/rpms/ublue-os/ublue-os-akmods-addons*.rpm
 
 # Install
 dnf5 install -y "${KERNEL_RPMS[@]}"
-dnf5 versionlock add kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra
+dnf5 versionlock add kernel kernel-core kernel-modules kernel-modules-core kernel-modules-extra kernel-uki-virt
 dnf5 install -y --allowerasing "${PACKAGES[@]}" "${AKMODS_RPMS[@]}" "${ZFS_RPMS[@]}"
 
 # Fetch Nvidia
