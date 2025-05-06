@@ -52,6 +52,7 @@ done
 
 rm -rf /tmp/*
 rm -rf /var/*
+rm -rf /boot/*
 rm -rf /usr/etc
 mkdir -p /tmp
 mkdir -p /var/tmp

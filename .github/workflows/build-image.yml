@@ -20,7 +20,7 @@ env:
 
 jobs:
   get-images:
-    name: Get ${{ inputs.image_flavor }} Images for Build
+    name: Get Images for Build
     permissions:
       actions: read
     outputs:
@@ -37,7 +37,7 @@ jobs:
           image_flavor: ${{ inputs.image_flavor }}
 
   build-image:
-    name: Build ${{ matrix.image }} Image
+    name: ${{ matrix.image }}
     needs: get-images
     runs-on: ubuntu-latest
     continue-on-error: false
@@ -124,7 +124,7 @@ jobs:
           if-no-files-found: error
 
   check:
-    name: Check Build ${{ inputs.image_flavor }} Images Successful
+    name: Check Build Images Successful
     permissions:
       actions: read
     if: ${{ !cancelled() }}

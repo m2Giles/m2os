@@ -25,12 +25,14 @@ echo_group /ctx/composefs.sh
 # Desktops
 case "$IMAGE" in
 "cosmic"*)
+    echo_group /ctx/kernel-swap.sh
     echo_group /ctx/cosmic.sh
     echo_group /ctx/desktop-packages.sh
     echo_group /ctx/steam.sh
     echo_group /ctx/vfio.sh
     ;;
 "aurora"* | "bluefin"*)
+    echo_group /ctx/kernel-swap.sh
     echo_group /ctx/desktop-packages.sh
     echo_group /ctx/steam.sh
     echo_group /ctx/vfio.sh

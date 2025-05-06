@@ -11,6 +11,8 @@ FQ_IMAGE_NAME := IMAGE_REGISTRY / repo_image_name
 
 [private]
 images := '(
+
+    # Stable Images
     [aurora]=' + aurora + '
     [aurora-nvidia]=' + aurora_nvidia + '
     [bazzite]=' + bazzite + '
@@ -21,6 +23,18 @@ images := '(
     [cosmic-nvidia]="cosmic-nvidia-open"
     [ucore]=' + ucore + '
     [ucore-nvidia]=' + ucore_nvidia + '
+
+    # Beta Images
+    [aurora-beta]=' + aurora_beta + '
+    [aurora-nvidia-beta]=' + aurora_nvidia_beta + '
+    [bazzite-beta]=' + bazzite_beta + '
+    [bazzite-deck-beta]=' + bazzite_deck_beta + '
+    [bluefin-beta]=' + bluefin_beta + '
+    [bluefin-nvidia-beta]=' + bluefin_nvidia_beta + '
+    [cosmic-beta]="cosmic"
+    [cosmic-nvidia-beta]="cosmic-nvidia-open"
+    [ucore-beta]=' + ucore_beta + '
+    [ucore-nvidia-beta]=' + ucore_nvidia_beta + '
 )'
 
 # Build Containers
@@ -49,11 +63,27 @@ bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:bc9bd11fa8a7c
 [private]
 bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:77f74fc6888eef9004d6122868188eb570dd1f941479223eba8f074e92cbaaf6"
 [private]
-bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open@sha256:19faa3af1723250917a709ed11763a6d1e381afd4488a4676e02fffa68572a93"
+bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open:stable-daily@sha256:19faa3af1723250917a709ed11763a6d1e381afd4488a4676e02fffa68572a93"
 [private]
 ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:3d91a38dd5bd8bcb3fecffd5bbb5e6c7c9a364dcd81732f8855e310dced7a59c"
 [private]
 ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:1fcd729dbad24a6a193a416cae54b305a8fdf827175118f5572de265e773e3f8"
+[private]
+aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:fb08d2fe6455879b736b7ad954b0acc46001d8da63eb4818ab54dab96975e247"
+[private]
+aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:85ea21d9fc7701f3e8b2402930f7c67cdd849b16239a2d1af5b34c8b676b4343"
+[private]
+bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:70039bed6c445774d39099403a4fcacb664befe9bd51a7f8fbf6ed4e65ba42c8"
+[private]
+bazzite_deck_beta := "ghcr.io/ublue-os/bazzite-deck-gnome:testing@sha256:e468120230204bb245c3b7b68b3be11d0ee6db37fc60bf90ca3319fbc6a09a29"
+[private]
+bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:4f7ae5a1d0d777232e9c6eb0d6cc409311e035187bf2ccb282c26fb8de9ac08e"
+[private]
+bluefin_nvidia_beta := "ghcr.io/ublue-os/bluefin-nvidia-open:latest@sha256:5262d86d2e9922bae8bf8a9427cbe9b9965d19e1004dcfbf66f2fd8e12f8f7d0"
+[private]
+ucore_beta := "ghcr.io/ublue-os/ucore:testing-zfs@sha256:3"
+[private]
+ucore_nvidia_beta := "ghcr.io/ublue-os/ucore:testing-nvidia-zfs@sha256:1"
 
 [private]
 default:
@@ -105,30 +135,37 @@ build image="bluefin":
         fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
         if [[ "{{ image }}" =~ bazzite ]]; then
             KERNEL_FLAVOR="bazzite"
+        elif [[ "{{ image }}" =~ beta ]]; then
+            akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+            akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+            akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+            {{ just }} verify-container "${akmods#*-os/}"
+            {{ just }} verify-container "${akmods_nvidia#*-os/}"
+            {{ just }} verify-container "${akmods_zfs#*-os/}"
+            skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
+            KERNEL_FLAVOR="coreos-testing"
         else
             KERNEL_FLAVOR="coreos-stable"
         fi
         ;;
     "cosmic"*)
         bluefin="${images[bluefin]}"
+        if [[ "{{ image }}" =~ beta ]]; then
+            bluefin="${images[bluefin-beta]}"
+        fi
         {{ just }} verify-container "${bluefin#*-os/}"
-        kernel_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]')"
-        fedora_version="$(echo "$kernel_version" | grep -oP 'fc\K[0-9]+')"
-        akmods_tag="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .tag" {{ image-file }})"
-        akmods_digest="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .digest" {{ image-file }})"
-        akmods_nvidia_tag="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\") | .tag" {{ image-file }})"
-        akmods_nvidia_digest="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\") | .digest" {{ image-file }})"
-        akmods_zfs_tag="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\") | .tag" {{ image-file }})"
-        akmods_zfs_digest="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\") | .digest" {{ image-file }})"
-        {{ just }} verify-container akmods:"$akmods_tag-$kernel_version@$akmods_digest"
-        {{ just }} verify-container akmods-nvidia-open:"$akmods_nvidia_tag-$kernel_version@$akmods_nvidia_digest"
-        {{ just }} verify-container akmods-zfs:"$akmods_zfs_tag-$kernel_version@$akmods_zfs_digest"
-        skopeo inspect docker://ghcr.io/ublue-os/akmods:"$akmods_tag" > "$BUILDTMP/inspect-{{ image }}.json"
-        BASE_IMAGE=base-main
-        DIGEST="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\") | .digest" {{ image-file }})"
-        {{ just }} verify-container "${BASE_IMAGE}:${fedora_version}@${DIGEST}"
-        check="ghcr.io/ublue-os/${BASE_IMAGE}:${fedora_version}@${DIGEST}"
-        KERNEL_FLAVOR="${akmods_tag%-*}"
+        fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+        akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+        akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+        akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+        {{ just }} verify-container "${akmods#*-os/}"
+        {{ just }} verify-container "${akmods_nvidia#*-os/}"
+        {{ just }} verify-container "${akmods_zfs#*-os/}"
+        skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
+        check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r '"\(.image):\(.tag)@\(.digest)"')"
+        {{ just }} verify-container "${check#*-os/}"
+        KERNEL_FLAVOR="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .tag" {{ image-file }})"
+        KERNEL_FLAVOR="${KERNEL_FLAVOR%-*}"
         ;;
     esac
 
@@ -164,11 +201,11 @@ build image="bluefin":
         "--build-arg" "KERNEL_FLAVOR=$KERNEL_FLAVOR"
         "--tag" "localhost/{{ repo_image_name }}:{{ image }}"
     )
-    if [[ "{{ image }}" =~ cosmic ]]; then
+    if [[ "{{ image }}" =~ cosmic || "{{ image }}" =~ (aurora|bluefin)(|.*)-beta ]]; then
     BUILD_ARGS+=(
-       "--build-arg" "akmods_digest=$akmods_digest"
-       "--build-arg" "akmods_nvidia_digest=$akmods_nvidia_digest"
-       "--build-arg" "akmods_zfs_digest=$akmods_zfs_digest"
+       "--build-arg" "akmods_digest=${akmods#*@}"
+       "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
+       "--build-arg" "akmods_zfs_digest=${akmods_zfs#*@}"
     )
     fi
     echo "::endgroup::"
@@ -642,16 +679,24 @@ install-cosign:
 
     # Get Cosign from Chainguard
     if ! command -v cosign >/dev/null; then
-        COSIGN_CONTAINER_ID="$({{ SUDOIF }} {{ PODMAN }} create {{ cosign-installer }} bash)"
-        {{ SUDOIF }} {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign /usr/local/bin/cosign
-        {{ SUDOIF }} {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
+        # TMPDIR
+        TMPDIR="$(mktemp -d)"
+        trap 'rm -rf $TMPDIR' EXIT SIGINT
+
+        # Get Binary
+        COSIGN_CONTAINER_ID="$({{ PODMAN }} create {{ cosign-installer }} bash)"
+        {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/usr/bin/cosign "$TMPDIR"/cosign
+        {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
+        {{ PODMAN }} rmi -f {{ cosign-installer }}
+
+        # Install
+        {{ SUDOIF }} install -c -m 0755 "$TMPDIR"/cosign /usr/local/bin/cosign
 
         # Verify Cosign Image Signatures if needed
         if ! cosign verify --certificate-oidc-issuer=https://token.actions.githubusercontent.com --certificate-identity=https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main cgr.dev/chainguard/cosign >/dev/null; then
             echo "NOTICE: Failed to verify cosign image signatures."
             exit 1
         fi
-        {{ SUDOIF }} {{ PODMAN }} rmi -f {{ cosign-installer }}
     fi
 
 # Login to GHCR
@@ -700,27 +745,9 @@ cosign-sign digest $destination="": install-cosign
 
 # Generate SBOM
 [group('CI')]
-gen-sbom $input $output="":
+gen-sbom $input $output="": install-syft
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-
-    # Get SYFT if needed
-    SYFT_ID=""
-    if ! command -v syft >/dev/null; then
-        SYFT_ID="$({{ SUDOIF }} {{ PODMAN }} create {{ syft-installer }})"
-        {{ SUDOIF }} {{ PODMAN }} cp "$SYFT_ID":/syft /usr/local/bin/syft
-        {{ SUDOIF }} {{ PODMAN }} rm -f "$SYFT_ID" > /dev/null
-        {{ SUDOIF }} {{ PODMAN }} rmi -f {{ syft-installer }}
-    fi
-
-    # Enable Podman Socket if needed
-    if [[ "$EUID" -eq "0" && "{{ PODMAN }}" =~ podman ]] && ! systemctl is-active -q podman.socket; then
-        systemctl start podman.socket
-        started_podman="true"
-    elif ! systemctl is-active -q --user podman.socket && [[ "{{ PODMAN }}" =~ podman ]]; then
-        systemctl start --user podman.socket
-        started_podman="true"
-    fi
 
     # Make SBOM
     if [[ -z "$output" ]]; then
@@ -728,17 +755,32 @@ gen-sbom $input $output="":
     else
         OUTPUT_PATH="$output"
     fi
-    env SYFT_PARALLELISM="$(nproc)" syft scan "{{ input }}" -o spdx-json="$OUTPUT_PATH"
-
-    # Cleanup
-    if [[ "$EUID" -eq "0" && "${started_podman:-}" == "true" ]]; then
-        systemctl stop podman.socket
-    elif [[ "${started_podman:-}" == "true" ]]; then
-        systemctl stop --user podman.socket
-    fi
+    syft scan "{{ input }}" -o spdx-json="$OUTPUT_PATH" --select-catalogers "rpm,+sbom-cataloger"
 
     # Output Path
     echo "$OUTPUT_PATH"
+
+# Install Syft
+[group('CI')]
+install-syft:
+    #!/usr/bin/bash
+    set ${SET_X:+-x} -eou pipefail
+
+    # Get SYFT if needed
+    if ! command -v syft >/dev/null; then
+        # Make TMPDIR
+        TMPDIR="$(mktemp -d)"
+        trap 'rm -rf $TMPDIR' EXIT SIGINT
+
+        # Get Binary
+        SYFT_ID="$({{ PODMAN }} create {{ syft-installer }})"
+        {{ PODMAN }} cp "$SYFT_ID":/syft "$TMPDIR"/syft
+        {{ PODMAN }} rm -f "$SYFT_ID" > /dev/null
+        {{ PODMAN }} rmi -f {{ syft-installer }}
+
+        # Install
+        {{ SUDOIF }} install -c -m 0755 "$TMPDIR"/syft /usr/local/bin/syft
+    fi
 
 # Add SBOM Signing
 [group('CI')]
@@ -783,7 +825,7 @@ sbom-attest input $sbom="" $destination="": install-cosign
     fi
 
     # Compress
-    sbom_type="urn:{{ repo_image_name }}:attestation:spdx+json+zstd:v1"
+    sbom_type="urn:ublue-os:attestation:spdx+json+zstd:v1"
     compress_sbom="$sbom.zst"
     zstd "$sbom" -o "$compress_sbom"
 

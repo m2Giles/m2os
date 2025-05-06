@@ -2,11 +2,22 @@
 name: Create Release
 on: # yamllint disable-line rule:truthy rule:comments
   workflow_call:
+    inputs:
+      type:
+        type: string
+        required: true
   workflow_dispatch:
     inputs:
       run-id:
         description: "The Run-ID for the workflow."
         type: number
+        required: true
+      type:
+        description: "Stable or Beta."
+        type: choice
+        options:
+          - stable
+          - beta
         required: true
 permissions:
   contents: write
@@ -74,10 +85,10 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2
         if: >-
-          contains(fromJson('["workflow_dispatch", "merge_group"]'),
-
+          inputs.type == 'stable'
+            && (contains(fromJson('["workflow_dispatch", "merge_group"]'),
             github.event_name)
-          || github.event.schedule == '41 6 * * 0'
+            || github.event.schedule == '41 6 * * 0')
         with:
           name: ${{ steps.prepare-release.outputs.title }}
           tag_name: ${{ steps.prepare-release.outputs.tag }}
@@ -86,3 +97,20 @@ jobs:
           files: |-
             changelog.md
             *.sbom*
+
+      - name: Create Release (Beta)
+        # yamllint disable-line rule:line-length rule:comments
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2
+        if: >-
+          inputs.type == 'beta'
+            && (contains(fromJson('["workflow_dispatch", "merge_group"]'),
+            github.event_name)
+            || github.event.schedule == '41 6 * * 0')
+        with:
+          name: ${{ steps.prepare-release.outputs.title }}
+          tag_name: ${{ steps.prepare-release.outputs.tag }}
+          body_path: ./changelog.md
+          prerelease: true
+          make_latest: false
+          files: |-
+            changelog.md

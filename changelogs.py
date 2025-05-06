@@ -92,6 +92,9 @@ def get_images(target: str):
             if image_flavor == "nvidia":
                 img += "-nvidia"
 
+        if "Beta" in target:
+            img += "-beta"
+
         yield img, image, image_flavor
 
 
@@ -184,7 +187,7 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
     # Find common packages (Ignore Bazzite)
     first = True
     for img, image, image_flavor in get_images(target):
-        if image == "bazzite":
+        if "bazzite" in image:
             continue
         if img not in pkg:
             continue
@@ -221,7 +224,7 @@ def get_package_groups(target: str, prev: dict[str, Any], manifests: dict[str, A
     # Find Bazzite packages
     first = True
     for img, image, image_flavor in get_images(target):
-        if image != "bazzite":
+        if "bazzite" not in image:
             continue
         if img not in pkg:
             continue
@@ -390,7 +393,7 @@ def generate_changelog(
             # Remove target- from curr
             curr_pretty = STRIP_PATTERN(curr_pretty)
             pretty = target.capitalize() + " (F" + curr_pretty
-            if finish and target != "Desktop":
+            if finish and "Desktop" not in target:
                 pretty += ", #" + finish[:7]
             pretty += ")"
 
@@ -398,7 +401,7 @@ def generate_changelog(
 
     changelog = CHANGELOG_FORMAT
     
-    if target == "Bazzite":
+    if "Bazzite" in target:
         changelog = changelog.splitlines()
         del changelog[12:15]
         changelog = '\n'.join(changelog)
@@ -425,7 +428,7 @@ def generate_changelog(
             )
 
     changes = ""
-    if target == "Desktop":
+    if "Desktop" in target:
         changes += get_commits(prev_manifests, manifests, workdir)
     common = calculate_changes(common, prev_versions, versions)
     bazzite = calculate_changes(bazzite, prev_versions, versions)

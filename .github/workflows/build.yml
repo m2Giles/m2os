@@ -92,3 +92,38 @@ jobs:
     uses: ./.github/workflows/create-release.yml
     permissions:
       contents: write
+    with:
+      type: stable
+
+  build-image-beta:
+    name: Build Beta Images
+    needs: [lint]
+    uses: ./.github/workflows/build-image.yml
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    secrets:
+      SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Bazzite-Beta", "Desktop-Beta"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
+  build-iso-beta:
+    name: Build Beta ISOs
+    if: ${{ ! contains(github.head_ref, 'renovate') }}
+    uses: ./.github/workflows/build-iso.yml
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+    needs: [build-image-beta]
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Bazzite-Beta", "Desktop-Beta"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}

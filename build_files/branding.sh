@@ -35,7 +35,7 @@ case "${IMAGE}" in
 esac
 
 image_flavor="main"
-if [[ "$IMAGE" =~ nvidia ]]; then
+if [[ "$IMAGE" =~ nvidia|bazzite($|-beta$) ]]; then
     image_flavor="nvidia"
 fi
 
