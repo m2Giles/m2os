@@ -1,4 +1,4 @@
-FROM quay.io/fedora/fedora:latest@sha256:53395873897c32f086e852d56eb11aa67ae64ae1bd9ece348bc253bef7d5cca1
+FROM quay.io/fedora/fedora:latest@sha256:6ee6f9ab3880a87b872bfdf1e81d043db6c6687230df32a7fe4778edaa5eb230
 
 ARG USERNAME="m2os"
 ENV USERNAME="${USERNAME}"
