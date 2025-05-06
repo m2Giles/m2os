@@ -44,7 +44,7 @@ isobuilder := "ghcr.io/jasonn3/build-container-installer:v1.2.4@sha256:99156bea5
 [private]
 rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.2@sha256:e799d89f9a9965b5b0e89941a9fc6eaab62e9d2d73a0bfb92e6a495be0706907"
 [private]
-qemu := "ghcr.io/qemus/qemu:7.11@sha256:27accf2d0f4ecfdc7bdf1cd551f886f4a63501337eb78839af906502bd800d82"
+qemu := "ghcr.io/qemus/qemu:7.12@sha256:ab767a6b9c8cf527d521eee9686dce09933bc35599ee58be364eb8f3a03001ea"
 [private]
 cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:0222cde7f7ebe430c88fddc33b237434b67e34034daa140353c78b1937810faf"
 [private]
