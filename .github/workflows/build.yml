@@ -127,27 +127,3 @@ jobs:
         image_flavor: ["Bazzite-Beta", "Desktop-Beta"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
-
-  changelogs-beta:
-    name: Generate Beta Changelogs
-    if: ${{ ! contains(github.head_ref, 'renovate') }}
-    uses: ./.github/workflows/changelogs.yml
-    permissions:
-      contents: read
-    needs: ["build-iso-beta"]
-    strategy:
-      fail-fast: false
-      matrix:
-        image_flavor: ["Bazzite-Beta", "Desktop-Beta"]
-    with:
-      target: ${{ matrix.target }}
-
-  create-release-beta:
-    name: Create Release
-    if: ${{ ! contains(github.head_ref, 'renovate') }}
-    needs: ["changelogs-beta"]
-    uses: ./.github/workflows/create-release.yml
-    permissions:
-      contents: write
-    with:
-      type: beta
