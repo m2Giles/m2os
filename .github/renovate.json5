@@ -1,91 +1,88 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices"
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:best-practices',
   ],
-  // Do Not Rebase when the default branch is  updated
-  "rebaseWhen": "never",
-  "customManagers": [
+  rebaseWhen: 'never',
+  customManagers: [
     {
-      "customType": "regex",
-      "fileMatch": [
-        "^Justfile$"
+      customType: 'regex',
+      managerFilePatterns: [
+        '/^Justfile$/',
       ],
-      "matchStrings": [
-        "(?<justName>.+?)\\s:=\\s\"(?<packageName>\\S+):(?<currentValue>\\S+)@(?<currentDigest>sha256:[a-f0-9]+?)\""
+      matchStrings: [
+        '(?<justName>.+?)\\s:=\\s"(?<packageName>\\S+):(?<currentValue>\\S+)@(?<currentDigest>sha256:[a-f0-9]+?)"',
       ],
-      "datasourceTemplate": "docker"
+      datasourceTemplate: 'docker',
     },
     {
-      "customType": "regex",
-      "fileMatch": [
-        "^image-versions.yml$"
+      customType: 'regex',
+      managerFilePatterns: [
+        '/^image-versions.yml$/',
       ],
-      "matchStrings": [
-        "image:\\s*(?<packageName>\\S+)\\s*tag:\\s*(?<currentValue>\\S+)\\s*digest:\\s*(?<currentDigest>sha256:[a-f0-9]+)"
+      matchStrings: [
+        'image:\\s*(?<packageName>\\S+)\\s*tag:\\s*(?<currentValue>\\S+)\\s*digest:\\s*(?<currentDigest>sha256:[a-f0-9]+)',
       ],
-      "datasourceTemplate": "docker"
-    }
+      datasourceTemplate: 'docker',
+    },
   ],
-  "packageRules": [
-    // Auto Merge version/digests
+  packageRules: [
     {
-      "automerge": true,
-      "groupName": "Base Images",
-      "matchPackageNames": [
-        "ghcr.io/ublue-os/*",
+      automerge: true,
+      groupName: 'Base Images',
+      matchPackageNames: [
+        'ghcr.io/ublue-os/*',
       ],
-      "matchUpdateTypes": [
-        "pin",
-        "digest",
-        "pinDigest"
-      ]
+      matchUpdateTypes: [
+        'pin',
+        'digest',
+        'pinDigest',
+      ],
     },
     {
-      "matchPackageNames": [
-        "ghcr.io/ublue-os/*",
+      matchPackageNames: [
+        'ghcr.io/ublue-os/*',
       ],
-      "matchUpdateTypes": [
-        "major",
-        "minor",
-        "patch"
+      matchUpdateTypes: [
+        'major',
+        'minor',
+        'patch',
       ],
-      "enabled": false
+      enabled: false,
     },
     {
-      "automerge": true,
-      "groupName": "Build Containers",
-      "matchPackageNames": [
-        "ghcr.io/jasonn3/build-container-installer",
-        "ghcr.io/hhd-dev/rechunk",
-        "ghcr.io/qemus/qemu",
-        "cgr.dev/chainguard/cosign",
-        "ghcr.io/anchore/syft"
-      ]
+      automerge: true,
+      groupName: 'Build Containers',
+      matchPackageNames: [
+        'ghcr.io/jasonn3/build-container-installer',
+        'ghcr.io/hhd-dev/rechunk',
+        'ghcr.io/qemus/qemu',
+        'cgr.dev/chainguard/cosign',
+        'ghcr.io/anchore/syft',
+      ],
     },
     {
-      "automerge": true,
-      "matchManagers": [
-        "github-actions"
+      automerge: true,
+      matchManagers: [
+        'github-actions',
       ],
-      "matchUpdateTypes": [
-        "pin",
-        "digest",
-        "pinDigest"
-      ]
+      matchUpdateTypes: [
+        'pin',
+        'digest',
+        'pinDigest',
+      ],
     },
-    // Auto Merge Dockerfile Digest Updates
     {
-      "automerge": true,
-      "groupName": "Base Images",
-      "matchManagers": [
-        "devcontainer",
-        "dockerfile"
+      automerge: true,
+      groupName: 'Base Images',
+      matchManagers: [
+        'devcontainer',
+        'dockerfile',
       ],
-      "matchUpdateTypes": [
-        "digest",
-        "pinDigest"
-      ]
-    }
-  ]
+      matchUpdateTypes: [
+        'digest',
+        'pinDigest',
+      ],
+    },
+  ],
 }
