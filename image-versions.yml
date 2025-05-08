@@ -17,7 +17,7 @@ images:
   - name: base-41
     image: ghcr.io/ublue-os/base-main
     tag: 41
-    digest: sha256:7aee8d9a821477822e8cb027addd2c312e2652a61882cc1d670a042031baca11
+    digest: sha256:b6fc13cac52f7ef19d955a9ca5533f83c036fc21022232f175fea342d80417a5
 
   # Fedora 42
   - name: akmods-42
@@ -35,4 +35,4 @@ images:
   - name: base-42
     image: ghcr.io/ublue-os/base-main
     tag: 42
-    digest: sha256:6d20af8fd83986ea5877e6023e177f8ffbf808c6c261f439b2dba6e495bc8d93
+    digest: sha256:7a194cadd336dfed04a3a0df8975ad596735f14f567ee2ef0d2ad7fe1909b0ca
