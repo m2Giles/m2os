@@ -67,7 +67,7 @@ else
     sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"$(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION})\"|" /usr/lib/os-release
 fi
 
-sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (FROM Universal Blue $(echo "${BASE_IMAGE^}" | cut -d - -f1)\"|" /usr/lib/os-release
+sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (FROM Universal Blue $(echo "${BASE_IMAGE^}" | cut -d - -f1)\")|" /usr/lib/os-release
 sed -i "s|^OSTREE_VERSION=.*|OSTREE_VERSION=\"${VERSION}\"|" /usr/lib/os-release
 sed -i "s|^IMAGE_ID=.*|IMAGE_ID=\"${IMAGE}\"|" /usr/lib/os-release || (echo "IMAGE_ID=\"${IMAGE}\"" >>/usr/lib/os-release)
 sed -i "s|^IMAGE_VERSION=.*|IMAGE_VERSION=\"${VERSION}\"|" /usr/lib/os-release || (echo "IMAGE_VERSION=\"${VERSION}\"" >>/usr/lib/os-release)
