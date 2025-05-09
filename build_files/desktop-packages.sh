@@ -27,8 +27,10 @@ LAYERED_PACKAGES=(
     adw-gtk3-theme
     breeze-cursor-theme
     cascadia-fonts-all
+    emacs
     git-credential-libsecret
     git-credential-oauth
+    libvterm
     qemu-ui-curses
     qemu-ui-gtk
     spice-gtk-tools
@@ -70,52 +72,6 @@ systemctl --global disable flatpak-user-update.timer
 systemctl disable brew-update.timer
 systemctl disable brew-upgrade.timer
 systemctl enable uupd.timer
-
-# Sysexts
-mkdir -p /etc/sysupdate.d/
-tee /usr/lib/tmpfiles.d/m2os-sysext.conf <<EOF
-d /var/lib/extensions/ 0755 root root - -
-d /var/lib/extensions.d/ 0755 root root - -
-EOF
-SYSEXTS=(
-    emacs
-    google-chrome
-    keepassxc
-    microsoft-edge
-    neovim
-    vscode
-)
-for SYSEXT in "${SYSEXTS[@]}"; do
-    tee /etc/sysupdate.d/"$SYSEXT".conf <<EOF
-[Transfer]
-Verify=false
-
-[Source]
-Type=url-file
-Path=https://github.com/m2Giles/fedora-sysexts/releases/download/m2os-$IMAGE/
-MatchPattern=$SYSEXT-@v-%a.raw
-
-[Target]
-InstancesMax=2
-Type=regular-file
-Path=/var/lib/extensions.d/
-MatchPattern=$SYSEXT-@v-%a.raw
-CurrentSymlink=/var/lib/extensions/$SYSEXT.raw
-EOF
-done
-
-# Zed because why not?
-curl -Lo /tmp/zed.tar.gz \
-    https://zed.dev/api/releases/stable/latest/zed-linux-x86_64.tar.gz
-mkdir -p /usr/lib/zed.app/
-tar -xvf /tmp/zed.tar.gz -C /usr/lib/zed.app/ --strip-components=1
-chown 0:0 -R /usr/lib/zed.app
-ln -s /usr/lib/zed.app/bin/zed /usr/bin/zed-cli
-cp /usr/lib/zed.app/share/applications/zed.desktop /usr/share/applications/dev.zed.Zed.desktop
-mkdir -p /usr/share/icons/hicolor/1024x1024/apps
-cp {/usr/lib/zed.app,/usr}/share/icons/hicolor/512x512/apps/zed.png
-cp {/usr/lib/zed.app,/usr}/share/icons/hicolor/1024x1024/apps/zed.png
-sed -i "s@Exec=zed@Exec=/usr/lib/zed.app/libexec/zed-editor@g" /usr/share/applications/dev.zed.Zed.desktop
 
 # Devpod cli
 curl -Lo /usr/bin/devpod "https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-amd64"
