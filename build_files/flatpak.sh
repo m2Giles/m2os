@@ -21,6 +21,15 @@ tee /usr/lib/tmpfiles.d/keepassxc-integration.conf <<EOF
 C %t/keepassxc-integration - - - - /usr/libexec/keepassxc-integration
 EOF
 
+curl -Lo /usr/bin/docker-host "https://raw.githubusercontent.com/89luca89/distrobox/refs/heads/main/extras/docker-host"
+curl -Lo /usr/bin/podman-host "https://raw.githubusercontent.com/89luca89/distrobox/refs/heads/main/extras/podman-host"
+chmod +x /usr/bin/docker-host /usr/bin/podman-host
+
+tee /usr/lib/tmpfiles.d/vscode-host.conf <<EOF
+C %t/docker-host - - - - /usr/bin/docker-host
+C %t/podman-host - - - - /usr/bin/podman-host
+EOF
+
 tee /usr/lib/systemd/system/m2os-flatpak-overrides.service <<EOF
 [Unit]
 Description=Set Overrides for Flatpaks
@@ -128,10 +137,22 @@ flatpak override \
     --socket=session-bus \
     org.libreoffice.LibreOffice
 
-#Discord
+# Discord
 flatpak override \
     --system \
-    --socket=wayland
+    --socket=wayland \
+    com.discordapp.Discord
+
+# VSCode
+flatpak override \
+    --system \
+    --socket=wayland \
+    --filesystem=xdg-run/podman \
+    --filesystem=/run/docker-host \
+    --filesystem=/run/podman-host \
+    --filesystem=/tmp \
+    com.visualstudio.code
+
 EOF
 chmod +x /usr/libexec/m2os-flatpak-overrides.sh
 systemctl enable m2os-flatpak-overrides.service

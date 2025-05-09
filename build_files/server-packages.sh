@@ -23,12 +23,15 @@ SERVER_PACKAGES=(
     bootc
     erofs-utils
     just
+    jq
     python-ramalama
     rclone
     sbsigntools
+    skopeo
     socat
     tmux
     udica
+    yq
 )
 
 # Incus Packages
