@@ -1,6 +1,6 @@
 ARG BASE_IMAGE="ghcr.io/ublue-os/bluefin"
 ARG IMAGE="bluefin"
-ARG TAG_VERSION="stable-daily@sha256:6a83827b18eba6f9e84c019db1b2624292879295961e68dea4234b414f7d310f"
+ARG TAG_VERSION="stable-daily@sha256:8af4e79579ec166c9a2f1a1bff3abbb99fdae6aadc0eb510e3188a038fb10477"
 
 FROM scratch AS ctx
 COPY build_files cosign.pub cosign-backup.pub /
