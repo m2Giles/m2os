@@ -23,10 +23,10 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"eamodio.gitlens",
+				"github.vscode-github-actions",
+				"github.vscode-pull-request-github",
 				"hangxingliu.vscode-systemd-support",
 				"mads-hartmann.bash-ide-vscode",
-				"ms-azuretools.vscode-docker",
 				"nefrob.vscode-just-syntax",
 				"timonwong.shellcheck"
 			]

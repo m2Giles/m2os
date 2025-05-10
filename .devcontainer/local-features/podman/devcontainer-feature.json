@@ -24,7 +24,11 @@
         "vscode": {
             "extensions": [
                 "ms-azuretools.vscode-containers"
-            ]
+            ],
+            "settings": {
+                "containers.containerClient": "com.microsoft.visualstudio.containers.podman",
+                "containers.containerCommand": "podman"
+            }
         }
     }
 }
