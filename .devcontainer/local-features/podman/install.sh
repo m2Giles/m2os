@@ -130,20 +130,25 @@ fi
 
 # Work for Podman in Docker
 sudo_if mount --make-rshared / || true
+
+# Make any user able to create XDG_RUNTIME_DIR
+sudo_if chmod 777 /run/user
+
+# Don't Block
+exec "$@"
 EOF
 
-tee -a /usr/local/share/podman-in-podman-init.sh >/dev/null <<'EOF'
+tee -a /etc/bashrc >/dev/null <<'EOF'
 # Bind Mount Volume to User. Podman Unshare works.
 
-if ! mountpoint -q "/home/$USERNAME/.local/share/containers"; then
-    sudo_if mount --bind /srv/containers "/home/$USERNAME/.local/share/containers"
+if [ "$(id -u)" -ne 0 ]; then
+    if [ ! -O "/srv/containers" ]; then
+        sudo chown "$USERNAME:$USERNAME" /srv/containers || true
+    fi
+    if ! mountpoint -q "/home/$USERNAME/.local/share/containers"; then
+        sudo mount --bind /srv/containers "/home/$USERNAME/.local/share/containers" || true
+    fi
 fi
-
-if [[ ! -O "/srv/containers" ]]; then
-    sudo_if chown "$USERNAME:$USERNAME" /srv/containers
-fi
-
-exec "\$@"
 EOF
 
 chmod +x /usr/local/share/podman-in-podman-init.sh

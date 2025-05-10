@@ -125,7 +125,7 @@ fi
 # Mozilla Thunderbird
 flatpak override \
     --system \
-    --filesystem=xdg-run/p11-kit/pkcs11 \
+    --filesystem=xdg-run/p11-kit/pkcs11:ro \
     --env=MOZ_ENABLE_WAYLAND=1 \
     --env=MOZ_USE_XINPUT2=1 \
     org.mozilla.Thunderbird
@@ -147,12 +147,21 @@ flatpak override \
 flatpak override \
     --system \
     --socket=wayland \
-    --filesystem=xdg-run/podman \
-    --filesystem=/run/docker-host \
-    --filesystem=/run/podman-host \
+    --filesystem=xdg-run/podman:ro \
+    --filesystem=/run/docker-host:ro \
+    --filesystem=/run/podman-host:ro \
+    --filesystem=~/.var/app/sh.loft.devpod/data/devpod-cli:ro \
     --filesystem=/tmp \
     com.visualstudio.code
 
+# DevPod
+flatpak override \
+    --system \
+    --socket=wayland \
+    --filesystem=/run/docker-host:ro \
+    --filesystem=/run/podman-host:ro \
+    --env=WEBKIT_DISABLE_COMPOSITING_MODE=1 \
+    sh.loft.devpod
 EOF
 chmod +x /usr/libexec/m2os-flatpak-overrides.sh
 systemctl enable m2os-flatpak-overrides.service

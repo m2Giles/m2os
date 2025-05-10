@@ -73,16 +73,11 @@
       ],
     },
     {
-      automerge: true,
-      groupName: 'Base Images',
-      matchManagers: [
-        'devcontainer',
-        'dockerfile',
+      matchFileNames: [
+        '.devcontainer/Containerfile',
+        'Containerfile'
       ],
-      matchUpdateTypes: [
-        'digest',
-        'pinDigest',
-      ],
+      enabled: false
     },
   ],
 }
