@@ -399,18 +399,12 @@ build-iso image="bluefin" ghcr="0" clean="0":
     curl -Lo "${FLATPAK_REFS_DIR}"/flatpaks.txt "${FLATPAK_LIST_URL}"
     ADDITIONAL_FLATPAKS=(
         app/com.discordapp.Discord/x86_64/stable
-        app/com.github.marhkb.Pods/x86_64/stable
         app/com.google.Chrome/x86_64/stable
         app/com.spotify.Client/x86_64/stable
-        app/com.visualstudio.code/x86_64/stable
         app/com.yubico.yubioath/x86_64/stable
-        app/dev.zed.Zed/x86_64/stable
-        app/io.podman_desktop.PodmanDesktop/x86_64/stable
         app/it.mijorus.gearlever/x86_64/stable
-        app/org.gimp.GIMP/x86_64/stable
         app/org.gnome.World.PikaBackup/x86_64/stable
         app/org.keepassxc.KeePassXC/x86_64/stable
-        app/org.libreoffice.LibreOffice/x86_64/stable
         app/org.prismlauncher.PrismLauncher/x86_64/stable
         app/sh.loft.devpod/x86_64/stable
     )
