@@ -201,7 +201,7 @@ build image="bluefin":
         "--build-arg" "KERNEL_FLAVOR=$KERNEL_FLAVOR"
         "--tag" "localhost/{{ repo_image_name }}:{{ image }}"
     )
-    if [[ "{{ image }}" =~ cosmic || "{{ image }}" =~ (aurora|bluefin)(|.*)-beta ]]; then
+    if [[ "{{ image }}" =~ cosmic || "{{ image }}" =~ (aurora.*|bluefin.*)-beta ]]; then
     BUILD_ARGS+=(
        "--build-arg" "akmods_digest=${akmods#*@}"
        "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
@@ -441,8 +441,8 @@ build-iso image="bluefin" ghcr="0" clean="0":
     -v "{{ GIT_ROOT }}/${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
     "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
 
-    # VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-    VERSION="41"
+    VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
+    # VERSION="41"
     if [[ "{{ ghcr }}" -ge "1" && "{{ clean }}" == "1" ]]; then
         {{ SUDOIF }} {{ PODMAN }} rmi ${IMAGE_FULL}
     fi

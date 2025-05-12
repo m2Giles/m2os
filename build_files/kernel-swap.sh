@@ -4,7 +4,7 @@ set ${SET_X:+-x} -eou pipefail
 
 : "${KERNEL_VERSION:=coreos-stable}"
 
-if [[ ! "${IMAGE}" =~ cosmic && ! "${IMAGE}" =~ beta ]]; then
+if [[ ! "${IMAGE}" =~ cosmic|(aurora.*|bluefin.*)-beta ]]; then
     echo "No Kernel Swap Necessary..."
     exit 0
 fi
@@ -67,6 +67,7 @@ dnf5 versionlock delete $OLD_PACKAGES
 dnf5 -y copr enable hikariknight/looking-glass-kvmfr
 
 # Install
+export DRACUT_NO_XATTR=1
 dnf5 install -y \
     --enablerepo="copr:copr.fedorainfracloud.org:ublue-os:akmods" \
     --allowerasing \
