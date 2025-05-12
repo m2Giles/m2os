@@ -53,6 +53,7 @@ checkmodule -M -m -o /etc/kvmfr/selinux/mod/kvmfr.mod /etc/kvmfr/selinux/kvmfr.t
 semodule_package -o /etc/kvmfr/selinux/pp/kvmfr.pp -m /etc/kvmfr/selinux/mod/kvmfr.mod
 semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp # Seems broken with Docker
 
+export DRACUT_NO_XATTR=1
 /usr/bin/dracut --no-hostonly --kver "$KERNEL_VERSION" --reproducible --zstd -v --add ostree -f "/lib/modules/$KERNEL_VERSION/initramfs.img"
 
 chmod 0600 /lib/modules/"$KERNEL_VERSION"/initramfs.img

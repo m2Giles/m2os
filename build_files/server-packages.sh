@@ -61,6 +61,14 @@ SERVER_PACKAGES+=(
     docker-compose-plugin
 )
 
+# ROCm Packages
+SERVER_PACKAGES+=(
+    rocm-clinfo
+    rocm-hip
+    rocm-opencl
+    rocm-smi
+)
+
 if [[ ${IMAGE} =~ ucore ]]; then
     dnf5 remove -y \
         containerd docker-cli moby-engine runc
