@@ -5,34 +5,34 @@ images:
   - name: akmods-41
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-41
-    digest: sha256:b3c4bc0a3c02db0becaba333a7182abbffca77bd125d4b07d1ff71440bc088ce
+    digest: sha256:0238c83bbdae902e5f54ba67ee39da92cb0c819eb00e7adb02d3f4e5dc126776
   - name: akmods-nvidia-open-41
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-41
-    digest: sha256:4a25d5b56cf65b045b9798899c8a47b907b1d9566578aee237ea0b9c51a70166
+    digest: sha256:1fed554735826ab10ea903ef06403021fd128d8295934a8f3b2be18747db16e7
   - name: akmods-zfs-41
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-41
-    digest: sha256:80a891787f506244bf688f3ae33ab533232369e54ee27b6ba1d5f24c82bb231b
+    digest: sha256:5a6bf39fcc92ade63762a333d47476d62e47004ea57d959f16263c80c2972eb4
   - name: base-41
     image: ghcr.io/ublue-os/base-main
     tag: 41
-    digest: sha256:6bdaa7982af7851164c36c16ffc859c8e7fac04888a06d0b8a3d5613a7870a07
+    digest: sha256:f75cc242097b19a6ae69622fa1e9e86c423d14a17a69c0fe73f9a6104772e7b9
 
   # Fedora 42
   - name: akmods-42
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-42
-    digest: sha256:b251495410309f95477824d75455167f94379f5e262672b82f41e5989e946ac0
+    digest: sha256:983533192273176036ce9c855ddae124382d751172efb77ae8ab795f9acd9ce7
   - name: akmods-nvidia-open-42
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-42
-    digest: sha256:0d810234b3d00c391630f937bf14f9fb4abb5c6fd23e3e316eaa3ce700cd5393
+    digest: sha256:f3784488b4d02a2546d9e328d7087e6a04e3a69d6a3caae8e5b16c54bb36bf3a
   - name: akmods-zfs-42
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-42
-    digest: sha256:8684a8989f95747eb6ad7c2e6fcf8b69c29275dac805bd7fd943a6d3a7ddf8f8
+    digest: sha256:79a012a9c4bcde6ecb1d1b5268c713d00bfab91da4708347197ca61c48982dee
   - name: base-42
     image: ghcr.io/ublue-os/base-main
     tag: 42
-    digest: sha256:241b9acb1e983f3bbd802e777eea12ea4907555ef71d54d8adf63341967aa8bf
+    digest: sha256:bcd5c7250dbbfd74e531412f39ba46b0471ea6010c7c44adce29fcb6a8398cca
