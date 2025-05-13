@@ -30,7 +30,6 @@ KERNEL_RPMS=(
 AKMODS_RPMS=(
     /tmp/rpms/kmods/*framework-laptop-"${KERNEL_VERSION}"-*.rpm
     /tmp/rpms/kmods/*xone-"${KERNEL_VERSION}"-*.rpm
-    /tmp/rpms/kmods/*xpadneo-"${KERNEL_VERSION}"-*.rpm
     /tmp/rpms/kmods/*kvmfr-"${KERNEL_VERSION}"-*.rpm
 )
 
