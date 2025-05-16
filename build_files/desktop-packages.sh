@@ -27,10 +27,8 @@ LAYERED_PACKAGES=(
     adw-gtk3-theme
     breeze-cursor-theme
     cascadia-fonts-all
-    emacs
     git-credential-libsecret
     git-credential-oauth
-    libvterm
     qemu-ui-curses
     qemu-ui-gtk
     spice-gtk-tools
@@ -51,14 +49,11 @@ if [[ "${IMAGE}" =~ bluefin ]]; then
     )
 fi
 
-dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
+if [[ "${IMAGE}" =~ bluefin|bazzite ]]; then
+    LAYERED_PACKAGES+=(gnome-shell-extension-drive-menu)
+fi
 
-# Emacs LSP Booster
-while [[ -z "${EMACS_LSP_BOOSTER:-}" || "${EMACS_LSP_BOOSTER:-}" == "null" ]]; do
-    EMACS_LSP_BOOSTER="$(curl -L https://api.github.com/repos/blahgeek/emacs-lsp-booster/releases/latest | jq -r '.assets[] | select(.name| test(".*musl[.]zip$")).browser_download_url')" || (true && sleep 5)
-done
-curl --retry 3 -Lo /tmp/emacs-lsp-booster.zip "$EMACS_LSP_BOOSTER"
-unzip -d /usr/bin/ /tmp/emacs-lsp-booster.zip
+dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
 
 # Call other Scripts
 /ctx/desktop-defaults.sh
@@ -91,3 +86,25 @@ mkdir -p /usr/share/icons/hicolor/256x256/apps/
 cp /tmp/AppDir/"$(readlink /tmp/squashfs-root/*.png)" /usr/share/icons/hicolor/256x256/apps/
 cp /tmp/AppDir/"$(readlink /tmp/squashfs-root/*.desktop)" /usr/share/applications/
 install -m 0755 /tmp/ghostty.appimage /usr/bin/ghostty
+
+# Sysexts
+mkdir -p /usr/lib/sysupdate.d
+SYSEXTS=(emacs)
+for s in "${SYSEXTS[@]}"; do
+    tee /usr/lib/sysupdate.d/"$s".transfer <<EOF
+[Transfer]
+Verify=false
+
+[Source]
+Type=url-file
+Path=https://github.com/m2Giles/fedora-sysexts/releases/download/m2os-${IMAGE}/
+MatchPattern=$s-@v-%a.raw
+
+[Target]
+InstancesMax=2
+Type=regular-file
+Path=/var/lib/extensions.d/
+MatchPattern=$s-@v-%a.raw
+CurrentSymlink=/var/lib/extensions/$s.raw
+EOF
+done
