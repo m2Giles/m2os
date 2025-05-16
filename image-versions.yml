@@ -1,37 +1,35 @@
 ---
 # yamllint disable rule:line-length rule:comments
 images:
-  # Fedora 41
-  - name: akmods-41
+  # Stable
+  - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
-    tag: coreos-stable-41
+    tag: coreos-stable-42
     digest: sha256:44deea77c6342de7955d9b6d741a0ed6e81eaa1cc0620f77c2d70cc3d83e7dee
-  - name: akmods-nvidia-open-41
+  - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
-    tag: coreos-stable-41
+    tag: coreos-stable-42
     digest: sha256:502d1d89a3f3b289425c06e63ce3c738f5e3eb21ced943e2c4e504763502b487
-  - name: akmods-zfs-41
+  - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
-    tag: coreos-stable-41
+    tag: coreos-stable-42
     digest: sha256:c816be17879b6cb3f3a9847ef6440f1caabe68d7e12b4aeac4dd4edf0be392a2
-  - name: base-41
-    image: ghcr.io/ublue-os/base-main
-    tag: 41
-    digest: sha256:055b9c19aff825612f4ff45e2fa77525417dbef59bf1858b50a61e2ceee8865f
 
-  # Fedora 42
-  - name: akmods-42
+  # Testing
+  - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-42
     digest: sha256:c24a3a10b62584039ceca62c62002f095c87e1e0c837430ecdf0a46905c5daac
-  - name: akmods-nvidia-open-42
+  - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-42
     digest: sha256:6ec80cc7fda501717a551c820f392d4e188be501eeb12d89cd04cc6f6179a72c
-  - name: akmods-zfs-42
+  - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-42
     digest: sha256:46d61a498417688ad0bf8c79585d4071fdf983e57fd088d3826107f5526f79e7
+
+  # Fedora 42
   - name: base-42
     image: ghcr.io/ublue-os/base-main
     tag: 42

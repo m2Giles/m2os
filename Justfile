@@ -128,46 +128,46 @@ build image="bluefin":
     mkdir -p {{ BUILD_DIR }}
     BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
+    {{ if image =~ 'beta' { 'akmods_version="testing"' } else { 'akmods_version="stable"' } }}
+    akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+    akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+    akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
     case "{{ image }}" in
     "aurora"*|"bazzite"*|"bluefin"*|"ucore"*)
         {{ just }} verify-container "${check#*-os/}"
-        skopeo inspect docker://"${check/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
-        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
         if [[ "{{ image }}" =~ bazzite ]]; then
             KERNEL_FLAVOR="bazzite"
         elif [[ "{{ image }}" =~ beta ]]; then
-            akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-            akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-            akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-            {{ just }} verify-container "${akmods#*-os/}"
-            {{ just }} verify-container "${akmods_nvidia#*-os/}"
-            {{ just }} verify-container "${akmods_zfs#*-os/}"
-            skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
             KERNEL_FLAVOR="coreos-testing"
         else
             KERNEL_FLAVOR="coreos-stable"
         fi
         ;;
     "cosmic"*)
-        bluefin="${images[bluefin]}"
-        if [[ "{{ image }}" =~ beta ]]; then
-            bluefin="${images[bluefin-beta]}"
-        fi
+        {{ if image =~ 'beta' { 'bluefin=${images[bluefin]}' } else { 'bluefin="${images[bluefin-beta]}"' } }}
         {{ just }} verify-container "${bluefin#*-os/}"
         fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-        akmods="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-        akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-        akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+        check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+        {{ just }} verify-container "${check#*-os/}"
+        KERNEL_FLAVOR="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\") | .tag" {{ image-file }})"
+        KERNEL_FLAVOR="${KERNEL_FLAVOR%-*}"
+        ;;
+    esac
+
+    if [[ "{{ image }}" =~ cosmic|(aurora.*|bluefin.*)-beta ]]; then
         {{ just }} verify-container "${akmods#*-os/}"
         {{ just }} verify-container "${akmods_nvidia#*-os/}"
         {{ just }} verify-container "${akmods_zfs#*-os/}"
         skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
-        check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r '"\(.image):\(.tag)@\(.digest)"')"
-        {{ just }} verify-container "${check#*-os/}"
-        KERNEL_FLAVOR="$(yq -r ".images[] | select(.name == \"akmods-${fedora_version}\") | .tag" {{ image-file }})"
-        KERNEL_FLAVOR="${KERNEL_FLAVOR%-*}"
-        ;;
-    esac
+        BUILD_ARGS+=(
+        "--build-arg" "akmods_digest=${akmods#*@}"
+        "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
+        "--build-arg" "akmods_zfs_digest=${akmods_zfs#*@}"
+        )
+    else
+        skopeo inspect docker://"${check/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
+        fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
+    fi
 
     VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
     skopeo list-tags docker://{{ FQ_IMAGE_NAME }} > "$BUILDTMP"/repotags.json
@@ -190,8 +190,8 @@ build image="bluefin":
         "--label" "org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}"
         "--label" "org.opencontainers.image.title={{ repo_image_name }}"
         "--label" "org.opencontainers.image.version=$VERSION"
-        "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
         "--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
+        "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
         "--label" "ostree.kernel_flavor=$KERNEL_FLAVOR"
         "--build-arg" "IMAGE={{ image }}"
         "--build-arg" "BASE_IMAGE=${check%%:*}"
@@ -201,13 +201,6 @@ build image="bluefin":
         "--build-arg" "KERNEL_FLAVOR=$KERNEL_FLAVOR"
         "--tag" "localhost/{{ repo_image_name }}:{{ image }}"
     )
-    if [[ "{{ image }}" =~ cosmic || "{{ image }}" =~ (aurora.*|bluefin.*)-beta ]]; then
-    BUILD_ARGS+=(
-       "--build-arg" "akmods_digest=${akmods#*@}"
-       "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
-       "--build-arg" "akmods_zfs_digest=${akmods_zfs#*@}"
-    )
-    fi
     echo "::endgroup::"
 
     {{ PODMAN }} build "${BUILD_ARGS[@]}" .
