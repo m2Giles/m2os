@@ -48,7 +48,7 @@ qemu := "ghcr.io/qemus/qemu:7.12@sha256:ab767a6b9c8cf527d521eee9686dce09933bc355
 [private]
 cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:5dc9288d077655a85245a1498aa9d4a65a26cc5e46cd983143bc5aeba5d0c01c"
 [private]
-syft-installer := "ghcr.io/anchore/syft:v1.24.0@sha256:56e1b5f77ebdeff32bb43804f396d48c5bf60c9ada50dc86f69ca4e827892d21"
+syft-installer := "ghcr.io/anchore/syft:v1.25.1@sha256:95a24c45eb1d19997c0f11ab0969783cd9b58b0a8eda1114ad8d23775a6f0192"
 
 # Base Containers
 
