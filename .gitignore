@@ -8,3 +8,4 @@ version.txt
 *.key
 *.sbom.*
 *.tmp*
+titanoboa/**

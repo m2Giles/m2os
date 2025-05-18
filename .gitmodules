@@ -1,0 +1,3 @@
+[submodule "titanoboa"]
+	path = titanoboa
+	url = https://github.com/ublue-os/titanoboa.git
