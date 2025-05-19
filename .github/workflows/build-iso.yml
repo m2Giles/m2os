@@ -75,7 +75,7 @@ jobs:
       - name: Build ISO
         shell: bash
         run: |
-          sudo $(command -v just) build-iso ${{ matrix.image }}
+          just build-iso ${{ matrix.image }}
           tree "./${{ env.IMAGE_NAME }}_build/output/"
 
       - name: Upload ISOs and Checksum to Job Artifacts
