@@ -71,16 +71,10 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff # v3
 
-      - name: Download OCI-Archive
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: ${{ matrix.image }}.oci
-
       - name: Build ISO
         shell: bash
         run: |
-          sudo $(which just) build-iso ${{ matrix.image }} 2 1
+          sudo $(which just) build-iso ${{ matrix.image }}
           tree "./${{ env.IMAGE_NAME }}_build/output/"
 
       - name: Upload ISOs and Checksum to Job Artifacts
