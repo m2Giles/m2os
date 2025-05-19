@@ -333,7 +333,10 @@ build-iso image="bluefin":
     HOOK_rootfs="$(realpath ./titanoboa/.github/workflows/ci_dummy_hook_postrootfs.sh)"
     IMAGE="{{ FQ_IMAGE_NAME }}:{{ image }}"
     FLATPAKS="src/flatpaks.example.txt"
-    {{ SUDOIF }} HOOK_post_rootfs="${HOOK_rootfs}" {{ just }} titanoboa::build \
+    {{ SUDOIF }} \
+        HOOK_post_rootfs="${HOOK_rootfs}" \
+        CI="${CI:-}" \
+        {{ just }} titanoboa::build \
         "$IMAGE" \
         "1" \
         "$FLATPAKS" \
