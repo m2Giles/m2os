@@ -89,7 +89,7 @@ install -m 0755 /tmp/ghostty.appimage /usr/bin/ghostty
 
 # Sysexts
 mkdir -p /usr/lib/sysupdate.d
-SYSEXTS=(emacs)
+SYSEXTS=(emacs evolution)
 for s in "${SYSEXTS[@]}"; do
     tee /usr/lib/sysupdate.d/"$s".transfer <<EOF
 [Transfer]
