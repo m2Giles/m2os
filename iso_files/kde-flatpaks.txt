@@ -1,9 +1,6 @@
 com.discordapp.Discord
 com.github.tchx84.Flatseal
 com.google.Chrome
-com.obsproject.Studio
-com.obsproject.Studio.Plugin.Gstreamer
-com.obsproject.Studio.Plugin.GstreamerVaapi
 com.spotify.Client
 com.yubico.yubioath
 de.leopoldluley.Clapgrep
