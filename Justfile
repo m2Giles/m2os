@@ -102,8 +102,6 @@ default:
 # Cleanup
 [group('Utility')]
 clean:
-    #!/usr/bin/bash
-    set -euox pipefail
     touch {{ repo_image_name }}_ || true
     {{ SUDOIF }} find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
     {{ SUDOIF }} find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
@@ -308,67 +306,45 @@ rechunk image="bluefin":
 
 # Load Image into Podman and Tag
 [group('CI')]
-load-image image="bluefin":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    IMAGE=$({{ PODMAN }} pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
-    podman tag "${IMAGE}" localhost/{{ repo_image_name }}:{{ image }}
-    VERSION=$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')
-    {{ PODMAN }} tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:"${VERSION}"
+@load-image image="bluefin":
+    podman tag {{ shell(PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar") }} localhost/{{ repo_image_name + ":" + image }}
+    {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name + ":" + shell("skopeo inspect oci-archive:" + repo_image_name + "_" + image + ".tar | jq -r '.Labels[\"org.opencontainers.image.version\"]'") }}
     {{ PODMAN }} images
 
 # Get Tags
 [group('CI')]
-get-tags image="bluefin":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    VERSION=$({{ PODMAN }} inspect {{ repo_image_name }}:{{ image }} | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')
-    echo "{{ image }} $VERSION"
+@get-tags image="bluefin":
+    echo "{{ image }} {{ shell(PODMAN + " inspect " + repo_image_name + ":" + image + " | jq -r '.[].Config.Labels[\"org.opencontainers.image.version\"]'") }}"
 
 # Build ISO
 [group('ISO')]
 build-iso image="bluefin":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    HOOK_rootfs="$(realpath {{ GIT_ROOT }}/iso_files/configure_iso.sh)"
-    IMAGE="{{ FQ_IMAGE_NAME }}:{{ image }}"
-    if [[ "{{ image }}" =~ aurora ]]; then
-        FLATPAKS="$(realpath {{ GIT_ROOT }}/iso_files/kde-flatpaks.txt)"
-    else
-        FLATPAKS="$(realpath {{ GIT_ROOT }}/iso_files/gnome-flatpaks.txt)"
-    fi
+    {{ shell("mkdir -p " + BUILD_DIR / "output") }}
     {{ SUDOIF }} \
-        HOOK_post_rootfs="${HOOK_rootfs}" \
+        HOOK_post_rootfs={{ GIT_ROOT / "iso_files/configure_iso.sh" }} \
         CI="${CI:-}" \
         {{ just }} titanoboa::build \
-        "$IMAGE" \
+        {{ FQ_IMAGE_NAME + ":" + image }} \
         "1" \
-        "$FLATPAKS" \
+        {{ if image =~ "aurora" { GIT_ROOT / "iso_files/kde-flatpaks.txt" } else { GIT_ROOT / "iso_files/gnome-flatpaks.txt" } }} \
         "squashfs" \
         "NONE" \
-        "$IMAGE" \
+        {{ FQ_IMAGE_NAME + ":" + image }} \
         "1"
     {{ SUDOIF }} chown "$(id -u):$(id -g)" output.iso
-    mkdir -p "{{ BUILD_DIR }}/output/"
-    sha256sum output.iso | tee "{{ BUILD_DIR }}/output/{{ repo_name }}-{{ image }}.iso-CHECKSUM"
-    mv output.iso "{{ BUILD_DIR }}/output/{{ repo_name }}-{{ image }}.iso"
+    sha256sum output.iso | tee {{ BUILD_DIR / "output" / repo_name + "-" + image + ".iso-CHECKSUM" }}
+    mv output.iso {{ BUILD_DIR / "output" / repo_name + "-" + image + ".iso" }}
     {{ SUDOIF }} {{ just }} titanoboa::clean
 
 # Run ISO
 [group('ISO')]
 run-iso image="bluefin":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    if [[ ! -f "{{ BUILD_DIR }}/output/m2os-{{ image }}.iso" ]]; then
-        {{ just }} build-iso {{ image }}
-    fi
-    {{ just }} titanoboa::container-run-vm "$(realpath {{ BUILD_DIR }}/output/{{ repo_name }}-{{ image }}.iso)"
+    {{ if path_exists(GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso") == "true" { '' } else { just + " build-iso " + image } }}
+    {{ just }} titanoboa::container-run-vm {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
 
 # Test Changelogs
 [group('Changelogs')]
 changelogs target="Desktop" urlmd="" handwritten="":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
     python3 changelogs.py {{ target }} ./output-{{ target }}.env ./changelog-{{ target }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
@@ -510,7 +486,6 @@ lint-recipes:
         cosign-sign
         gen-sbom
         get-tags
-        load-image
         push-to-registry
         rechunk
         run-iso
@@ -576,8 +551,7 @@ push-to-registry image $dryrun="true" $destination="":
     fi
 
     # Get Tag List
-    declare -a TAGS=("$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')")
-    TAGS+=("{{ image }}")
+    declare -a TAGS=("{{ image }}" "$(skopeo inspect {{ 'oci-archive:' + repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')")
 
     # Push
     if [[ "{{ dryrun }}" == "false" ]]; then
@@ -596,12 +570,7 @@ push-to-registry image $dryrun="true" $destination="":
 # Sign Images with Cosign
 [group('CI')]
 cosign-sign digest $destination="": install-cosign
-    #!/usr/bin/bash
-    set "${SET_X:+-x}" -eou pipefail
-    if [[ -z "$destination" ]]; then
-        destination="{{ IMAGE_REGISTRY }}"
-    fi
-    cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@{{ digest }}"
+    cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}/{{ repo_image_name + "@" + digest }}"
 
 # Generate SBOM
 [group('CI')]
