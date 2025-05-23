@@ -330,9 +330,13 @@ get-tags image="bluefin":
 build-iso image="bluefin":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
-    HOOK_rootfs="$(realpath ./titanoboa/.github/workflows/ci_dummy_hook_postrootfs.sh)"
+    HOOK_rootfs="$(realpath {{ GIT_ROOT }}/iso_files/configure_iso.sh)"
     IMAGE="{{ FQ_IMAGE_NAME }}:{{ image }}"
-    FLATPAKS="src/flatpaks.example.txt"
+    if [[ "{{ image }}" =~ aurora ]]; then
+        FLATPAKS="$(realpath {{ GIT_ROOT }}/iso_files/kde-flatpaks.txt)"
+    else
+        FLATPAKS="$(realpath {{ GIT_ROOT }}/iso_files/gnome-flatpaks.txt)"
+    fi
     {{ SUDOIF }} \
         HOOK_post_rootfs="${HOOK_rootfs}" \
         CI="${CI:-}" \
@@ -358,26 +362,7 @@ run-iso image="bluefin":
     if [[ ! -f "{{ BUILD_DIR }}/output/m2os-{{ image }}.iso" ]]; then
         {{ just }} build-iso {{ image }}
     fi
-    port=8006;
-    while grep -q "${port}" <<< "$(ss -tunalp)"; do
-        port=$(( port + 1 ))
-    done
-    echo "Using Port: ${port}"
-    echo "Connect to http://localhost:${port}"
-    (sleep 30 && (xdg-open http://localhost:"${port}" || true))&
-    run_args=()
-    run_args+=(--rm --privileged)
-    run_args+=(--publish "127.0.0.1:${port}:8006")
-    run_args+=(--env "CPU_CORES=4")
-    run_args+=(--env "RAM_SIZE=8G")
-    run_args+=(--env "DISK_SIZE=64G")
-    run_args+=(--env "BOOT_MODE=windows_secure")
-    run_args+=(--env "TPM=Y")
-    run_args+=(--env "GPU=Y")
-    run_args+=(--device=/dev/kvm)
-    run_args+=(--volume "{{ GIT_ROOT }}/{{ BUILD_DIR }}/output/{{ image }}.iso":"/boot.iso":z)
-    run_args+=({{ qemu }})
-    {{ PODMAN }} run "${run_args[@]}"
+    {{ just }} titanoboa::container-run-vm "$(realpath {{ BUILD_DIR }}/output/{{ repo_name }}-{{ image }}.iso)"
 
 # Test Changelogs
 [group('Changelogs')]
