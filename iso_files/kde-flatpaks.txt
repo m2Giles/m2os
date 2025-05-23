@@ -8,8 +8,6 @@ com.spotify.Client
 com.yubico.yubioath
 de.leopoldluley.Clapgrep
 io.github.flattool.Warehouse
-io.github.input_leap.input-leap
-io.github.pwr_solaar.solaar
 io.missioncenter.MissionCenter
 io.podman_desktop.PodmanDesktop
 org.fkoehler.KTailctl
