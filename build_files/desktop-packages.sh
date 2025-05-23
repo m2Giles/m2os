@@ -19,22 +19,16 @@ dnf5 -y copr enable bazzite-org/LatencyFleX
 # Sunshine
 dnf5 -y copr enable lizardbyte/beta
 
-# Webapp Manager
-dnf5 -y copr enable bazzite-org/webapp-manager
-
 # Layered Applications
 LAYERED_PACKAGES=(
     adw-gtk3-theme
-    breeze-cursor-theme
     cascadia-fonts-all
     git-credential-libsecret
     git-credential-oauth
-    qemu-ui-curses
     qemu-ui-gtk
     spice-gtk-tools
     sunshine
     uupd
-    webapp-manager
 )
 
 if [[ "${IMAGE}" =~ aurora ]]; then
@@ -54,6 +48,8 @@ if [[ "${IMAGE}" =~ bluefin|bazzite ]]; then
 fi
 
 dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
+
+dnf5 remove -y google-noto-fonts-all
 
 # Call other Scripts
 /ctx/desktop-defaults.sh
