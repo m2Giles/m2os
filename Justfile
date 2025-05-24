@@ -110,8 +110,8 @@ clean:
 [group('Image')]
 build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image)
     #!/usr/bin/bash
+    {{ ci_grouping }}
     {{ verify-container }}
-    echo "::group:: {{ style('warning') }}Container Build Prep...{{ NORMAL }}"
     set ${SET_X:+-x} -eou pipefail
 
     declare -A images={{ images }}
@@ -191,7 +191,6 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
         "--build-arg" "KERNEL_FLAVOR=$KERNEL_FLAVOR"
         "--tag" "localhost/{{ repo_image_name }}:{{ image }}"
     )
-    echo "::endgroup::"
 
     {{ PODMAN }} build "${BUILD_ARGS[@]}" {{ justfile_dir() }}
 
@@ -203,7 +202,7 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
 [group('Image')]
 rechunk image="bluefin": && (load-image image)
     #!/usr/bin/bash
-    echo "::group:: {{ style('warning') }}Rechunk Build Prep...{{ NORMAL }}"
+    {{ ci_grouping }}
     set ${SET_X:+-x} -eou pipefail
 
     {{ PODMAN }} image exists localhost/{{ repo_image_name + ":" + image }} || {{ just }} build {{ image }}
@@ -236,9 +235,6 @@ rechunk image="bluefin": && (load-image image)
         {{ PODMAN }} rm "$CREF"
         {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
     fi
-    echo "::endgroup::"
-
-    echo "::group:: {{ style('warning') }}Rechunk Prune...{{ NORMAL }}"
     {{ PODMAN }} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
@@ -246,9 +242,6 @@ rechunk image="bluefin": && (load-image image)
         --user 0:0 \
         {{ rechunker }} \
         /sources/rechunk/1_prune.sh
-    echo "::endgroup::"
-
-    echo "::group:: {{ style('warning') }}Create Tree...{{ NORMAL }}"
     {{ PODMAN }} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
@@ -266,9 +259,6 @@ rechunk image="bluefin": && (load-image image)
     else
         {{ SUDOIF }} rm -rf "$MOUNTFS"
     fi
-    echo "::endgroup::"
-
-    echo "::group:: {{ style('warning') }}Rechunk...{{ NORMAL }}"
     {{ PODMAN }} run --rm \
         --security-opt label=disable \
         --volume "{{ GIT_ROOT }}:/workspace" \
@@ -286,7 +276,6 @@ rechunk image="bluefin": && (load-image image)
         {{ rechunker }} \
         /sources/rechunk/3_chunk.sh
     {{ PODMAN }} volume rm cache_ostree
-    echo "::endgroup::"
 
 # Load Image into Podman and Tag
 [group('CI')]
@@ -329,7 +318,7 @@ changelogs target="Desktop" urlmd="" handwritten="":
 
 # Verify Container with Cosign
 [group('Utility')]
-verify-container container registry="ghcr.io/ublue-os" key="": install-cosign
+@verify-container container registry="ghcr.io/ublue-os" key="": install-cosign
     if ! cosign verify --key "{{ if key == '' { 'https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub' } else { key } }}" "{{ if registry != '' { registry / container } else { container } }}" >/dev/null; then \
         echo "NOTICE: Verification failed. Please ensure your public key is correct." && exit 1 \
     ; fi
@@ -338,7 +327,7 @@ verify-container container registry="ghcr.io/ublue-os" key="": install-cosign
 [group('CI')]
 secureboot image="bluefin":
     #!/usr/bin/bash
-    echo "::group:: {{ style('warning') }}Secureboot Check...{{ NORMAL }}"
+    {{ ci_grouping }}
     set ${SET_X:+-x} -eou pipefail
     # Get the vmlinuz to check
     kernel_release=$({{ PODMAN }} inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
@@ -380,7 +369,6 @@ secureboot image="bluefin":
     if [[ -n "${temp_name:-}" ]]; then
         {{ PODMAN }} rm -f "${temp_name}"
     fi
-    echo "::endgroup::"
     exit "$returncode"
 
 # Merge Changelogs
@@ -473,7 +461,9 @@ lint-recipes:
 [group('CI')]
 install-cosign:
     #!/usr/bin/bash
-    set ${SET_X:+-x} -euo pipefail
+    {{ ci_grouping }}
+    set -euo pipefail
+    {{ if env('CI', '') == '' { "${SET_X:+-x}" } else { '' } }}
 
     # Get Cosign from Chainguard
     if ! command -v cosign >/dev/null; then
@@ -540,7 +530,9 @@ gen-sbom $input $output="": install-syft
 [group('CI')]
 install-syft:
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    {{ ci_grouping }}
+    set -eou pipefail
+    {{ if env('CI', '') == '' { "${SET_X:+-x}" } else { '' } }}
 
     # Get SYFT if needed
     if ! command -v syft >/dev/null; then
@@ -676,8 +668,14 @@ function verify-container() {
     local registry="${2:-ghcr.io/ublue-os}"
     local key="${3:-https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub}"
     local target="$registry/$container"
-    if ! cosign verify --key "$key" "$target" >/dev/null; then
+    if ! cosign verify --key "$key" "$target" &>/dev/null; then
         echo "NOTICE: Verification failed. Please ensure your public key is correct." && exit 1
     fi
 }
 '''
+
+ci_grouping := '
+if [[ -n "${CI:-}" ]]; then
+    echo "::group::' + style('warning') + '${BASH_SOURCE[0]##*/} step' + NORMAL +'"
+    trap "echo ::endgroup::" EXIT
+fi'

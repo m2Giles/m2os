@@ -26,7 +26,7 @@ env:
 
 jobs:
   create-release:
-    name: Create Release
+    name: ${{ inputs.type }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

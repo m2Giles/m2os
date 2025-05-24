@@ -71,18 +71,8 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
-  create-release:
-    name: Create Release
-    if: ${{ ! contains(github.head_ref, 'renovate') }}
-    needs: ["build-iso", "gen-sbom"]
-    uses: ./.github/workflows/create-release.yml
-    permissions:
-      contents: write
-    with:
-      type: stable
-
   build-image-beta:
-    name: Build Beta Images
+    name: Build Images
     needs: [lint]
     uses: ./.github/workflows/build-image.yml
     permissions:
@@ -99,7 +89,7 @@ jobs:
       image_flavor: ${{ matrix.image_flavor }}
 
   build-iso-beta:
-    name: Build Beta ISOs
+    name: Build ISOs
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     uses: ./.github/workflows/build-iso.yml
     permissions:
@@ -114,12 +104,35 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
-  create-release-beta:
+  gen-sbom-beta:
+    name: Generate SBOMs
+    if: ${{ ! contains(github.head_ref, 'renovate') }}
+    needs: [build-image]
+    uses: ./.github/workflows/gen-sbom.yml
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+      security-events: write
+    secrets:
+      SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Beta-Desktop", "Beta-Bazzite"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
+  create-release:
     name: Create Release
     if: ${{ ! contains(github.head_ref, 'renovate') }}
-    needs: ["build-iso-beta"]
+    needs: ["build-iso", "gen-sbom", "build-iso-beta"]
     uses: ./.github/workflows/create-release.yml
     permissions:
       contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["stable", "beta"]
     with:
-      type: beta
+      type: ${{ matrix.image_flavor }}
