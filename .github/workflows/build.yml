@@ -107,7 +107,7 @@ jobs:
   gen-sbom-beta:
     name: Generate SBOMs
     if: ${{ ! contains(github.head_ref, 'renovate') }}
-    needs: [build-image]
+    needs: [build-image-beta]
     uses: ./.github/workflows/gen-sbom.yml
     permissions:
       actions: read
