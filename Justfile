@@ -200,9 +200,6 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
 [group('Image')]
 rechunk image="bluefin": && (load-image image)
     #!/usr/bin/bash
-    {{ ci_grouping }}
-    set ${SET_X:+-x} -eou pipefail
-
     {{ PODMAN }} image exists localhost/{{ repo_image_name + ":" + image }} || {{ just }} build {{ image }}
 
     if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman$ ]]; then
@@ -211,6 +208,9 @@ rechunk image="bluefin": && (load-image image)
        # Exit with previous exit code
        exit "$?"
     fi
+
+    {{ ci_grouping }}
+    set ${SET_X:+-x} -eou pipefail
 
     CREF=$({{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
     OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
