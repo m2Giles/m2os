@@ -48,6 +48,7 @@ jobs:
       - name: Download SBOMs
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        if: inputs.type == 'stable'
         with:
           pattern: "*.sbom"
           run-id: ${{ inputs.run-id || github.run_id }}
@@ -74,7 +75,7 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: release-changelog
+          name: release-changelog-${{ inputs.type }}
           path: ./changelog.md
           if-no-files-found: error
           retention-days: 0
