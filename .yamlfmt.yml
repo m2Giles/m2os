@@ -8,3 +8,5 @@ formatter:
   pad_line_comments: 1
   trim_trailing_whitespace: true
   eof_newline: true
+
+gitignore_excludes: true

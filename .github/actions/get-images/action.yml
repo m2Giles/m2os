@@ -32,15 +32,15 @@ runs:
         "Server")
           images+=("ucore" "ucore-nvidia")
           ;;
-        "Bazzite-Beta")
+        "Beta-Bazzite")
           images+=("bazzite-beta" "bazzite-deck-beta")
           ;;
-        "Desktop-Beta")
+        "Beta-Desktop")
           images+=("aurora-beta" "aurora-nvidia-beta")
           images+=("bluefin-beta" "bluefin-nvidia-beta")
           images+=("cosmic-beta" "cosmic-nvidia-beta")
           ;;
-        "Server-Beta")
+        "Beta-Server")
           images+=("ucore-beta" "ucore-nvidia-beta")
           ;;
         esac
