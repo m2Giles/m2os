@@ -14,6 +14,11 @@ IMAGE_MATRIX = {
     "image_flavor": ["main", "nvidia"],
 }
 
+BETA_MATRIX = {
+    "image": ["aurora", "cosmic", "bluefin"],
+    "image_flavor": ["main", "nvidia"],
+}
+
 BAZZITE_IMAGE_MATRIX = {
     "image": ["bazzite"],
     "image_flavor": ["main", "nvidia"]
@@ -79,6 +84,8 @@ BLACKLIST_VERSIONS = [
 def get_images(target: str):
     if "Bazzite" in target:
         matrix = BAZZITE_IMAGE_MATRIX
+    elif "Beta" in target:
+        matrix = BETA_MATRIX
     else:
         matrix = IMAGE_MATRIX
 
