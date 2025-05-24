@@ -126,13 +126,19 @@ jobs:
   create-release:
     name: Create Release
     if: ${{ ! contains(github.head_ref, 'renovate') }}
-    needs: ["build-iso", "gen-sbom", "build-iso-beta", "gen-sbom-beta"]
+    needs: ["build-iso", "gen-sbom"]
     uses: ./.github/workflows/create-release.yml
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        image_flavor: ["stable", "beta"]
     with:
-      type: ${{ matrix.image_flavor }}
+      type: stable
+
+  create-release-beta:
+    name: Create Release (Beta)
+    if: ${{ ! contains(github.head_ref, 'renovate') }}
+    needs: ["build-iso-beta", "gen-sbom-beta"]
+    uses: ./.github/workflows/create-release.yml
+    permissions:
+      contents: write
+    with:
+      type: beta
