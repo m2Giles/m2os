@@ -72,7 +72,7 @@ jobs:
       image_flavor: ${{ matrix.image_flavor }}
 
   build-image-beta:
-    name: Build Images
+    name: Build Images (Beta)
     needs: [lint]
     uses: ./.github/workflows/build-image.yml
     permissions:
@@ -89,7 +89,7 @@ jobs:
       image_flavor: ${{ matrix.image_flavor }}
 
   build-iso-beta:
-    name: Build ISOs
+    name: Build ISOs (Beta)
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     uses: ./.github/workflows/build-iso.yml
     permissions:
@@ -105,7 +105,7 @@ jobs:
       image_flavor: ${{ matrix.image_flavor }}
 
   gen-sbom-beta:
-    name: Generate SBOMs
+    name: Generate SBOMs (Beta)
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     needs: [build-image-beta]
     uses: ./.github/workflows/gen-sbom.yml
