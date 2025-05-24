@@ -1,5 +1,7 @@
 set unstable := true
 
+mod? titanoboa
+
 # Constants
 
 repo_image_name := lowercase("m2os")
@@ -39,8 +41,6 @@ images := '(
 
 # Build Containers
 
-[private]
-isobuilder := "ghcr.io/jasonn3/build-container-installer:v1.3.0@sha256:c5a44ee1b752fd07309341843f8d9f669d0604492ce11b28b966e36d8297ad29"
 [private]
 rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.2@sha256:e799d89f9a9965b5b0e89941a9fc6eaab62e9d2d73a0bfb92e6a495be0706907"
 [private]
@@ -102,8 +102,6 @@ default:
 # Cleanup
 [group('Utility')]
 clean:
-    #!/usr/bin/bash
-    set -euox pipefail
     touch {{ repo_image_name }}_ || true
     {{ SUDOIF }} find {{ repo_image_name }}_* -type d -exec chmod 0755 {} \;
     {{ SUDOIF }} find {{ repo_image_name }}_* -type f -exec chmod 0644 {} \;
@@ -308,202 +306,45 @@ rechunk image="bluefin":
 
 # Load Image into Podman and Tag
 [group('CI')]
-load-image image="bluefin":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    IMAGE=$({{ PODMAN }} pull oci-archive:{{ repo_image_name }}_{{ image }}.tar)
-    podman tag "${IMAGE}" localhost/{{ repo_image_name }}:{{ image }}
-    VERSION=$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')
-    {{ PODMAN }} tag localhost/{{ repo_image_name }}:{{ image }} localhost/{{ repo_image_name }}:"${VERSION}"
+@load-image image="bluefin":
+    podman tag {{ shell(PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar") }} localhost/{{ repo_image_name + ":" + image }}
+    {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name + ":" + shell("skopeo inspect oci-archive:" + repo_image_name + "_" + image + ".tar | jq -r '.Labels[\"org.opencontainers.image.version\"]'") }}
     {{ PODMAN }} images
 
 # Get Tags
 [group('CI')]
-get-tags image="bluefin":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    VERSION=$({{ PODMAN }} inspect {{ repo_image_name }}:{{ image }} | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')
-    echo "{{ image }} $VERSION"
+@get-tags image="bluefin":
+    echo "{{ image }} {{ shell(PODMAN + " inspect " + repo_image_name + ":" + image + " | jq -r '.[].Config.Labels[\"org.opencontainers.image.version\"]'") }}"
 
 # Build ISO
 [group('ISO')]
-build-iso image="bluefin" ghcr="0" clean="0":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    # Validate
-    declare -A images={{ images }}
-    check=${images[{{ image }}]-}
-    if [[ -z "$check" ]]; then
-        exit 1
-    fi
-
-    # Verify ISO Build Container
-    {{ just }} verify-container "{{ isobuilder }}" "" "https://raw.githubusercontent.com/JasonN3/build-container-installer/refs/heads/main/cosign.pub"
-
-    mkdir -p {{ BUILD_DIR }}/{lorax_templates,flatpak-refs-{{ image }},output}
-    echo 'append etc/anaconda/profile.d/fedora-kinoite.conf "\\n[User Interface]\\nhidden_spokes =\\n    PasswordSpoke"' \
-         > {{ BUILD_DIR }}/lorax_templates/remove_root_password_prompt.tmpl
-
-    # Build from GHCR or localhost
-    IMAGE_REPO={{ IMAGE_REGISTRY }}
-    TEMPLATES=("/github/workspace/{{ BUILD_DIR }}/lorax_templates/remove_root_password_prompt.tmpl")
-    if [[ "{{ ghcr }}" -gt "0" ]]; then
-        IMAGE_FULL={{ FQ_IMAGE_NAME }}:{{ image }}
-        if [[ "{{ ghcr }}" == "1" ]]; then
-            # Verify Container for ISO
-            {{ just }} verify-container "{{ repo_image_name }}:{{ image }}" "${IMAGE_REPO}" "https://raw.githubusercontent.com/{{ repo_name }}/{{ repo_image_name }}/refs/heads/main/cosign.pub"
-            {{ PODMAN }} pull "${IMAGE_FULL}"
-        elif [[ "{{ ghcr }}" == "2" ]]; then
-            {{ just }} load-image {{ image }}
-            {{ PODMAN }} tag localhost/{{ repo_image_name }}:{{ image }} "$IMAGE_FULL"
-        fi
-    else
-        IMAGE_FULL=localhost/{{ repo_image_name }}:{{ image }}
-        {{ PODMAN }} image exists "$IMAGE_FULL" || {{ just }} build {{ image }}
-    fi
-
-    # Check if ISO already exists. Remove it.
-    if [[ -f "{{ BUILD_DIR }}/output/{{ image }}.iso" || -f "{{ BUILD_DIR }}/output/{{ image }}.iso-CHECKSUM" ]]; then
-        rm -f {{ BUILD_DIR }}/output/{{ image }}.iso*
-    fi
-
-    # Load image into rootful podman
-    if [[ "${UID}" -gt "0" && ! "{{ PODMAN }}" =~ remote ]]; then
-        mkdir -p {{ BUILD_DIR }}
-        COPYTMP="$(mktemp -dp {{ BUILD_DIR }})"
-        {{ SUDOIF }} TMPDIR="${COPYTMP}" {{ PODMAN }} image scp "${UID}"@localhost::"${IMAGE_FULL}" root@localhost::"${IMAGE_FULL}"
-        rm -rf "${COPYTMP}"
-    fi
-
-    # Generate Flatpak List
-    TEMP_FLATPAK_INSTALL_DIR="$(mktemp -dp {{ BUILD_DIR }})"
-    trap 'rm -rf "$TEMP_FLATPAK_INSTALL_DIR"' EXIT SIGINT
-    FLATPAK_REFS_DIR="{{ BUILD_DIR }}/flatpak-refs-{{ image }}"
-    mkdir -p "${FLATPAK_REFS_DIR}"
-    FLATPAK_REFS_DIR_ABS="{{ GIT_ROOT }}/${FLATPAK_REFS_DIR}"
-    case "{{ image }}" in
-    *"aurora"*)
-        FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/aurora/refs/heads/main/aurora_flatpaks/flatpaks"
-    ;;
-    *"bazzite"*|*"bluefin"*|*"cosmic"*)
-        FLATPAK_LIST_URL="https://raw.githubusercontent.com/ublue-os/bazzite/refs/heads/main/installer/gnome_flatpaks/flatpaks"
-    ;;
-    esac
-    curl -Lo "${FLATPAK_REFS_DIR}"/flatpaks.txt "${FLATPAK_LIST_URL}"
-    ADDITIONAL_FLATPAKS=(
-        app/com.discordapp.Discord/x86_64/stable
-        app/com.google.Chrome/x86_64/stable
-        app/com.spotify.Client/x86_64/stable
-        app/com.yubico.yubioath/x86_64/stable
-        app/it.mijorus.gearlever/x86_64/stable
-        app/org.gnome.World.PikaBackup/x86_64/stable
-        app/org.keepassxc.KeePassXC/x86_64/stable
-        app/org.prismlauncher.PrismLauncher/x86_64/stable
-        app/sh.loft.devpod/x86_64/stable
-    )
-    FLATPAK_REFS=()
-    while IFS= read -r line; do
-    FLATPAK_REFS+=("$line")
-    done < "${FLATPAK_REFS_DIR}/flatpaks.txt"
-    FLATPAK_REFS+=("${ADDITIONAL_FLATPAKS[@]}")
-    echo "Flatpak refs: ${FLATPAK_REFS[*]}"
-    # Generate installation script
-    tee "${TEMP_FLATPAK_INSTALL_DIR}/install-flatpaks.sh"<<EOF
-    mkdir -p /flatpak/flatpak /flatpak/triggers
-    mkdir /var/tmp
-    mkdir /var/roothome
-    chmod -R 1777 /var/tmp
-    flatpak config --system --set languages "*"
-    flatpak remote-add --system flathub https://flathub.org/repo/flathub.flatpakrepo
-    flatpak install --system -y flathub ${FLATPAK_REFS[@]}
-    ostree refs --repo=\${FLATPAK_SYSTEM_DIR}/repo | grep '^deploy/' | grep -v 'org\.freedesktop\.Platform\.openh264' | sed 's/^deploy\///g' > /output/flatpaks-with-deps
-    EOF
-    # Create Flatpak List
-    [[ ! -f "$FLATPAK_REFS_DIR/flatpaks-with-deps" ]] && \
-    {{ SUDOIF }} {{ PODMAN }} run --rm --privileged \
-    --entrypoint /bin/bash \
-    -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
-    -e FLATPAK_TRIGGERS_DIR=/flatpak/triggers \
-    -v "${FLATPAK_REFS_DIR_ABS}":/output \
-    -v "{{ GIT_ROOT }}/${TEMP_FLATPAK_INSTALL_DIR}":/temp_flatpak_install_dir \
-    "${IMAGE_FULL}" /temp_flatpak_install_dir/install-flatpaks.sh
-
-    VERSION="$({{ SUDOIF }} {{ PODMAN }} inspect ${IMAGE_FULL} | jq -r '.[].Config.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
-    # VERSION="41"
-    if [[ "{{ ghcr }}" -ge "1" && "{{ clean }}" == "1" ]]; then
-        {{ SUDOIF }} {{ PODMAN }} rmi ${IMAGE_FULL}
-    fi
-    # list Flatpaks
-    cat "${FLATPAK_REFS_DIR}"/flatpaks-with-deps
-    #ISO Container Args
-    iso_build_args=()
-    if [[ "{{ ghcr }}" == "0" && "{{ PODMAN }}" =~ podman$ ]]; then
-        iso_build_args+=(--volume "/var/lib/containers/storage:/var/lib/containers/storage")
-    fi
-    iso_build_args+=(--volume "{{ GIT_ROOT }}:/github/workspace/")
-    iso_build_args+=({{ isobuilder }})
-    iso_build_args+=(ADDITIONAL_TEMPLATES="${TEMPLATES[@]}")
-    iso_build_args+=(ARCH="x86_64")
-    iso_build_args+=(ENROLLMENT_PASSWORD="universalblue")
-    iso_build_args+=(FLATPAK_REMOTE_REFS_DIR="/github/workspace/${FLATPAK_REFS_DIR}")
-    iso_build_args+=(IMAGE_NAME="{{ repo_image_name }}")
-    iso_build_args+=(IMAGE_REPO="${IMAGE_REPO}")
-    iso_build_args+=(IMAGE_SIGNED="true")
-    if [[ "{{ ghcr }}" == "0" && "{{ PODMAN }}" =~ podman$ ]]; then
-        iso_build_args+=(IMAGE_SRC="containers-storage:${IMAGE_FULL}")
-    elif [[ "{{ ghcr }}" == "2" ]]; then
-        iso_build_args+=(IMAGE_SRC="oci-archive:/github/workspace/{{ repo_image_name }}_{{ image }}.tar")
-    fi
-    iso_build_args+=(IMAGE_TAG="{{ image }}")
-    iso_build_args+=(ISO_NAME="/github/workspace/{{ BUILD_DIR }}/output/{{ image }}.iso")
-    iso_build_args+=(SECURE_BOOT_KEY_URL="https://github.com/ublue-os/akmods/raw/main/certs/public_key.der")
-    iso_build_args+=(VARIANT="Kinoite")
-    # Use F41 for installing
-    iso_build_args+=(VERSION="$VERSION")
-    iso_build_args+=(WEB_UI="false")
-    # Build ISO
-    {{ SUDOIF }} {{ PODMAN }} run --rm --privileged --security-opt label=disable "${iso_build_args[@]}"
-    if [[ "${UID}" -gt "0" ]]; then
-        {{ SUDOIF }} chown -R "${UID}":"${GROUPS[0]}" "$PWD"
-        {{ SUDOIF }} {{ PODMAN }} rmi "${IMAGE_FULL}"
-    elif [[ "${UID}" == "0" && -n "${SUDO_USER:-}" ]]; then
-        {{ SUDOIF }} chown -R "${SUDO_UID}":"${SUDO_GID}" "$PWD"
-    fi
+build-iso image="bluefin":
+    {{ shell("mkdir -p " + BUILD_DIR / "output") }}
+    {{ SUDOIF }} \
+        HOOK_post_rootfs={{ GIT_ROOT / "iso_files/configure_iso.sh" }} \
+        CI="${CI:-}" \
+        {{ just }} titanoboa::build \
+        {{ FQ_IMAGE_NAME + ":" + image }} \
+        "1" \
+        {{ if image =~ "aurora" { GIT_ROOT / "iso_files/kde-flatpaks.txt" } else { GIT_ROOT / "iso_files/gnome-flatpaks.txt" } }} \
+        "squashfs" \
+        "NONE" \
+        {{ FQ_IMAGE_NAME + ":" + image }} \
+        "1"
+    {{ SUDOIF }} chown "$(id -u):$(id -g)" output.iso
+    sha256sum output.iso | tee {{ BUILD_DIR / "output" / repo_name + "-" + image + ".iso-CHECKSUM" }}
+    mv output.iso {{ BUILD_DIR / "output" / repo_name + "-" + image + ".iso" }}
+    {{ SUDOIF }} {{ just }} titanoboa::clean
 
 # Run ISO
 [group('ISO')]
 run-iso image="bluefin":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
-    if [[ ! -f "{{ BUILD_DIR }}/output/{{ image }}.iso" ]]; then
-        {{ just }} build-iso {{ image }}
-    fi
-    port=8006;
-    while grep -q "${port}" <<< "$(ss -tunalp)"; do
-        port=$(( port + 1 ))
-    done
-    echo "Using Port: ${port}"
-    echo "Connect to http://localhost:${port}"
-    (sleep 30 && (xdg-open http://localhost:"${port}" || true))&
-    run_args=()
-    run_args+=(--rm --privileged)
-    run_args+=(--publish "127.0.0.1:${port}:8006")
-    run_args+=(--env "CPU_CORES=4")
-    run_args+=(--env "RAM_SIZE=8G")
-    run_args+=(--env "DISK_SIZE=64G")
-    run_args+=(--env "BOOT_MODE=windows_secure")
-    run_args+=(--env "TPM=Y")
-    run_args+=(--env "GPU=Y")
-    run_args+=(--device=/dev/kvm)
-    run_args+=(--volume "{{ GIT_ROOT }}/{{ BUILD_DIR }}/output/{{ image }}.iso":"/boot.iso":z)
-    run_args+=({{ qemu }})
-    {{ PODMAN }} run "${run_args[@]}"
+    {{ if path_exists(GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso") == "true" { '' } else { just + " build-iso " + image } }}
+    {{ just }} titanoboa::container-run-vm {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
 
 # Test Changelogs
 [group('Changelogs')]
 changelogs target="Desktop" urlmd="" handwritten="":
-    #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
     python3 changelogs.py {{ target }} ./output-{{ target }}.env ./changelog-{{ target }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
@@ -603,7 +444,7 @@ merge-changelog:
 [group('Utility')]
 @lint:
     # shell
-    /usr/bin/find . -iname "*.sh" -type f -exec shellcheck "{}" ';'
+    /usr/bin/find . -iname "*.sh" -type f -not -path "./titanoboa/*" -exec shellcheck "{}" ';'
     # yaml
     yamllint -s {{ justfile_dir() }}
     # just
@@ -645,7 +486,6 @@ lint-recipes:
         cosign-sign
         gen-sbom
         get-tags
-        load-image
         push-to-registry
         rechunk
         run-iso
@@ -711,8 +551,7 @@ push-to-registry image $dryrun="true" $destination="":
     fi
 
     # Get Tag List
-    declare -a TAGS=("$(skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar | jq -r '.Labels["org.opencontainers.image.version"]')")
-    TAGS+=("{{ image }}")
+    declare -a TAGS=("{{ image }}" "$(skopeo inspect {{ 'oci-archive:' + repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')")
 
     # Push
     if [[ "{{ dryrun }}" == "false" ]]; then
@@ -731,12 +570,7 @@ push-to-registry image $dryrun="true" $destination="":
 # Sign Images with Cosign
 [group('CI')]
 cosign-sign digest $destination="": install-cosign
-    #!/usr/bin/bash
-    set "${SET_X:+-x}" -eou pipefail
-    if [[ -z "$destination" ]]; then
-        destination="{{ IMAGE_REGISTRY }}"
-    fi
-    cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@{{ digest }}"
+    cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}/{{ repo_image_name + "@" + digest }}"
 
 # Generate SBOM
 [group('CI')]
