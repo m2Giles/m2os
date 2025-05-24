@@ -126,7 +126,7 @@ jobs:
   create-release:
     name: Create Release
     if: ${{ ! contains(github.head_ref, 'renovate') }}
-    needs: ["build-iso", "gen-sbom", "build-iso-beta"]
+    needs: ["build-iso", "gen-sbom", "build-iso-beta", "gen-sbom-beta"]
     uses: ./.github/workflows/create-release.yml
     permissions:
       contents: write

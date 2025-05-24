@@ -383,12 +383,11 @@ secureboot image="bluefin":
 
 # Merge Changelogs
 [group('Changelogs')]
-merge-changelog:
+merge-changelog type="stable":
     #!/usr/bin/bash
     set ${SET_X:+-x} -eou pipefail
     rm -f changelog.md
-    mapfile -t changelogs < <(find . -type f -name changelog\*.md | sort -r)
-    cat "${changelogs[@]}" > changelog.md
+    cat {{ if type =~ 'beta' { 'changelog-Beta-Desktop.md changelog-Beta-Bazzite.md' } else { 'changelog-Desktop.md changelog-Bazzite.md' } }} > changelog.md
     last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
     date_extract="$(echo "${last_tag:-}" | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
     date_version="$(echo "${last_tag:-}" | grep -oP '\.\K[0-9]+$' || true)"
@@ -399,8 +398,8 @@ merge-changelog:
     fi
     cat << EOF
     {
-        "title": "$tag (#$(git rev-parse --short HEAD))",
-        "tag": "$tag"
+        "title": "$tag{{ if type =~ 'beta' { '-beta' } else { '' } }} (#$(git rev-parse --short HEAD))",
+        "tag": "$tag{{ if type =~ 'beta' { '-beta' } else { '' } }}"
     }
     EOF
 
