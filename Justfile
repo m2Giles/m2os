@@ -288,6 +288,7 @@ rechunk image="bluefin":
 # Load Image into Podman and Tag
 [group('Image')]
 load-image image="bluefin":
+    #!/usr/bin/bash
     {{ if CI == '' { '' } else { 'exit 0' } }}
     {{ PODMAN }} tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
     {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name }}:"$(skopeo inspect oci-archive:{{ repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')"
