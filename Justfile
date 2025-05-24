@@ -108,10 +108,15 @@ clean:
 
 # Build Image
 [group('Image')]
-build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image)
+build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
     #!/usr/bin/bash
     {{ ci_grouping }}
     {{ verify-container }}
+    echo "################################################################################"
+    echo "image  := {{ image }}"
+    echo "PODMAN := {{ PODMAN }}"
+    echo "CI     := {{ CI }}"
+    echo "################################################################################"
     set ${SET_X:+-x} -eou pipefail
 
     declare -A images={{ images }}
@@ -198,18 +203,23 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
 
 # Rechunk Image
 [group('Image')]
-rechunk image="bluefin": && (load-image image)
+rechunk image="bluefin":
     #!/usr/bin/bash
     {{ PODMAN }} image exists localhost/{{ repo_image_name + ":" + image }} || {{ just }} build {{ image }}
 
     if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman$ ]]; then
        # Use Podman Unshare, and then exit
-       {{ PODMAN }} unshare -- {{ just }} CI={{ CI }} rechunk {{ image }}
+       {{ PODMAN }} unshare -- {{ just }} rechunk {{ image }}
        # Exit with previous exit code
        exit "$?"
     fi
 
     {{ ci_grouping }}
+    echo "################################################################################"
+    echo "image  := {{ image }}"
+    echo "PODMAN := {{ PODMAN }}"
+    echo "CI     := {{ CI }}"
+    echo "################################################################################"
     set ${SET_X:+-x} -eou pipefail
 
     CREF=$({{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
@@ -228,7 +238,7 @@ rechunk image="bluefin": && (load-image image)
         MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
         {{ SUDOIF }} rm -rf "$MOUNTFS"
         mkdir -p "$MOUNTFS"
-        {{ PODMAN }} export "$CREF" | tar -xf - -C "$MOUNTFS"
+        {{ PODMAN }} export "$CREF" | tar --xattrs-include='*' -p -xf - -C "$MOUNTFS"
         MOUNT="{{ GIT_ROOT }}/$MOUNTFS"
         {{ PODMAN }} rm "$CREF"
         {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
@@ -263,7 +273,7 @@ rechunk image="bluefin": && (load-image image)
         --volume "{{ GIT_ROOT }}:/var/git" \
         --volume cache_ostree:/var/ostree \
         --env REPO=/var/ostree/repo \
-        --env PREV_REF={{ FQ_IMAGE_NAME }}:{{ image }} \
+        --env PREV_REF={{ FQ_IMAGE_NAME + ":" + image }} \
         --env LABELS="$LABELS" \
         --env OUT_NAME="$OUT_NAME" \
         --env VERSION="$VERSION" \
@@ -276,10 +286,10 @@ rechunk image="bluefin": && (load-image image)
     {{ PODMAN }} volume rm cache_ostree
 
 # Load Image into Podman and Tag
-[group('CI')]
-@load-image image="bluefin":
+[group('Image')]
+load-image image="bluefin":
     {{ if CI == '' { '' } else { 'exit 0' } }}
-    podman tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
+    {{ PODMAN }} tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
     {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name }}:"$(skopeo inspect oci-archive:{{ repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')"
     {{ PODMAN }} images
 
@@ -322,11 +332,12 @@ changelogs target="Desktop" urlmd="" handwritten="":
     ; fi
 
 # Secureboot Check
-[group('CI')]
+[group('Image')]
 secureboot image="bluefin":
     #!/usr/bin/bash
     {{ ci_grouping }}
-    set ${SET_X:+-x} -eou pipefail
+    set -eou pipefail
+    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
     # Get the vmlinuz to check
     kernel_release=$({{ PODMAN }} inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
     TMP=$({{ PODMAN }} create "{{ image }}" bash)
