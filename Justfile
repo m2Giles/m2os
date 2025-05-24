@@ -209,7 +209,7 @@ rechunk image="bluefin": && (load-image image)
 
     if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman$ ]]; then
        # Use Podman Unshare, and then exit
-       {{ PODMAN }} unshare -- {{ just }} rechunk {{ image }}
+       {{ PODMAN }} unshare -- CI="${CI:-}" {{ just }} rechunk {{ image }}
        # Exit with previous exit code
        exit "$?"
     fi
