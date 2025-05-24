@@ -108,7 +108,7 @@ clean:
 
 # Build Image
 [group('Image')]
-build image="bluefin": && (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image)
+build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image)
     #!/usr/bin/bash
     {{ verify-container }}
     echo "::group:: {{ style('warning') }}Container Build Prep...{{ NORMAL }}"
