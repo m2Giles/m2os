@@ -673,9 +673,8 @@ function verify-container() {
     fi
 }
 '''
-
 ci_grouping := '
 if [[ -n "${CI:-}" ]]; then
-    echo "::group::' + style('warning') + '${BASH_SOURCE[0]##*/} step' + NORMAL +'"
+    echo "::group::' + style('warning') + '${BASH_SOURCE[0]##*/} step' + NORMAL + '"
     trap "echo ::endgroup::" EXIT
 fi'
