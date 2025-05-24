@@ -676,7 +676,7 @@ function verify-container() {
     local registry="${2:-ghcr.io/ublue-os}"
     local key="${3:-https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub}"
     local target="$registry/$container"
-    if ! cosign verify --key "$key" "$target" &>/dev/null; then
+    if ! cosign verify --key "$key" "$target" >/dev/null; then
         echo "NOTICE: Verification failed. Please ensure your public key is correct." && exit 1
     fi
 }
