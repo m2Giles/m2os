@@ -71,32 +71,8 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
-  changelogs:
-    name: Generate Changelogs
-    if: ${{ ! contains(github.head_ref, 'renovate') }}
-    uses: ./.github/workflows/changelogs.yml
-    permissions:
-      contents: read
-    needs: ["build-iso"]
-    strategy:
-      fail-fast: false
-      matrix:
-        target: ["Desktop", "Bazzite"]
-    with:
-      target: ${{ matrix.target }}
-
-  create-release:
-    name: Create Release
-    if: ${{ ! contains(github.head_ref, 'renovate') }}
-    needs: ["changelogs", "gen-sbom"]
-    uses: ./.github/workflows/create-release.yml
-    permissions:
-      contents: write
-    with:
-      type: stable
-
   build-image-beta:
-    name: Build Beta Images
+    name: Build Images (Beta)
     needs: [lint]
     uses: ./.github/workflows/build-image.yml
     permissions:
@@ -108,12 +84,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: ["Bazzite-Beta", "Desktop-Beta"]
+        image_flavor: ["Beta-Bazzite", "Beta-Desktop", "Beta-Server"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
   build-iso-beta:
-    name: Build Beta ISOs
+    name: Build ISOs (Beta)
     if: ${{ ! contains(github.head_ref, 'renovate') }}
     uses: ./.github/workflows/build-iso.yml
     permissions:
@@ -124,6 +100,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: ["Bazzite-Beta", "Desktop-Beta"]
+        image_flavor: ["Beta-Bazzite", "Beta-Desktop"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
+
+  gen-sbom-beta:
+    name: Generate SBOMs (Beta)
+    if: ${{ ! contains(github.head_ref, 'renovate') }}
+    needs: [build-image-beta]
+    uses: ./.github/workflows/gen-sbom.yml
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+      security-events: write
+    secrets:
+      SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image_flavor: ["Beta-Desktop", "Beta-Bazzite", "Beta-Server"]
+    with:
+      image_flavor: ${{ matrix.image_flavor }}
+
+  create-release:
+    name: Create Release
+    if: ${{ ! contains(github.head_ref, 'renovate') }}
+    needs: ["build-iso", "gen-sbom"]
+    uses: ./.github/workflows/create-release.yml
+    permissions:
+      contents: write
+    with:
+      type: stable
+
+  create-release-beta:
+    name: Create Release (Beta)
+    if: ${{ ! contains(github.head_ref, 'renovate') }}
+    needs: ["build-iso-beta", "gen-sbom-beta"]
+    uses: ./.github/workflows/create-release.yml
+    permissions:
+      contents: write
+    with:
+      type: beta

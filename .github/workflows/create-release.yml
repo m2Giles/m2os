@@ -26,7 +26,7 @@ env:
 
 jobs:
   create-release:
-    name: Create Release
+    name: ${{ inputs.type }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -63,7 +63,7 @@ jobs:
         shell: bash
         run: |
           set -eoux pipefail
-          output="$(just merge-changelog)"
+          output="$(just merge-changelog ${{ inputs.type }})"
           cat changelog.md
           jq -r <<< "$output"
           for k in $(jq 'keys[]' <<< "$output" | tr -d \"); do
@@ -74,7 +74,7 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: release-changelog
+          name: release-changelog-${{ inputs.type }}
           path: ./changelog.md
           if-no-files-found: error
           retention-days: 0
@@ -94,9 +94,28 @@ jobs:
           tag_name: ${{ steps.prepare-release.outputs.tag }}
           body_path: ./changelog.md
           make_latest: true
-          files: |-
+          files: |
             changelog.md
-            *.sbom*
+            bluefin.sbom.json
+            bluefin-nvidia.sbom.json
+            aurora.sbom.json
+            aurora-nvidia.sbom.json
+            cosmic.sbom.json
+            cosmic-nvidia.sbom.json
+            bazzite.sbom.json
+            bazzite-deck.sbom.json
+            ucore.sbom.json
+            ucore-nvidia.sbom.json
+            bluefin.sbom.json.sig
+            bluefin-nvidia.sbom.json.sig
+            aurora.sbom.json.sig
+            aurora-nvidia.sbom.json.sig
+            cosmic.sbom.json.sig
+            cosmic-nvidia.sbom.json.sig
+            bazzite.sbom.json.sig
+            bazzite-deck.sbom.json.sig
+            ucore.sbom.json.sig
+            ucore-nvidia.sbom.json.sig
 
       - name: Create Release (Beta)
         # yamllint disable-line rule:line-length rule:comments
@@ -114,3 +133,19 @@ jobs:
           make_latest: false
           files: |-
             changelog.md
+            bluefin-beta.sbom.json
+            bluefin-nvidia-beta.sbom.json
+            aurora-beta.sbom.json
+            aurora-nvidia-beta.sbom.json
+            cosmic-beta.sbom.json
+            cosmic-nvidia-beta.sbom.json
+            bazzite-beta.sbom.json
+            bazzite-deck-beta.sbom.json
+            bluefin-beta.sbom.json.sig
+            bluefin-nvidia-beta.sbom.json.sig
+            aurora-beta.sbom.json.sig
+            aurora-nvidia-beta.sbom.json.sig
+            cosmic-beta.sbom.json.sig
+            cosmic-nvidia-beta.sbom.json.sig
+            bazzite-beta.sbom.json.sig
+            bazzite-deck-beta.sbom.json.sig

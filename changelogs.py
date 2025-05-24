@@ -14,6 +14,11 @@ IMAGE_MATRIX = {
     "image_flavor": ["main", "nvidia"],
 }
 
+BETA_MATRIX = {
+    "image": ["aurora", "cosmic", "bluefin"],
+    "image_flavor": ["main", "nvidia"],
+}
+
 BAZZITE_IMAGE_MATRIX = {
     "image": ["bazzite"],
     "image_flavor": ["main", "nvidia"]
@@ -79,6 +84,8 @@ BLACKLIST_VERSIONS = [
 def get_images(target: str):
     if "Bazzite" in target:
         matrix = BAZZITE_IMAGE_MATRIX
+    elif "Beta" in target:
+        matrix = BETA_MATRIX
     else:
         matrix = IMAGE_MATRIX
 
@@ -392,7 +399,7 @@ def generate_changelog(
             curr_pretty = re.sub(r"\.\d{1,2}$", "", curr)
             # Remove target- from curr
             curr_pretty = STRIP_PATTERN(curr_pretty)
-            pretty = target.capitalize() + " (F" + curr_pretty
+            pretty = target + " (F" + curr_pretty
             if finish and "Desktop" not in target:
                 pretty += ", #" + finish[:7]
             pretty += ")"
