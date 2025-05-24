@@ -67,13 +67,6 @@ jobs:
         run: |
           just build ${{ matrix.image }}
 
-      - name: Lowercase Registry
-        id: registry_case
-        # yamllint disable-line rule:line-length rule:comments
-        uses: ASzc/change-string-case-action@d0603cd0a7dd490be678164909f65c7737470a7f # v6
-        with:
-          string: ${{ env.IMAGE_REGISTRY }}
-
       - name: Login and Push to GHCR and Sign
         id: push
         if: >-
