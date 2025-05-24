@@ -194,9 +194,7 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
 
     {{ PODMAN }} build "${BUILD_ARGS[@]}" {{ justfile_dir() }}
 
-    if [[ -n "${CI:-}" ]]; then
-        {{ PODMAN }} rmi -f "${check%@*}"
-    fi
+    {{ if CI != '' { PODMAN + ' rmi -f "${check%@*}"' } else { '' } }}
 
 # Rechunk Image
 [group('Image')]
@@ -209,7 +207,7 @@ rechunk image="bluefin": && (load-image image)
 
     if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman$ ]]; then
        # Use Podman Unshare, and then exit
-       {{ PODMAN }} unshare -- CI="${CI:-}" {{ just }} rechunk {{ image }}
+       {{ PODMAN }} unshare -- {{ just }} CI={{ CI }} rechunk {{ image }}
        # Exit with previous exit code
        exit "$?"
     fi
@@ -280,7 +278,7 @@ rechunk image="bluefin": && (load-image image)
 # Load Image into Podman and Tag
 [group('CI')]
 @load-image image="bluefin":
-    {{ if env('CI', '') == '' { '' } else { 'exit 0' } }}
+    {{ if CI == '' { '' } else { 'exit 0' } }}
     podman tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
     {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name }}:"$(skopeo inspect oci-archive:{{ repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')"
     {{ PODMAN }} images
@@ -291,7 +289,7 @@ build-iso image="bluefin":
     {{ shell("mkdir -p $1/output", BUILD_DIR) }}
     {{ SUDOIF }} \
         HOOK_post_rootfs={{ GIT_ROOT / "iso_files/configure_iso.sh" }} \
-        CI="${CI:-}" \
+        CI="{{ CI }}" \
         {{ just }} titanoboa::build \
         {{ FQ_IMAGE_NAME + ":" + image }} \
         "1" \
@@ -463,7 +461,7 @@ install-cosign:
     #!/usr/bin/bash
     {{ ci_grouping }}
     set -euo pipefail
-    {{ if env('CI', '') == '' { "${SET_X:+-x}" } else { '' } }}
+    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
 
     # Get Cosign from Chainguard
     if ! command -v cosign >/dev/null; then
@@ -532,7 +530,7 @@ install-syft:
     #!/usr/bin/bash
     {{ ci_grouping }}
     set -eou pipefail
-    {{ if env('CI', '') == '' { "${SET_X:+-x}" } else { '' } }}
+    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
 
     # Get SYFT if needed
     if ! command -v syft >/dev/null; then
@@ -678,3 +676,5 @@ if [[ -n "${CI:-}" ]]; then
     echo "::group::' + style('warning') + '${BASH_SOURCE[0]##*/} step' + NORMAL + '"
     trap "echo ::endgroup::" EXIT
 fi'
+[private]
+CI := env('CI', '')
