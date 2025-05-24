@@ -399,7 +399,7 @@ def generate_changelog(
             curr_pretty = re.sub(r"\.\d{1,2}$", "", curr)
             # Remove target- from curr
             curr_pretty = STRIP_PATTERN(curr_pretty)
-            pretty = target.capitalize() + " (F" + curr_pretty
+            pretty = target + " (F" + curr_pretty
             if finish and "Desktop" not in target:
                 pretty += ", #" + finish[:7]
             pretty += ")"
