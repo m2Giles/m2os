@@ -132,7 +132,7 @@ jobs:
         run: exit 0
 
   generate-release:
-    name: Generate ${{ inputs.target }} Changelog
+    name: Generate ${{ inputs.image_flavor }} Changelog
     needs: [check-iso]
     permissions:
       contents: read
@@ -167,13 +167,13 @@ jobs:
         run: |
           set -eoux pipefail
           python3 ./changelogs.py \
-            "${{ inputs.target }}" \
-            ./output-${{ inputs.target }}.env \
+            "${{ inputs.image_flavor }}" \
+            ./output-${{ inputs.image_flavor }}.env \
             ./changelog-${{ inputs.image_flavor }}.md \
             --workdir . \
             --handwritten "" \
             --urlmd "${{ steps.merge-artifacts.outputs.urlmd }}"
-          source ./output-${{ inputs.target }}.env
+          source ./output-${{ inputs.image_flavor }}.env
 
       - name: Upload Changelogs as Artifact
         # yamllint disable-line rule:line-length rule:comments
