@@ -172,7 +172,7 @@ jobs:
       - name: Exit on failure
         if: >-
           ${{ contains(fromJson('["failure", "skipped"]'),
-          needs.build-image.result) }}
+          needs.sbom-image.result) }}
         shell: bash
         run: exit 1
       - name: Exit
