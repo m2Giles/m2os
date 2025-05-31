@@ -5,29 +5,29 @@ images:
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-42
-    digest: sha256:5b8864902c43aa8535769e0816ae109155f5982d4abda38039bb06e3299c1be9
+    digest: sha256:e407d0bfac0f206407db21c8a0cde840a515148027d206fc326964e585ab38fe
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-42
-    digest: sha256:3883aebc32fc86e2eb6dad5690b9af18c224034b159b60845568c8820fe0c21c
+    digest: sha256:4fbec01807996a002124b0070b20bd4e15ff52ca5cbaad6773af10fc50e60190
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-42
-    digest: sha256:80271517579a1f868d3ae02a70a374f73744f484a113c227796144d35646d449
+    digest: sha256:ffc51f121d8a6b06b2771f2c0af243ece65ea2c60720f1c33d61d361bc4c307b
 
   # Testing
   - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-42
-    digest: sha256:83f59ae14715138e375f1ceda4b457fe7c1674301c61aff74079547fd7a3012e
+    digest: sha256:06832ac65b572905133c092a4e3857ad32722006f12b3de949d783909096ae86
   - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-42
-    digest: sha256:2196541815c1d38b8c3b58b84f3cb2e38b006f530da58d9cfd5064ae97a3f922
+    digest: sha256:2de9a516aa5fa578b8011cc1204a6feeb5bffb1a247194e442a3028a0dace071
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-42
-    digest: sha256:01a7c504b7fadee46e7f51041907630e266bd9500c4c3d16236ae08009a58d54
+    digest: sha256:da1792f41e3bab03658001701d18eafb4f8bc3c1f646a564ab4ce4f6945140de
 
   # Fedora 42
   - name: base-42
