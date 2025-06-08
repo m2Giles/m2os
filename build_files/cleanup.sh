@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 #shellcheck disable=SC2115
 
-set ${SET_X:+-x} -eou pipefail
+set -eoux pipefail
 
 repos=(
     charm
@@ -37,8 +37,6 @@ if [[ ! "${IMAGE}" =~ ucore ]]; then
     done
 fi
 
-dnf5 clean all
-
 # Cleanup extra directories in /usr/lib/modules
 KERNEL_VERSION="$(rpm -q kernel-core --queryformat '%{EVR}.%{ARCH}')"
 
@@ -57,6 +55,3 @@ rm -rf /usr/etc
 mkdir -p /tmp
 mkdir -p /var/tmp
 chmod -R 1777 /var/tmp
-
-bootc container lint
-ostree container commit

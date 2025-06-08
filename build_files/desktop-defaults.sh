@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set ${SET_X:+-x} -eou pipefail
+set -eoux pipefail
 
 mkdir -p /etc/xdg/autostart
 mkdir -p /etc/environment.d

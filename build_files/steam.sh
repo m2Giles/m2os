@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set ${SET_X:+-x} -eou pipefail
+set -eoux pipefail
 
 sed -i "0,/enabled=0/{s/enabled=0/enabled=1/}" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 

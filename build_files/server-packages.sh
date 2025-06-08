@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set ${SET_X:+-x} -eou pipefail
+set -eoux pipefail
 
 # Docker Repo
 tee /etc/yum.repos.d/docker-ce.repo <<'EOF'
@@ -150,4 +150,18 @@ bind-key 6 if-shell 'tmux select-window -t :6' '' 'new-window -t :6'
 bind-key 7 if-shell 'tmux select-window -t :7' '' 'new-window -t :7'
 bind-key 8 if-shell 'tmux select-window -t :8' '' 'new-window -t :8'
 bind-key 9 if-shell 'tmux select-window -t :9' '' 'new-window -t :9'
+EOF
+
+# Inputrc
+tee -a /etc/inputrc <<'EOF'
+set completion-ignore-case on
+set completion-map-case on
+
+set colored-completion-prefix on
+set colored-stats on
+EOF
+
+# Atuin
+tee -a /etc/bashrc <<'EOF'
+ATUIN_INIT_FLAGS="--disable-up-arrow"
 EOF

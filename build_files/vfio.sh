@@ -1,21 +1,8 @@
 #!/usr/bin/bash
 
-set ${SET_X:+-x} -eou pipefail
-
-: "${KERNEL_FLAVOR:=coreos-stable}"
+set -eoux pipefail
 
 KERNEL_VERSION="$(rpm -q --queryformat="%{EVR}.%{ARCH}" kernel-core)"
-
-# KVMFR KMOD
-dnf5 -y copr enable hikariknight/looking-glass-kvmfr
-
-if [[ ! "${IMAGE}" =~ bazzite && ! "${IMAGE}" =~ beta ]]; then
-    #shellcheck disable=SC2154
-    skopeo copy docker://ghcr.io/ublue-os/akmods:"${KERNEL_FLAVOR}-$(rpm -E %fedora)-${KERNEL_VERSION}" dir:/tmp/akmods
-    AKMODS_TARGZ=$(jq -r '.layers[].digest' </tmp/akmods/manifest.json | cut -d : -f 2)
-    tar -xvzf /tmp/akmods/"$AKMODS_TARGZ" -C /tmp/
-    dnf5 install -y /tmp/rpms/kmods/*kvmfr*.rpm
-fi
 
 tee /usr/lib/dracut/dracut.conf.d/vfio.conf <<'EOF'
 add_drivers+=" vfio vfio_iommu_type1 vfio-pci "

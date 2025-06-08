@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set ${SET_X:+-x} -eou pipefail
+set -eoux pipefail
 
 # Ublue Staging
 dnf5 -y copr enable ublue-os/staging
@@ -50,10 +50,6 @@ fi
 dnf5 install --setopt=install_weak_deps=False -y "${LAYERED_PACKAGES[@]}"
 
 dnf5 remove -y google-noto-fonts-all
-
-# Call other Scripts
-/ctx/desktop-defaults.sh
-/ctx/flatpak.sh
 
 # Services / Use uupd updater
 dnf5 remove -y ublue-os-update-services

@@ -1,0 +1,131 @@
+ARG SOURCE_IMAGE="ghcr.io/ublue-os/bluefin"
+ARG TAG_VERSION="stable-daily"
+
+FROM scratch AS ctx
+COPY build_files cosign.pub cosign-backup.pub /
+
+#if !defined(SERVER) && !defined(BAZZITE)
+FROM AKMODS AS akmods
+#endif /* !defined(SERVER) && !defined(BAZZITE) */
+
+#if defined(KERNEL_SWAP)
+FROM NVIDIA AS nvidia
+FROM ZFS AS zfs
+#endif /* KERNEL_SWAP */
+
+FROM ${SOURCE_IMAGE}:${TAG_VERSION}
+
+ARG IMAGE="bluefin"
+ARG VERSION=""
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    echo "::group:: === COMMON ===" && \
+    /ctx/remove-cliwrap.sh && \
+    /ctx/server-packages.sh && \
+    /ctx/distrobox.sh && \
+    /ctx/branding.sh && \
+    /ctx/signing.sh && \
+    /ctx/composefs.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+
+#ifdef KERNEL_SWAP
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    --mount=type=bind,from=akmods,src=/kernel-rpms,dst=/tmp/kernel-rpms \
+    --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
+    echo "::group:: === KERNEL SWAP ===" && \
+    /ctx/kernel-swap.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    echo "::group:: === NVIDIA ===" && \
+    /ctx/install-nvidia.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    --mount=type=bind,from=zfs,src=/rpms,dst=/tmp/rpms \
+    echo "::group:: === ZFS ===" && \
+    /ctx/install-zfs.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+#endif /* KERNEL_SWAP */
+
+#ifdef COSMIC
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    echo "::group:: === COSMIC ===" && \
+    /ctx/cosmic.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+#endif /* COSMIC */
+
+#ifndef SERVER
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    echo "::group:: === DESKTOP ===" && \
+    /ctx/desktop-packages.sh && \
+    /ctx/desktop-defaults.sh && \
+    /ctx/flatpak.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+#endif /* SERVER */
+
+#if !defined(BAZZITE) && !defined(SERVER)
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    echo "::group:: === STEAM ===" && \
+    /ctx/steam.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+#endif /* !defined(BAZZITE) && !defined(SERVER) */
+
+#if !defined(SERVER) && !defined(KERNEL_SWAP) && !defined(BAZZITE)
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
+    echo "::group:: === VFIO ===" && \
+    dnf5 -y copr enable hikariknight/looking-glass-kvmfr && \
+    dnf5 install -y /tmp/rpms/kmods/kmod-kvmfr*.rpm && \
+    /ctx/vfio.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+#elif defined(BAZZITE)
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    echo "::group:: === VFIO ===" && \
+    /ctx/vfio.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+#endif /* VFIO */
+
+RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    echo "::group:: === CLEANUP ===" && \
+    /ctx/cleanup.sh && \
+    echo "::endgroup::" && \
+    ostree container commit
+
+RUN bootc container lint
