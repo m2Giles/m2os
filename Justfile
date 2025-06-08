@@ -106,10 +106,9 @@ clean:
     rm -f output*.env changelog*.md version.txt previous.manifest.json
     rm -f ./*.sbom.*
 
-
 # Build
 [group('Image')]
-build image="bluefin": (install-cosign) (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
+build image="bluefin": install-cosign (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
 
 # Build Image
 [group('Image')]
