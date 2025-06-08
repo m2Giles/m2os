@@ -22,14 +22,13 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo "::group:: === COMMON ===" && \
+    echo "\e[1m=== COMMON ===\e[0m" && \
     /ctx/remove-cliwrap.sh && \
     /ctx/server-packages.sh && \
     /ctx/distrobox.sh && \
     /ctx/branding.sh && \
     /ctx/signing.sh && \
     /ctx/composefs.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 
 #ifdef KERNEL_SWAP
@@ -39,18 +38,16 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=akmods,src=/kernel-rpms,dst=/tmp/kernel-rpms \
     --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
-    echo "::group:: === KERNEL SWAP ===" && \
+    echo "\e[1m=== KERNEL SWAP ===\e[0m" && \
     /ctx/kernel-swap.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo "::group:: === NVIDIA ===" && \
+    echo "\e[1m=== NVIDIA ===\e[0m" && \
     /ctx/install-nvidia.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 
 RUN --mount=type=cache,dst=/var/cache \
@@ -58,9 +55,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=zfs,src=/rpms,dst=/tmp/rpms \
-    echo "::group:: === ZFS ===" && \
+    echo "\e[1m=== ZFS ===\e[0m" && \
     /ctx/install-zfs.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 #endif /* KERNEL_SWAP */
 
@@ -69,9 +65,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo "::group:: === COSMIC ===" && \
+    echo "\e[1m=== COSMIC ===\e[0m" && \
     /ctx/cosmic.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 #endif /* COSMIC */
 
@@ -80,11 +75,10 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo "::group:: === DESKTOP ===" && \
+    echo "\e[1m=== DESKTOP ===\e[0m" && \
     /ctx/desktop-packages.sh && \
     /ctx/desktop-defaults.sh && \
     /ctx/flatpak.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 #endif /* SERVER */
 
@@ -93,9 +87,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo "::group:: === STEAM ===" && \
+    echo "\e[1m=== STEAM ===\e[0m" && \
     /ctx/steam.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 #endif /* !defined(BAZZITE) && !defined(SERVER) */
 
@@ -105,27 +98,24 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
-    echo "::group:: === VFIO ===" && \
+    echo "\e[1m=== VFIO ===\e[0m" && \
     dnf5 -y copr enable hikariknight/looking-glass-kvmfr && \
     dnf5 install -y /tmp/rpms/kmods/kmod-kvmfr*.rpm && \
     /ctx/vfio.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 #elif defined(BAZZITE)
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo "::group:: === VFIO ===" && \
+    echo "\e[1m=== VFIO ===\e[0m" && \
     /ctx/vfio.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 #endif /* VFIO */
 
 RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
-    echo "::group:: === CLEANUP ===" && \
+    echo "\e[1m=== CLEANUP ===\e[0m" && \
     /ctx/cleanup.sh && \
-    echo "::endgroup::" && \
     ostree container commit
 
 RUN bootc container lint
