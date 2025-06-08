@@ -1,4 +1,4 @@
-ARG SOURCE_IMAGE="ghcr.io/ublue-os/bluefin"
+ARG BASE_IMAGE="ghcr.io/ublue-os/bluefin"
 ARG TAG_VERSION="stable-daily"
 
 FROM scratch AS ctx
@@ -13,7 +13,7 @@ FROM NVIDIA AS nvidia
 FROM ZFS AS zfs
 #endif /* KERNEL_SWAP */
 
-FROM ${SOURCE_IMAGE}:${TAG_VERSION}
+FROM ${BASE_IMAGE}:${TAG_VERSION}
 
 ARG IMAGE="bluefin"
 ARG VERSION=""

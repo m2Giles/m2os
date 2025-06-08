@@ -246,7 +246,7 @@ rechunk image="bluefin":
     echo "PODMAN := {{ PODMAN }}"
     echo "CI     := {{ CI }}"
     echo "################################################################################"
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     CREF=$({{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
     OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
@@ -363,8 +363,7 @@ changelogs target="Desktop" urlmd="" handwritten="":
 secureboot image="bluefin":
     #!/usr/bin/bash
     {{ ci_grouping }}
-    set -eou pipefail
-    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
+    set -eoux pipefail
     # Get the vmlinuz to check
     kernel_release=$({{ PODMAN }} inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
     TMP=$({{ PODMAN }} create "{{ image }}" bash)
@@ -411,7 +410,7 @@ secureboot image="bluefin":
 [group('Changelogs')]
 merge-changelog type="stable":
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
     rm -f changelog.md
     cat {{ if type =~ 'beta' { 'changelog-Beta-Desktop.md changelog-Beta-Bazzite.md' } else { 'changelog-Desktop.md changelog-Bazzite.md' } }} > changelog.md
     last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
@@ -497,8 +496,7 @@ lint-recipes:
 install-cosign:
     #!/usr/bin/bash
     {{ ci_grouping }}
-    set -euo pipefail
-    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
+    set -euox pipefail
 
     # Get Cosign from Chainguard
     if ! command -v cosign >/dev/null; then
@@ -548,7 +546,7 @@ push-and-sign image: (login-to-ghcr env('ACTOR') env('TOKEN')) (push-to-registry
 [group('CI')]
 gen-sbom $input $output="": install-syft
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     # Make SBOM
     if [[ -z "$output" ]]; then
@@ -566,8 +564,7 @@ gen-sbom $input $output="": install-syft
 install-syft:
     #!/usr/bin/bash
     {{ ci_grouping }}
-    set -eou pipefail
-    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
+    set -eoux pipefail
 
     # Get SYFT if needed
     if ! command -v syft >/dev/null; then
@@ -589,7 +586,7 @@ install-syft:
 [group('CI')]
 sbom-sign input $sbom="": install-cosign
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     # set SBOM
     if [[ ! -f "$sbom" ]]; then
@@ -620,7 +617,7 @@ sbom-sign input $sbom="": install-cosign
 [group('CI')]
 sbom-attest input $sbom="" $destination="": install-cosign
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     # set SBOM
     if [[ ! -f "$sbom" ]]; then
@@ -684,11 +681,6 @@ skopeo := require("skopeo")
 SUDO_DISPLAY := env("DISPLAY", "") || env("WAYLAND_DISPLAY", "")
 [private]
 export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { which("sudo") + " --askpass" } else { which("sudo") }
-
-# Quiet By Default
-
-[private]
-export SET_X := if `id -u` == "0" { "1" } else { env("SET_X", "") }
 
 # Podman By Default
 

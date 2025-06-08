@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set ${SET_X:+-x} -eou pipefail
+set -eoux pipefail
 
 systemctl enable --global p11-kit-server.socket
 systemctl enable --global p11-kit-server.service
