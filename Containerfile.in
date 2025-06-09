@@ -8,10 +8,13 @@ COPY build_files cosign.pub cosign-backup.pub /
 FROM AKMODS AS akmods
 #endif /* !defined(SERVER) && !defined(BAZZITE) */
 
-#if defined(KERNEL_SWAP)
-FROM NVIDIA AS nvidia
+#ifdef ZFS
 FROM ZFS AS zfs
-#endif /* KERNEL_SWAP */
+#endif /* ZFS */
+
+#ifdef NVIDIA
+FROM NVIDIA AS nvidia
+#endif /* NVIDIA */
 
 FROM ${BASE_IMAGE}:${TAG_VERSION}
 
@@ -31,7 +34,7 @@ RUN --mount=type=cache,dst=/var/cache \
     /ctx/composefs.sh && \
     ostree container commit
 
-#ifdef KERNEL_SWAP
+#ifdef ZFS
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
@@ -42,13 +45,16 @@ RUN --mount=type=cache,dst=/var/cache \
     /ctx/kernel-swap.sh && \
     ostree container commit
 
+#ifdef NVIDIA
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
+    --mount=type=bind,from=nvidia,src=/rpms,dst=/tmp/akmods-rpms \
     echo -e "\e[1m\e[36m=== NVIDIA ===\e[0m" && \
     /ctx/install-nvidia.sh && \
     ostree container commit
+#endif /* NVIDIA */
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
@@ -58,7 +64,7 @@ RUN --mount=type=cache,dst=/var/cache \
     echo -e "\e[1m\e[36m=== ZFS ===\e[0m" && \
     /ctx/install-zfs.sh && \
     ostree container commit
-#endif /* KERNEL_SWAP */
+#endif /* ZFS */
 
 #ifdef COSMIC
 RUN --mount=type=cache,dst=/var/cache \
@@ -92,7 +98,7 @@ RUN --mount=type=cache,dst=/var/cache \
     ostree container commit
 #endif /* !defined(BAZZITE) && !defined(SERVER) */
 
-#if !defined(SERVER) && !defined(KERNEL_SWAP) && !defined(BAZZITE)
+#if !defined(SERVER) && !defined(ZFS) && !defined(BAZZITE)
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \

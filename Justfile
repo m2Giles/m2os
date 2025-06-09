@@ -134,17 +134,9 @@ build-image image="bluefin":
     BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
 
-    # AKMODS
-    {{ if image =~ 'beta' { 'akmods_version="testing"' } else { 'akmods_version="stable"' } }}
-    akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-    akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-    akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-
     case "{{ image }}" in
     "aurora"*|"bluefin"*)
-        verify-container "${akmods#*-os/}"
         BUILD_ARGS+=("--cpp-flag=-DDESKTOP")
-        BUILD_ARGS+=("--cpp-flag=-DAKMODS=$akmods")
         ;;
     "bazzite"*)
         BUILD_ARGS+=("--cpp-flag=-DBAZZITE")
@@ -164,18 +156,24 @@ build-image image="bluefin":
     # Check Base Container
     verify-container "${check#*-os/}"
 
+    # AKMODS
+    {{ if image =~ 'beta' { 'akmods_version=testing' } else if image =~ 'aurora|bluefin|cosmic' { 'akmods_version=stable' } else { '' } }}
+    {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+
     if [[ "{{ image }}" =~ cosmic|(aurora.*|bluefin.*)-beta ]]; then
         verify-container "${akmods#*-os/}"
-        verify-container "${akmods_nvidia#*-os/}"
+        akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
         verify-container "${akmods_zfs#*-os/}"
-        skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
         BUILD_ARGS+=(
-        "--cpp-flag=-DAKMODS=$akmods"
-        "--cpp-flag=-DNVIDIA=$akmods_nvidia"
-        "--cpp-flag=-DZFS=$akmods_zfs"
-        "--cpp-flag=-DKERNEL_SWAP"
+            "--cpp-flag=-DAKMODS=$akmods"
+            "--cpp-flag=-DZFS=$akmods_zfs"
         )
+        {{ if image =~ '(cosmic-nv.*|aurora-nv.*|bluefin-nv.*)-beta' { 'akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+        {{ if image =~ '(cosmic-nv.*|aurora-nv.*|bluefin-nv.*)-beta' { 'verify-container "${akmods_nvidia#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DNVIDIA=$akmods_nvidia")' } else { '' } }}
+        skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
     else
+        {{ if image =~ 'bluefin|aurora' { 'verify-container "${akmods#*-os/}"' } else { '' } }}
+        {{ if image =~ 'bluefin|aurora' { 'BUILD_ARGS+=("--cpp-flag=-DAKMODS=$akmods")' } else { '' } }}
         skopeo inspect docker://"${check/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
     fi
 
@@ -196,13 +194,8 @@ build-image image="bluefin":
 
     # Pull the images
     {{ PODMAN }} pull "$check"
-    if [[ "{{ image }}" =~ cosmic|aurora|bluefin ]]; then
-        {{ PODMAN }} pull "$akmods"
-    fi
-    if [[ "{{ image }}" =~ cosmic|(aurora.*|bluefin.*)-beta ]]; then
-        {{ PODMAN }} pull "$akmods_nvidia"
-        {{ PODMAN }} pull "$akmods_zfs"
-    fi
+    {{ if image =~ 'cosmic|aurora|bluefin' { PODMAN + ' pull "$akmods"' } else { '' } }}
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { PODMAN + ' pull "$akmods_nvidia"; ' + PODMAN + ' pull "$akmods_zfs"' } else { '' } }}
 
     # Labels
     KERNEL_FLAVOR={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}
@@ -468,7 +461,7 @@ _lint-recipe linter recipe *args:
 lint-recipes:
     #!/usr/bin/bash
     recipes=(
-        build
+        build-image
         build-iso
         changelogs
         cosign-sign
