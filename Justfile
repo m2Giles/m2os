@@ -135,12 +135,8 @@ build-image image="bluefin":
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
 
     case "{{ image }}" in
-    "aurora"*|"bluefin"*)
-        BUILD_ARGS+=("--cpp-flag=-DDESKTOP")
-        ;;
-    "bazzite"*)
-        BUILD_ARGS+=("--cpp-flag=-DBAZZITE")
-        ;;
+    "aurora"*|"bluefin"*) BUILD_ARGS+=("--cpp-flag=-DDESKTOP") ;;
+    "bazzite"*) BUILD_ARGS+=("--cpp-flag=-DBAZZITE") ;;
     "cosmic"*)
         {{ if image =~ 'beta' { 'bluefin=${images[bluefin]}' } else { 'bluefin="${images[bluefin-beta]}"' } }}
         verify-container "${bluefin#*-os/}"
@@ -148,9 +144,7 @@ build-image image="bluefin":
         check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
         BUILD_ARGS+=("--cpp-flag=-DCOSMIC")
         ;;
-    "ucore"*)
-        BUILD_ARGS+=("--cpp-flag=-DSERVER")
-        ;;
+    "ucore"*) BUILD_ARGS+=("--cpp-flag=-DSERVER") ;;
     esac
 
     # Check Base Container
@@ -158,24 +152,20 @@ build-image image="bluefin":
 
     # AKMODS
     {{ if image =~ 'beta' { 'akmods_version=testing' } else if image =~ 'aurora|bluefin|cosmic' { 'akmods_version=stable' } else { '' } }}
-    {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
 
-    if [[ "{{ image }}" =~ cosmic|(aurora.*|bluefin.*)-beta ]]; then
-        verify-container "${akmods#*-os/}"
-        akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-        verify-container "${akmods_zfs#*-os/}"
-        BUILD_ARGS+=(
-            "--cpp-flag=-DAKMODS=$akmods"
-            "--cpp-flag=-DZFS=$akmods_zfs"
-        )
-        {{ if image =~ '(cosmic-nv.*|aurora-nv.*|bluefin-nv.*)-beta' { 'akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
-        {{ if image =~ '(cosmic-nv.*|aurora-nv.*|bluefin-nv.*)-beta' { 'verify-container "${akmods_nvidia#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DNVIDIA=$akmods_nvidia")' } else { '' } }}
-        skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
-    else
-        {{ if image =~ 'bluefin|aurora' { 'verify-container "${akmods#*-os/}"' } else { '' } }}
-        {{ if image =~ 'bluefin|aurora' { 'BUILD_ARGS+=("--cpp-flag=-DAKMODS=$akmods")' } else { '' } }}
-        skopeo inspect docker://"${check/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
-    fi
+    # akmods
+    {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+    {{ if image =~ 'aurora|bluefin|cosmic' { 'verify-container "${akmods#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DAKMODS=$akmods")' } else { '' } }}
+
+    # zfs
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'verify-container "${akmods_zfs#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DZFS=$akmods_zfs")' } else { '' } }}
+
+    # nvidia
+    {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+    {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'verify-container "${akmods_nvidia#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DNVIDIA=$akmods_nvidia")' } else { '' } }}
+
+    skopeo inspect docker://{{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { '${akmods/:*@/@}' } else { '${check/:*@/@}' } }} > "$BUILDTMP/inspect-{{ image }}.json"
 
     # Get The Version
     fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
@@ -200,12 +190,12 @@ build-image image="bluefin":
 
     # Labels
     BUILD_ARGS+=(
+        "--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
         "--label" "org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}"
         "--label" "org.opencontainers.image.title={{ repo_image_name }}"
         "--label" "org.opencontainers.image.version=$VERSION"
-        "--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
-        "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
         "--label" "ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}"
+        "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
     )
 
     #Build Args
@@ -245,11 +235,12 @@ rechunk image="bluefin":
     OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
     VERSION="$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')"
     LABELS="
+    org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
+    org.opencontainers.image.revision=$(git rev-parse HEAD)
     org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}
     org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
-    org.opencontainers.image.revision=$(git rev-parse HEAD)
+    ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}
     ostree.linux=$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
-    org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
     "
     if [[ ! "{{ PODMAN }}" =~ remote ]]; then
         MOUNT=$({{ PODMAN }} mount "$CREF")
