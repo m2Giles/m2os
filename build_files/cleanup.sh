@@ -29,7 +29,7 @@ for repo in "${repos[@]}"; do
     fi
 done
 
-if [[ ! "${IMAGE}" =~ ucore ]]; then
+if ls /etc/yum.repos.d/_copr*.repo &>/dev/null; then
     coprs=()
     mapfile -t coprs <<<"$(find /etc/yum.repos.d/_copr*.repo)"
     for copr in "${coprs[@]}"; do
