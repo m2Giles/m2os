@@ -46,9 +46,9 @@ rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.2@sha256:e799d89f9a9965b5b0e89941a9fc
 [private]
 qemu := "ghcr.io/qemus/qemu:7.12@sha256:ab767a6b9c8cf527d521eee9686dce09933bc35599ee58be364eb8f3a03001ea"
 [private]
-cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:9f0bcaa83dce8ae78962ce9a0b2536572fe2fa78a25cbb811e4784f1682cad1c"
+cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:fc63e7728183e9e28e9998540bc4f704e6b13474575cdf0c594fdd6eac2143f5"
 [private]
-syft-installer := "ghcr.io/anchore/syft:v1.26.1@sha256:a29957b223c67ee0503018d9228e74495903b0c6290f9bc6d74d1501680fef85"
+syft-installer := "ghcr.io/anchore/syft:v1.27.0@sha256:d755e38b255045ebec12acacdb0f50b8b8781979116bbf2b9fa3bd5fb4a355af"
 
 # Base Containers
 
