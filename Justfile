@@ -121,7 +121,6 @@ build-image image="bluefin":
     echo "PODMAN := {{ PODMAN }}"
     echo "CI     := {{ CI }}"
     echo "################################################################################"
-    set -eoux pipefail
 
     declare -A images={{ images }}
     check=${images[{{ image }}]-}
@@ -133,6 +132,8 @@ build-image image="bluefin":
     mkdir -p {{ BUILD_DIR }}
     BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
+
+    set -eoux pipefail
 
     case "{{ image }}" in
     "aurora"*|"bluefin"*) BUILD_ARGS+=("--cpp-flag=-DDESKTOP") ;;

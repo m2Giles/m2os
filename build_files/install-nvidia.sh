@@ -2,6 +2,8 @@
 
 set -eoux pipefail
 
+KERNEL_VERSION="$(rpm -q --queryformat="%{EVR}.%{ARCH}" kernel-core)"
+
 case "${IMAGE}" in
 *bluefin*)
     base="silverblue"
