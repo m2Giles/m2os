@@ -21,6 +21,7 @@ dnf5 -y copr enable ganto/umoci
 SERVER_PACKAGES=(
     binutils
     bootc
+    cpp
     erofs-utils
     just
     jq
