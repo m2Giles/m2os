@@ -106,9 +106,13 @@ clean:
     rm -f output*.env changelog*.md version.txt previous.manifest.json
     rm -f ./*.sbom.*
 
+# Build
+[group('Image')]
+build image="bluefin": install-cosign (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
+
 # Build Image
 [group('Image')]
-build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
+build-image image="bluefin":
     #!/usr/bin/bash
     {{ ci_grouping }}
     {{ verify-container }}
@@ -117,7 +121,6 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
     echo "PODMAN := {{ PODMAN }}"
     echo "CI     := {{ CI }}"
     echo "################################################################################"
-    set ${SET_X:+-x} -eou pipefail
 
     declare -A images={{ images }}
     check=${images[{{ image }}]-}
@@ -129,40 +132,43 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
     mkdir -p {{ BUILD_DIR }}
     BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
-    {{ if image =~ 'beta' { 'akmods_version="testing"' } else { 'akmods_version="stable"' } }}
-    akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-    akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-    akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${akmods_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
+
+    set -eoux pipefail
+
     case "{{ image }}" in
-    "aurora"*|"bazzite"*|"bluefin"*|"ucore"*)
-        verify-container "${check#*-os/}"
-        KERNEL_FLAVOR={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}
-        ;;
+    "aurora"*|"bluefin"*) BUILD_ARGS+=("--cpp-flag=-DDESKTOP") ;;
+    "bazzite"*) BUILD_ARGS+=("--cpp-flag=-DBAZZITE") ;;
     "cosmic"*)
         {{ if image =~ 'beta' { 'bluefin=${images[bluefin]}' } else { 'bluefin="${images[bluefin-beta]}"' } }}
         verify-container "${bluefin#*-os/}"
         fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
-        verify-container "${check#*-os/}"
-        KERNEL_FLAVOR="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\") | .tag" {{ image-file }})"
-        KERNEL_FLAVOR="${KERNEL_FLAVOR%-*}"
+        BUILD_ARGS+=("--cpp-flag=-DCOSMIC")
         ;;
+    "ucore"*) BUILD_ARGS+=("--cpp-flag=-DSERVER") ;;
     esac
 
-    if [[ "{{ image }}" =~ cosmic|(aurora.*|bluefin.*)-beta ]]; then
-        verify-container "${akmods#*-os/}"
-        verify-container "${akmods_nvidia#*-os/}"
-        verify-container "${akmods_zfs#*-os/}"
-        skopeo inspect docker://"${akmods/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
-        BUILD_ARGS+=(
-        "--build-arg" "akmods_digest=${akmods#*@}"
-        "--build-arg" "akmods_nvidia_digest=${akmods_nvidia#*@}"
-        "--build-arg" "akmods_zfs_digest=${akmods_zfs#*@}"
-        )
-    else
-        skopeo inspect docker://"${check/:*@/@}" > "$BUILDTMP/inspect-{{ image }}.json"
-    fi
+    # Check Base Container
+    verify-container "${check#*-os/}"
 
+    # AKMODS
+    {{ if image =~ 'beta' { 'akmods_version=testing' } else if image =~ 'aurora|bluefin|cosmic' { 'akmods_version=stable' } else { '' } }}
+
+    # akmods
+    {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+    {{ if image =~ 'aurora|bluefin|cosmic' { 'verify-container "${akmods#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DAKMODS=$akmods")' } else { '' } }}
+
+    # zfs
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'akmods_zfs="$(yq -r ".images[] | select(.name == \"akmods-zfs-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'verify-container "${akmods_zfs#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DZFS=$akmods_zfs")' } else { '' } }}
+
+    # nvidia
+    {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
+    {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'verify-container "${akmods_nvidia#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DNVIDIA=$akmods_nvidia")' } else { '' } }}
+
+    skopeo inspect docker://{{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { '${akmods/:*@/@}' } else { '${check/:*@/@}' } }} > "$BUILDTMP/inspect-{{ image }}.json"
+
+    # Get The Version
     fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
     VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
     skopeo list-tags docker://{{ FQ_IMAGE_NAME }} > "$BUILDTMP"/repotags.json
@@ -176,28 +182,32 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
     if [[ -n "${POINT:-}" ]]; then
         VERSION="${VERSION}.$POINT"
     fi
-    # Pull The image
-    {{ PODMAN }} pull "$check"
 
-    #Build Args
+    # Pull the images
+    {{ PODMAN }} pull "$check"
+    {{ if image =~ 'cosmic|aurora|bluefin' { PODMAN + ' pull "$akmods"' } else { '' } }}
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { PODMAN + ' pull "$akmods_zfs"' } else { '' } }}
+    {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { PODMAN + ' pull "$akmods_nvidia"' } else { '' } }}
+
+    # Labels
     BUILD_ARGS+=(
-        "--file" "Containerfile"
+        "--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
         "--label" "org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}"
         "--label" "org.opencontainers.image.title={{ repo_image_name }}"
         "--label" "org.opencontainers.image.version=$VERSION"
-        "--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
+        "--label" "ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}"
         "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
-        "--label" "ostree.kernel_flavor=$KERNEL_FLAVOR"
+    )
+
+    #Build Args
+    BUILD_ARGS+=(
         "--build-arg" "IMAGE={{ image }}"
         "--build-arg" "BASE_IMAGE=${check%%:*}"
         "--build-arg" "TAG_VERSION=${check#*:}"
-        "--build-arg" "SET_X=${SET_X:-}"
         "--build-arg" "VERSION=$VERSION"
-        "--build-arg" "KERNEL_FLAVOR=$KERNEL_FLAVOR"
-        "--tag" "localhost/{{ repo_image_name }}:{{ image }}"
     )
 
-    {{ PODMAN }} build "${BUILD_ARGS[@]}" {{ justfile_dir() }}
+    {{ PODMAN }} build "${BUILD_ARGS[@]}" --file Containerfile.in --tag localhost/{{ repo_image_name + ':' + image }} {{ justfile_dir() }}
 
     {{ if CI != '' { PODMAN + ' rmi -f "${check%@*}"' } else { '' } }}
 
@@ -205,7 +215,7 @@ build image="bluefin": install-cosign && (secureboot "localhost" / repo_image_na
 [group('Image')]
 rechunk image="bluefin":
     #!/usr/bin/bash
-    {{ PODMAN }} image exists localhost/{{ repo_image_name + ":" + image }} || {{ just }} build {{ image }}
+    {{ PODMAN }} image exists localhost/{{ repo_image_name + ":" + image }} || { exit 1 ; }
 
     if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman$ ]]; then
        # Use Podman Unshare, and then exit
@@ -220,17 +230,18 @@ rechunk image="bluefin":
     echo "PODMAN := {{ PODMAN }}"
     echo "CI     := {{ CI }}"
     echo "################################################################################"
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     CREF=$({{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
     OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
     VERSION="$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')"
     LABELS="
+    org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
+    org.opencontainers.image.revision=$(git rev-parse HEAD)
     org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}
     org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
-    org.opencontainers.image.revision=$(git rev-parse HEAD)
+    ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}
     ostree.linux=$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
-    org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
     "
     if [[ ! "{{ PODMAN }}" =~ remote ]]; then
         MOUNT=$({{ PODMAN }} mount "$CREF")
@@ -337,8 +348,7 @@ changelogs target="Desktop" urlmd="" handwritten="":
 secureboot image="bluefin":
     #!/usr/bin/bash
     {{ ci_grouping }}
-    set -eou pipefail
-    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
+    set -eoux pipefail
     # Get the vmlinuz to check
     kernel_release=$({{ PODMAN }} inspect "{{ image }}" | jq -r '.[].Config.Labels["ostree.linux"]')
     TMP=$({{ PODMAN }} create "{{ image }}" bash)
@@ -385,7 +395,7 @@ secureboot image="bluefin":
 [group('Changelogs')]
 merge-changelog type="stable":
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
     rm -f changelog.md
     cat {{ if type =~ 'beta' { 'changelog-Beta-Desktop.md changelog-Beta-Bazzite.md' } else { 'changelog-Desktop.md changelog-Bazzite.md' } }} > changelog.md
     last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
@@ -443,7 +453,7 @@ _lint-recipe linter recipe *args:
 lint-recipes:
     #!/usr/bin/bash
     recipes=(
-        build
+        build-image
         build-iso
         changelogs
         cosign-sign
@@ -471,8 +481,7 @@ lint-recipes:
 install-cosign:
     #!/usr/bin/bash
     {{ ci_grouping }}
-    set -euo pipefail
-    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
+    set -euox pipefail
 
     # Get Cosign from Chainguard
     if ! command -v cosign >/dev/null; then
@@ -522,7 +531,7 @@ push-and-sign image: (login-to-ghcr env('ACTOR') env('TOKEN')) (push-to-registry
 [group('CI')]
 gen-sbom $input $output="": install-syft
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     # Make SBOM
     if [[ -z "$output" ]]; then
@@ -540,8 +549,7 @@ gen-sbom $input $output="": install-syft
 install-syft:
     #!/usr/bin/bash
     {{ ci_grouping }}
-    set -eou pipefail
-    {{ if CI == '' { "${SET_X:+-x}" } else { '' } }}
+    set -eoux pipefail
 
     # Get SYFT if needed
     if ! command -v syft >/dev/null; then
@@ -563,7 +571,7 @@ install-syft:
 [group('CI')]
 sbom-sign input $sbom="": install-cosign
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     # set SBOM
     if [[ ! -f "$sbom" ]]; then
@@ -594,7 +602,7 @@ sbom-sign input $sbom="": install-cosign
 [group('CI')]
 sbom-attest input $sbom="" $destination="": install-cosign
     #!/usr/bin/bash
-    set ${SET_X:+-x} -eou pipefail
+    set -eoux pipefail
 
     # set SBOM
     if [[ ! -f "$sbom" ]]; then
@@ -658,11 +666,6 @@ skopeo := require("skopeo")
 SUDO_DISPLAY := env("DISPLAY", "") || env("WAYLAND_DISPLAY", "")
 [private]
 export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { which("sudo") + " --askpass" } else { which("sudo") }
-
-# Quiet By Default
-
-[private]
-export SET_X := if `id -u` == "0" { "1" } else { env("SET_X", "") }
 
 # Podman By Default
 

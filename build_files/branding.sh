@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-set ${SET_X:+-x} -eou pipefail
+set -eoux pipefail
 
 if [[ "${IMAGE}" =~ cosmic|ucore ]]; then
     tee /usr/share/ublue-os/image-info.json <<'EOF'
@@ -16,8 +16,6 @@ if [[ "${IMAGE}" =~ cosmic|ucore ]]; then
 EOF
 fi
 
-BASE_IMAGE="${BASE_IMAGE##*/}"
-
 case "${IMAGE}" in
 "bazzite"* | "bluefin"*)
     base_image="silverblue"
@@ -26,7 +24,6 @@ case "${IMAGE}" in
     base_image="kinoite"
     ;;
 "cosmic"*)
-    #shellcheck disable=2153
     base_image="base-atomic"
     ;;
 "ucore"*)
@@ -57,17 +54,17 @@ fi
 
 # OS Release File for Cosmic
 if [[ "$IMAGE" =~ cosmic ]]; then
-    sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"Bluefin $(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION})\"|" /usr/lib/os-release
     sed -i "s/^VARIANT_ID=.*/VARIANT_ID=${IMAGE}/" /usr/lib/os-release
     sed -i "s/^NAME=.*/NAME=\"${IMAGE^} Atomic\"/" /usr/lib/os-release
     sed -i "s/^DEFAULT_HOSTNAME=.*/DEFAULT_HOSTNAME=\"${IMAGE^}\"/" /usr/lib/os-release
     sed -i "s/^ID=fedora/ID=${IMAGE^}\nID_LIKE=\"fedora\"/" /usr/lib/os-release
     sed -i "/^REDHAT_BUGZILLA_PRODUCT=/d; /^REDHAT_BUGZILLA_PRODUCT_VERSION=/d; /^REDHAT_SUPPORT_PRODUCT=/d; /^REDHAT_SUPPORT_PRODUCT_VERSION=/d" /usr/lib/os-release
+    sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (FROM Universal Blue ${base_image^})\"|" /usr/lib/os-release
 else
-    sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"$(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION})\"|" /usr/lib/os-release
+    sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (FROM Universal Blue ${IMAGE^})\"|" /usr/lib/os-release
 fi
 
-sed -i "s|^VERSION=.*|VERSION=\"${VERSION} (FROM Universal Blue $(echo "${BASE_IMAGE^}" | cut -d - -f1))\"|" /usr/lib/os-release
+sed -i "s|^PRETTY_NAME=.*|PRETTY_NAME=\"$(echo "${IMAGE^}" | cut -d - -f1) (Version: ${VERSION})\"|" /usr/lib/os-release
 sed -i "s|^OSTREE_VERSION=.*|OSTREE_VERSION=\"${VERSION}\"|" /usr/lib/os-release
 sed -i "s|^IMAGE_ID=.*|IMAGE_ID=\"${IMAGE}\"|" /usr/lib/os-release || (echo "IMAGE_ID=\"${IMAGE}\"" >>/usr/lib/os-release)
 sed -i "s|^IMAGE_VERSION=.*|IMAGE_VERSION=\"${VERSION}\"|" /usr/lib/os-release || (echo "IMAGE_VERSION=\"${VERSION}\"" >>/usr/lib/os-release)
