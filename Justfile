@@ -91,12 +91,12 @@ default:
 
 # Check Just Syntax
 [group('Just')]
-@check:
+check:
     {{ just }} --unstable --fmt --check
 
 # Fix Just Syntax
 [group('Just')]
-@fix:
+fix:
     {{ just }} --unstable --fmt
 
 # Cleanup
@@ -338,7 +338,7 @@ changelogs target="Desktop" urlmd="" handwritten="":
 
 # Verify Container with Cosign
 [group('Utility')]
-@verify-container container registry="ghcr.io/ublue-os" key="": install-cosign
+verify-container container registry="ghcr.io/ublue-os" key="": install-cosign
     if ! cosign verify --key "{{ if key == '' { 'https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub' } else { key } }}" "{{ if registry != '' { registry / container } else { container } }}" >/dev/null; then \
         echo "NOTICE: Verification failed. Please ensure your public key is correct." && exit 1 \
     ; fi
@@ -415,7 +415,7 @@ merge-changelog type="stable":
 
 # Lint Files
 [group('Utility')]
-@lint:
+lint:
     # shell
     /usr/bin/find . -iname "*.sh" -type f -not -path "./titanoboa/*" -exec shellcheck "{}" ';'
     # yaml
@@ -427,7 +427,7 @@ merge-changelog type="stable":
 
 # Format Files
 [group('Utility')]
-@format:
+format:
     # shell
     /usr/bin/find . -iname "*.sh" -type f -exec shfmt --write "{}" ';'
     # yaml
@@ -507,20 +507,20 @@ install-cosign:
 
 # Login to GHCR
 [group('CI')]
-@login-to-ghcr $user $token:
+login-to-ghcr $user $token:
     echo "$token" | podman login ghcr.io -u "$user" --password-stdin
     echo "$token" | docker login ghcr.io -u "$user" --password-stdin
 
 # Push Images to Registry
 [group('CI')]
-@push-to-registry image dryrun="true" $destination="":
+push-to-registry image dryrun="true" $destination="":
     for tag in {{ image }} {{ shell("skopeo inspect oci-archive:$1_$2.tar | jq -r '.Labels[\"org.opencontainers.image.version\"]'", repo_image_name, image) }}; do \
         {{ if dryrun == "false" { 'skopeo copy oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
     ; done
 
 # Sign Images with Cosign
 [group('CI')]
-@cosign-sign digest $destination="": install-cosign
+cosign-sign digest $destination="": install-cosign
     cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}/{{ repo_image_name + "@" + digest }}"
 
 # Push and Sign
