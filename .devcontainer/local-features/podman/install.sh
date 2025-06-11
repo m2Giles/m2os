@@ -34,10 +34,18 @@ dnf5 install -y \
     podman-machine \
     podman-remote
 
-dnf5 install --setopt=install_weak_deps=False -y \
-    docker-buildx \
-    docker-cli \
-    docker-compose
+# Workaround timedatectl being broken for podman-machine
+cat > /usr/local/bin/timedatectl <<'EOF'
+#!/usr/bin/bash
+if [[ -L /etc/localtime ]]; then
+    localtime="$(realpath /etc/localtime)"
+    localtime="${localtime#*/zoneinfo/}"
+else
+    localtime="UTC"
+fi
+echo "Timezone=$localtime"
+EOF
+chmod +x /usr/local/bin/timedatectl
 
 # Usually only have 65536 within rootless podman
 rm -f /etc/sub{u,g}id
