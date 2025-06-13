@@ -20,6 +20,9 @@ FROM ${BASE_IMAGE}:${TAG_VERSION}
 
 ARG IMAGE="bluefin"
 ARG VERSION=""
+#ifdef GHCI
+ARG CI="1"
+#endif /* GHCI */
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \

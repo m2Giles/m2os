@@ -128,7 +128,7 @@ build-image image="bluefin":
         exit 1
     fi
 
-    BUILD_ARGS=()
+    BUILD_ARGS=({{ if CI != '' { '--cpp-flag=-DGHCI' } else { '' } }})
     mkdir -p {{ BUILD_DIR }}
     BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
