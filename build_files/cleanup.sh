@@ -48,6 +48,9 @@ for kernel_dir in /usr/lib/modules/*; do
     fi
 done
 
+# Fix /opt
+ln -sf var/opt /opt
+
 rm -rf /tmp/*
 rm -rf /var/*
 rm -rf /boot/*

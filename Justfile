@@ -509,7 +509,7 @@ install-cosign:
 [group('CI')]
 login-to-ghcr $user $token:
     echo "$token" | podman login ghcr.io -u "$user" --password-stdin
-    echo "$token" | docker login ghcr.io -u "$user" --password-stdin
+    {{ if `command -v docker || true` != '' { 'echo "$token" | docker login ghcr.io -u "$user" --password-stdin' } else { 'cat "${XDG_RUNTIME_DIR}/containers/auth.json" > ~/.docker/config.json' } }}
 
 # Push Images to Registry
 [group('CI')]
