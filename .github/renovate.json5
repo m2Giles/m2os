@@ -74,8 +74,8 @@
     },
     {
       matchFileNames: [
-        '.devcontainer/Containerfile',
-        'Containerfile'
+        '.devcontainer.json',
+        'Containerfile.in'
       ],
       enabled: false
     },
