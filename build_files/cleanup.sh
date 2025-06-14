@@ -52,6 +52,7 @@ for kernel_dir in /usr/lib/modules/*; do
 done
 
 # Fix /opt
+rmdir /opt
 ln -sf var/opt /opt
 
 rm -rf /tmp/*
