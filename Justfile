@@ -53,33 +53,33 @@ syft-installer := "ghcr.io/anchore/syft:v1.27.1@sha256:844ed6a928ef9396fac26d1de
 # Base Containers
 
 [private]
-aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:1993aeb84650aba791268efe2e340a3c016e244a1ee3912611f252f60de58358"
+aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:0d527670e34e6257cf873e422dc8591ab49e7150c9cba5dacb20e21d62342ed6"
 [private]
-aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:73340526c46541ced3391695be41e21e7356ebd08bb07ca9c7bb4fa17bb42fe8"
+aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:beb13ee6cbd1b135d78853a66575dd3c46df8b26082e161cc5b86f877f2f3294"
 [private]
 bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:69be875d8a6f07684b297a48c134bf8d462971290fdf32bfaddcd45dceddac85"
 [private]
 bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:bd63980efd1c6b55a28b6176942cbf5e76c278318900a9f3f74d39216207fdba"
 [private]
-bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:791d3f2585a8532665ef9d99fa8eedd67264e4e79c21de455b85d10e856bda75"
+bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:2341f304090f957934c0e5e27087ee1c4926856e777933ceeab5cbd1e6b9e63d"
 [private]
-bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open:stable-daily@sha256:778c2e51aacb882542085ca90d7fd9e500f6c25b94c436187cea66008d835a10"
+bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open:stable-daily@sha256:e950e2b9d3c99ac1cded73564382b25b68743ef15d1b6ea5246da0e39c509eb1"
 [private]
 ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:7588682c47b95afc3fa7513db33c9677b1059f0eb8fe9aefb21a68d3662da367"
 [private]
 ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:9714ca48ac9a8d2c4ad2c566057061a70404937886079979f1373fb555401976"
 [private]
-aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:6111757c7de70eee62a04d73d2f6171c457476dcf12e5b1ca3cf297b1f4e8080"
+aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:8f6305fa90d430b4c9aa9fd2730c2095499a737d3f82846699a6ad4be13c2916"
 [private]
-aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:61d2d1667f9501e9b0bfd48fdc2bf630818b6f684485109b8d7c55530df3998e"
+aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:f728c1aed8f97eeaaa19eacb6410388a90f47e5117ae314cb535c976b7b6a385"
 [private]
 bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:dd1b6a3eefc6561befc33924d4e82a52aceaa3977bc4bff1a04bf7930c662fa1"
 [private]
 bazzite_deck_beta := "ghcr.io/ublue-os/bazzite-deck-gnome:testing@sha256:c0fe786790222b05ed9708f81160683266ff3e946a9bf6a6da224b2bfff65abc"
 [private]
-bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:26655c9c5baf96746f534a0785a816aad5c49c993ab524a6710a51944a69378a"
+bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:1d549d1b1132ac29d88a08d24e9f495aaa205c1a47ee6f7092078d4b949c26e5"
 [private]
-bluefin_nvidia_beta := "ghcr.io/ublue-os/bluefin-nvidia-open:latest@sha256:f1e0ac2ace0ae730e2817746279a6b3b76d2ca6f49b634e9838df298ecd76bb5"
+bluefin_nvidia_beta := "ghcr.io/ublue-os/bluefin-nvidia-open:latest@sha256:fccb35705f92205a5fc978fbc32d2c26020be3eed417a882a59bd4f98893f3c6"
 [private]
 ucore_beta := "ghcr.io/ublue-os/ucore:testing-zfs@sha256:c1fc6a4674d87ebef33b8043d30133a5d2a7b749981fa351f7426e307849f72d"
 [private]
