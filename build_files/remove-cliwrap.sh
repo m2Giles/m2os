@@ -1,5 +1,8 @@
 #!/usr/bin/bash
 
+# shellcheck disable=SC1091
+. /ctx/common.sh
+
 if [[ ! -d /usr/libexec/rpm-ostree/wrapped ]]; then
     echo "cliwrap is not setup, skipping..."
     exit 0

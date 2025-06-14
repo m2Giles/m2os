@@ -1,5 +1,8 @@
 #!/usr/bin/bash
 
+# shellcheck disable=SC1091
+. /ctx/common.sh
+
 set -eoux pipefail
 
 # Docker Repo

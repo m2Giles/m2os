@@ -1,5 +1,5 @@
 ARG BASE_IMAGE="ghcr.io/ublue-os/bluefin"
-ARG TAG_VERSION="stable-daily@sha256:b68eda96bb43e475db2b226bb0c07ca239f338c7a6bfab8cb77639a77128d1c3"
+ARG TAG_VERSION="stable-daily"
 
 FROM scratch AS ctx
 COPY build_files cosign.pub cosign-backup.pub /
@@ -20,20 +20,21 @@ FROM ${BASE_IMAGE}:${TAG_VERSION}
 
 ARG IMAGE="bluefin"
 ARG VERSION=""
+#ifdef GHCI
+ARG CI="1"
+#endif /* GHCI */
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo -e "::group::\e[1m\e[36m=== COMMON ===\e[0m" && \
     /ctx/remove-cliwrap.sh && \
     /ctx/server-packages.sh && \
     /ctx/distrobox.sh && \
     /ctx/branding.sh && \
     /ctx/signing.sh && \
     /ctx/composefs.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 
 #ifdef ZFS
 RUN --mount=type=cache,dst=/var/cache \
@@ -42,10 +43,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=akmods,src=/kernel-rpms,dst=/tmp/kernel-rpms \
     --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
-    echo -e "::group::\e[1m\e[36m=== KERNEL SWAP ===\e[0m" && \
     /ctx/kernel-swap.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 
 #ifdef NVIDIA
 RUN --mount=type=cache,dst=/var/cache \
@@ -53,10 +52,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=nvidia,src=/rpms,dst=/tmp/akmods-rpms \
-    echo -e "::group::\e[1m\e[36m=== NVIDIA ===\e[0m" && \
     /ctx/install-nvidia.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 #endif /* NVIDIA */
 
 RUN --mount=type=cache,dst=/var/cache \
@@ -64,10 +61,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=zfs,src=/rpms,dst=/tmp/rpms \
-    echo -e "::group::\e[1m\e[36m=== ZFS ===\e[0m" && \
     /ctx/install-zfs.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 #endif /* ZFS */
 
 #ifdef COSMIC
@@ -75,10 +70,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo -e "::group::\e[1m\e[36m=== COSMIC ===\e[0m" && \
     /ctx/cosmic.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 #endif /* COSMIC */
 
 #ifndef SERVER
@@ -86,12 +79,10 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo -e "::group::\e[1m\e[36m=== DESKTOP ===\e[0m" && \
     /ctx/desktop-packages.sh && \
     /ctx/desktop-defaults.sh && \
     /ctx/flatpak.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 #endif /* SERVER */
 
 #if !defined(BAZZITE) && !defined(SERVER)
@@ -99,10 +90,8 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo -e "::group::\e[1m\e[36m=== STEAM ===\e[0m" && \
     /ctx/steam.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 #endif /* !defined(BAZZITE) && !defined(SERVER) */
 
 #if !defined(SERVER) && !defined(ZFS) && !defined(BAZZITE)
@@ -111,25 +100,20 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
-    echo -e "::group::\e[1m\e[36m=== VFIO ===\e[0m" && \
     dnf5 -y copr enable hikariknight/looking-glass-kvmfr && \
     dnf5 install -y /tmp/rpms/kmods/kmod-kvmfr*.rpm && \
     /ctx/vfio.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 #elif defined(BAZZITE)
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    echo -e "::group::\e[1m\e[36m=== VFIO ===\e[0m" && \
     /ctx/vfio.sh && \
-    ostree container commit && \
-    echo "::endgroup::"
+    ostree container commit
 #endif /* VFIO */
 
 RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
-    echo -e "::group::\e[1m\e[36m=== CLEANUP ===\e[0m" && \
     /ctx/cleanup.sh && \
     ostree container commit
 
