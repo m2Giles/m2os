@@ -5,8 +5,6 @@
 
 set -eoux pipefail
 
-KERNEL_VERSION="$(rpm -q --queryformat="%{EVR}.%{ARCH}" kernel-core)"
-
 tee /usr/lib/dracut/dracut.conf.d/vfio.conf <<'EOF'
 add_drivers+=" vfio vfio_iommu_type1 vfio-pci "
 EOF
@@ -42,11 +40,6 @@ semanage fcontext -a -t svirt_tmpfs_t /dev/kvmfr0
 checkmodule -M -m -o /etc/kvmfr/selinux/mod/kvmfr.mod /etc/kvmfr/selinux/kvmfr.te
 semodule_package -o /etc/kvmfr/selinux/pp/kvmfr.pp -m /etc/kvmfr/selinux/mod/kvmfr.mod
 semodule -i /etc/kvmfr/selinux/pp/kvmfr.pp # Seems broken with Docker
-
-export DRACUT_NO_XATTR=1
-/usr/bin/dracut --no-hostonly --kver "$KERNEL_VERSION" --reproducible --zstd -v --add ostree -f "/lib/modules/$KERNEL_VERSION/initramfs.img"
-
-chmod 0600 /lib/modules/"$KERNEL_VERSION"/initramfs.img
 
 # VFIO Kargs
 tee /usr/libexec/vfio-kargs.sh <<'EOF'

@@ -28,13 +28,37 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/remove-cliwrap.sh && \
-    /ctx/server-packages.sh && \
-    /ctx/distrobox.sh && \
-    /ctx/branding.sh && \
-    /ctx/signing.sh && \
-    /ctx/composefs.sh && \
-    ostree container commit
+    ["/ctx/remove-cliwrap.sh"]
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/distrobox.sh"]
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/branding.sh"]
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/signing.sh"]
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/composefs.sh"]
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/server-packages.sh"]
 
 #ifdef ZFS
 RUN --mount=type=cache,dst=/var/cache \
@@ -43,8 +67,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=akmods,src=/kernel-rpms,dst=/tmp/kernel-rpms \
     --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
-    /ctx/kernel-swap.sh && \
-    ostree container commit
+    ["/ctx/kernel-swap.sh"]
 
 #ifdef NVIDIA
 RUN --mount=type=cache,dst=/var/cache \
@@ -52,8 +75,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=nvidia,src=/rpms,dst=/tmp/akmods-rpms \
-    /ctx/install-nvidia.sh && \
-    ostree container commit
+    ["/ctx/install-nvidia.sh"]
 #endif /* NVIDIA */
 
 RUN --mount=type=cache,dst=/var/cache \
@@ -61,8 +83,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=zfs,src=/rpms,dst=/tmp/rpms \
-    /ctx/install-zfs.sh && \
-    ostree container commit
+    ["/ctx/install-zfs.sh"]
 #endif /* ZFS */
 
 #ifdef COSMIC
@@ -70,8 +91,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/cosmic.sh && \
-    ostree container commit
+    ["/ctx/cosmic.sh"]
 #endif /* COSMIC */
 
 #ifndef SERVER
@@ -79,10 +99,19 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/desktop-packages.sh && \
-    /ctx/desktop-defaults.sh && \
-    /ctx/flatpak.sh && \
-    ostree container commit
+    ["/ctx/desktop-packages.sh"]
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/desktop-defaults.sh"]
+
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/flatpak.sh"]
 #endif /* SERVER */
 
 #if !defined(BAZZITE) && !defined(SERVER)
@@ -90,8 +119,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/steam.sh && \
-    ostree container commit
+    ["/ctx/steam.sh"]
 #endif /* !defined(BAZZITE) && !defined(SERVER) */
 
 #if !defined(SERVER) && !defined(ZFS) && !defined(BAZZITE)
@@ -102,19 +130,22 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
     dnf5 -y copr enable hikariknight/looking-glass-kvmfr && \
     dnf5 install -y /tmp/rpms/kmods/kmod-kvmfr*.rpm && \
-    /ctx/vfio.sh && \
-    ostree container commit
-#elif defined(BAZZITE)
+    /ctx/vfio.sh
+#elif defined(BAZZITE) || defined(ZFS)
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/vfio.sh && \
-    ostree container commit
+    ["/ctx/vfio.sh"]
 #endif /* VFIO */
 
-RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
-    /ctx/cleanup.sh && \
-    ostree container commit
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=cache,dst=/var/log \
+    --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    --mount=type=tmpfs,dst=/tmp \
+    ["/ctx/initramfs.sh"]
 
-RUN bootc container lint
+RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
+    ["/ctx/cleanup.sh"]
+
+RUN ["bootc", "container", "lint"]
