@@ -169,3 +169,9 @@ EOF
 tee -a /etc/bashrc <<'EOF'
 ATUIN_INIT_FLAGS="--disable-up-arrow"
 EOF
+
+# Macadam
+mkdir -p /usr/share/factory/opt/macadam/bin/
+curl -Lo /usr/share/factory/opt/macadam/bin/macadam https://github.com/crc-org/macadam/releases/latest/download/macadam-linux-amd64
+chmod +x /usr/share/factory/opt/macadam/bin/macadam
+ln -s /usr/bin/macadam /usr/share/factory/opt/macadam/bin/macadam
