@@ -174,4 +174,6 @@ EOF
 mkdir -p /usr/share/factory/opt/macadam/bin/
 curl -Lo /usr/share/factory/opt/macadam/bin/macadam https://github.com/crc-org/macadam/releases/latest/download/macadam-linux-amd64
 chmod +x /usr/share/factory/opt/macadam/bin/macadam
-ln -s /usr/bin/macadam /usr/share/factory/opt/macadam/bin/macadam
+ln -s /usr/share/factory/opt/macadam/bin/macadam /usr/bin/macadam
+/usr/bin/macadam completion bash > /etc/bash_completion.d/macadam.sh
+/usr/bin/macadam completion fish >/usr/share/fish/completions/macadam.fish
