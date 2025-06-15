@@ -28,37 +28,37 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/remove-cliwrap.sh
+    ["/ctx/remove-cliwrap.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/server-packages.sh
+    ["/ctx/distrobox.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/distrobox.sh
+    ["/ctx/branding.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/branding.sh
+    ["/ctx/signing.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/signing.sh
+    ["/ctx/composefs.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/composefs.sh
+    ["/ctx/server-packages.sh"]
 
 #ifdef ZFS
 RUN --mount=type=cache,dst=/var/cache \
@@ -67,7 +67,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=akmods,src=/kernel-rpms,dst=/tmp/kernel-rpms \
     --mount=type=bind,from=akmods,src=/rpms,dst=/tmp/rpms \
-    /ctx/kernel-swap.sh
+    ["/ctx/kernel-swap.sh"]
 
 #ifdef NVIDIA
 RUN --mount=type=cache,dst=/var/cache \
@@ -75,7 +75,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=nvidia,src=/rpms,dst=/tmp/akmods-rpms \
-    /ctx/install-nvidia.sh
+    ["/ctx/install-nvidia.sh"]
 #endif /* NVIDIA */
 
 RUN --mount=type=cache,dst=/var/cache \
@@ -83,7 +83,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,from=zfs,src=/rpms,dst=/tmp/rpms \
-    /ctx/install-zfs.sh
+    ["/ctx/install-zfs.sh"]
 #endif /* ZFS */
 
 #ifdef COSMIC
@@ -91,7 +91,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/cosmic.sh
+    ["/ctx/cosmic.sh"]
 #endif /* COSMIC */
 
 #ifndef SERVER
@@ -99,19 +99,19 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/desktop-packages.sh
+    ["/ctx/desktop-packages.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/desktop-defaults.sh
+    ["/ctx/desktop-defaults.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/flatpak.sh
+    ["/ctx/flatpak.sh"]
 #endif /* SERVER */
 
 #if !defined(BAZZITE) && !defined(SERVER)
@@ -119,7 +119,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/steam.sh
+    ["/ctx/steam.sh"]
 #endif /* !defined(BAZZITE) && !defined(SERVER) */
 
 #if !defined(SERVER) && !defined(ZFS) && !defined(BAZZITE)
@@ -136,16 +136,16 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctx/vfio.sh
+    ["/ctx/vfio.sh"]
 #endif /* VFIO */
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=cache,dst=/var/log \
     --mount=type=bind,from=ctx,src=/,dst=/ctx \
     --mount=type=tmpfs,dst=/tmp \
-    /ctc/initramfs.sh
+    ["/ctx/initramfs.sh"]
 
 RUN --mount=type=bind,from=ctx,src=/,dst=/ctx \
-    /ctx/cleanup.sh
+    ["/ctx/cleanup.sh"]
 
 RUN ["bootc", "container", "lint"]
