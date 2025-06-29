@@ -46,7 +46,7 @@ rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.2@sha256:e799d89f9a9965b5b0e89941a9fc
 [private]
 qemu := "ghcr.io/qemus/qemu:7.12@sha256:ab767a6b9c8cf527d521eee9686dce09933bc35599ee58be364eb8f3a03001ea"
 [private]
-cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:25b667fd8d9d0c605e1acda4bf1f2442fd9c9c1be195f74b05ba8564d2cbe293"
+cosign-installer := "cgr.dev/chainguard/cosign:latest@sha256:56387340c8efbb7473eff936f801fd998a4864a2442f4f197de39975ee7c4123"
 [private]
 syft-installer := "ghcr.io/anchore/syft:v1.27.1@sha256:844ed6a928ef9396fac26d1de374e71dcaf80df14f05841670ed41619c5a718f"
 
