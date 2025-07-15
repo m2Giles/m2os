@@ -27,10 +27,10 @@ images:
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-42
-    digest: sha256:da4c52630a5213a1e40d923208be5e6571099184082a24bccd8f96c863f85317
+    digest: sha256:14cbf7860eb57821844f83b743afdae4675db7b54ae781d8c7ae8a99b3403c32
 
   # Fedora 42
   - name: base-42
     image: ghcr.io/ublue-os/base-main
     tag: 42
-    digest: sha256:edfe6942a0120f35acb803ac1890120b1a1e8656e8cc32cdd126c26210144b4b
+    digest: sha256:f0638e76b79a0062a1cd5cc56c5bf046ed720c8e852a3f63e78177e4871e6efb
