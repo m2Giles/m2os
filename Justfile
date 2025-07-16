@@ -53,9 +53,9 @@ syft-installer := "ghcr.io/anchore/syft:v1.28.0@sha256:bc71d110d271c823b3e3c5870
 # Base Containers
 
 [private]
-aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:a100ed9cd35b07cd0e94895ae6b64a927cdd2886c63498c10b0a13777a21c11b"
+aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:70cfb7b2fca89847d29e50cf7fe7760312778e8be232def2a2bd8e112a67904a"
 [private]
-aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:1ff611868503c91639774a696d0b13824d5b82be0f2fd6ce29c2bd6542bc512d"
+aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:79135447f0ad653a0719c0dca54d7afb1295d424f164355d722940a722c7e33a"
 [private]
 bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:911502e35f59feb199af511bcea0c2f89871949183a1499fccd77ee245b0d660"
 [private]
@@ -69,9 +69,9 @@ ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:fc0c7d37f2d59852e41b1a7d83486
 [private]
 ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:7a9bc5e20aa745108f03100428d3941753d3deab7c6699bd37c424da8785901a"
 [private]
-aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:539bb646fc8a8f1ee7d633b6712c00da89b545506ac1584494d41d0a104c91d0"
+aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:ee7f9983501c9d6789ef294e39e599454287f7dc47418c3c77cba87273c707e2"
 [private]
-aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:393794f9e58fe497479c8b3826e5180d60a1694e43db30414e123997b5f2a8ff"
+aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:6ed28468625a396de69902abb3be31c878aff6c1e1b4f3f7f4aa313a95a49db0"
 [private]
 bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:9f6ee35501eefa3e6534f17302d3d23ac110b19be9bccdd0865191611b6b275e"
 [private]
