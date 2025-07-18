@@ -53,11 +53,11 @@ syft-installer := "ghcr.io/anchore/syft:v1.28.0@sha256:bc71d110d271c823b3e3c5870
 # Base Containers
 
 [private]
-aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:30337b9a30ba6386a1f32f41bf24afe665cdee46268f3a2395829584edda93cf"
+aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:c20debb81e15f52e0f1cf82cebfd1c03d99b1597821736740d69490eeb78ec88"
 [private]
-aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:3eb43470e0b8b5edebdbf0ddc246a2b01949c9fe746e6c0c4d3c46e80ce0322e"
+aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:28d729ec9562a81ed859204023164014cb07fe7bd18c44cbc1043ce16cc866e8"
 [private]
-bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:911502e35f59feb199af511bcea0c2f89871949183a1499fccd77ee245b0d660"
+bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:2e12302a4cc5199f931f7212f32886ebaab4e687da211971958792e04b955024"
 [private]
 bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:f015914cd734670512d05041d37ee5efa336630805c7f5b778889bb1794d026f"
 [private]
@@ -69,9 +69,9 @@ ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:c47ca2dffb8315b937640223300e7
 [private]
 ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:b65590466396f61d6367eec2a8abfc80d655a022f090618857e18e3ad84b3f3b"
 [private]
-aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:23bc72d9caf50f2198cb7e421a3b5e14d7e78e0d04a9999cccd21b262722e953"
+aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:b2cc55d2f5ef403519382efab72c97c9fb835193b6ba7e292a77fc81d6f0ba59"
 [private]
-aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:ea2197a3ea1dff7d1ffc457f13e3528112f7f1c7d7f0a2b8897020ec6f50a1dd"
+aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:2a35933e460012baba5f70055a8ab4d5d41eb3e605986f424908a6f50cc6d9af"
 [private]
 bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:3b42dc3ec79fb8842a3983bd31405c4a19ab94e8360b8bd7fad904b8a103f970"
 [private]
