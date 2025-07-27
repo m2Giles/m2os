@@ -207,7 +207,7 @@ build-image image="bluefin":
         "--build-arg" "VERSION=$VERSION"
     )
 
-    {{ PODMAN }} build "${BUILD_ARGS[@]}" --file Containerfile.in --tag localhost/{{ repo_image_name + ':' + image }} {{ justfile_dir() }}
+    {{ PODMAN }} build "${BUILD_ARGS[@]}" --security-opt label=disable --file Containerfile.in --tag localhost/{{ repo_image_name + ':' + image }} {{ justfile_dir() }}
 
     {{ if CI != '' { PODMAN + ' rmi -f "${check%@*}"' } else { '' } }}
 
