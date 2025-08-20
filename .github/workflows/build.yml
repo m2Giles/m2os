@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: ["Desktop", "Bazzite", "Server"]
+        image_flavor: ["Desktop", "Bazzite"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: ["Desktop", "Bazzite", "Server"]
+        image_flavor: ["Desktop", "Bazzite"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
@@ -84,7 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: ["Beta-Bazzite", "Beta-Desktop", "Beta-Server"]
+        image_flavor: ["Beta-Bazzite", "Beta-Desktop"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
@@ -119,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image_flavor: ["Beta-Desktop", "Beta-Bazzite", "Beta-Server"]
+        image_flavor: ["Beta-Desktop", "Beta-Bazzite"]
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
