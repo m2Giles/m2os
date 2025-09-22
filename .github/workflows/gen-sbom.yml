@@ -111,7 +111,7 @@ jobs:
         env:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         # yamllint disable-line rule:line-length rule:comments
-        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6
+        uses: anchore/scan-action@f6601287cdb1efc985d6b765bbf99cb4c0ac29d8 # v6
         id: scan
         with:
           sbom: ${{ runner.temp }}/${{ matrix.image }}.sbom.json
