@@ -77,19 +77,6 @@ ln -s /usr/share/factory/opt/macadam/bin/macadam /usr/bin/macadam
 /usr/bin/macadam completion bash >/etc/bash_completion.d/macadam.sh
 /usr/bin/macadam completion fish >/usr/share/fish/completions/macadam.fish
 
-# Ghostty as appimage :(
-while [[ -z "${GHOSTTY:-}" || "${GHOSTTY:-}" == "null" ]]; do
-    GHOSTTY="$(curl -L https://api.github.com/repos/pkgforge-dev/ghostty-appimage/releases/latest | jq -r '.assets[] | select(.name| test("Ghostty-[0-9].*-x86_64.AppImage$")).browser_download_url')" || (true && sleep 5)
-done
-curl --retry 3 -Lo /tmp/ghostty.appimage "$GHOSTTY"
-cd /tmp/
-chmod +x /tmp/ghostty.appimage
-/tmp/ghostty.appimage --appimage-extract
-mkdir -p /usr/share/icons/hicolor/256x256/apps/
-cp /tmp/AppDir/"$(readlink /tmp/squashfs-root/*.png)" /usr/share/icons/hicolor/256x256/apps/
-cp /tmp/AppDir/"$(readlink /tmp/squashfs-root/*.desktop)" /usr/share/applications/
-install -m 0755 /tmp/ghostty.appimage /usr/bin/ghostty
-
 # Sysexts
 mkdir -p /usr/lib/sysupdate.d
 SYSEXTS=(emacs)
@@ -100,14 +87,14 @@ Verify=false
 
 [Source]
 Type=url-file
-Path=https://github.com/m2Giles/fedora-sysexts/releases/download/m2os-${IMAGE}/
-MatchPattern=$s-@v-%a.raw
+Path=https://extensions.fcos.fr/fedora/$s/
+MatchPattern=emacs-@v-%w-%a.raw
 
 [Target]
 InstancesMax=2
 Type=regular-file
 Path=/var/lib/extensions.d/
-MatchPattern=$s-@v-%a.raw
-CurrentSymlink=/var/lib/extensions/$s.raw
+MatchPattern=emacs-@v-%w-%a.raw
+CurrentSymlink=/var/lib/extensions/emacs.raw
 EOF
 done
