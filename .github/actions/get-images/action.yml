@@ -25,7 +25,8 @@ runs:
           images+=("bazzite" "bazzite-deck")
           ;;
         "Desktop")
-          images+=("aurora" "aurora-nvidia")
+          # images+=("aurora" "aurora-nvidia")
+          images+=("aurora")
           images+=("bluefin" "bluefin-nvidia")
           images+=("cosmic" "cosmic-nvidia")
           ;;
@@ -36,7 +37,8 @@ runs:
           images+=("bazzite-beta" "bazzite-deck-beta")
           ;;
         "Beta-Desktop")
-          images+=("aurora-beta" "aurora-nvidia-beta")
+          # images+=("aurora-beta" "aurora-nvidia-beta")
+          images+=("aurora-beta")
           images+=("bluefin-beta" "bluefin-nvidia-beta")
           images+=("cosmic-beta" "cosmic-nvidia-beta")
           ;;
