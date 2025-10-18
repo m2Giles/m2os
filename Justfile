@@ -44,11 +44,11 @@ images := '(
 [private]
 rechunker := "ghcr.io/hhd-dev/rechunk:v1.2.4@sha256:8a84bd5a029681aa8db523f927b7c53b5aded9b078b81605ac0a2fedc969f528"
 [private]
-qemu := "ghcr.io/qemus/qemu:7.24@sha256:6ea964c0455bd5c1c302824af271ee445df7b52d040ca97b72387b86d7cb96fd"
+qemu := "ghcr.io/qemus/qemu:7.25@sha256:dbe09577d208491f7263f08137824fa7f34ebfd2f3dec9a9a0aa29718ee809d4"
 [private]
 cosign-installer := "ghcr.io/sigstore/cosign/cosign:v2.4.1"
 [private]
-syft-installer := "ghcr.io/anchore/syft:v1.33.0@sha256:f94e5d9fce1f2278491a8e3a63bd5f6ddb81fdfdbb8bf7a1637565c1d5344357"
+syft-installer := "ghcr.io/anchore/syft:v1.34.2@sha256:ee1df8b04a53e303238785d200c07d76af70ba401c94735c05867f6e4799b80f"
 
 # Base Containers
 
