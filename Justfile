@@ -77,7 +77,7 @@ bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:f95fd
 [private]
 bazzite_deck_beta := "ghcr.io/ublue-os/bazzite-deck-gnome:testing@sha256:df6f11b22186c0f6fdf00b80e70fefe15c59db21ad49824e454c89cb0b1e0d68"
 [private]
-bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:8efbac8ec1726ce6a0d136374076ebd1f0f390e5567930b3079579318b818714"
+bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:05aa01d321cff3a22f41948f020ba5313a7d60676090fb08284600117849edb5"
 [private]
 bluefin_nvidia_beta := "ghcr.io/ublue-os/bluefin-nvidia-open:latest@sha256:f232da285fcb0368f46eee06de992c50af84ce785b7533091faae0add232980b"
 [private]
@@ -139,7 +139,7 @@ build-image image="bluefin":
     "aurora"*|"bluefin"*) BUILD_ARGS+=("--cpp-flag=-DDESKTOP") ;;
     "bazzite"*) BUILD_ARGS+=("--cpp-flag=-DBAZZITE") ;;
     "cosmic"*)
-        {{ if image =~ 'beta' { 'bluefin=${images[bluefin]}' } else { 'bluefin="${images[bluefin-beta]}"' } }}
+        {{ if image =~ 'beta' { 'bluefin=${images[bluefin-beta]}' } else { 'bluefin="${images[bluefin]}"' } }}
         verify-container "${bluefin#*-os/}"
         fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
