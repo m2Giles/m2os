@@ -7,21 +7,16 @@ set -eoux pipefail
 
 sed -i "0,/enabled=0/{s/enabled=0/enabled=1/}" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
 
-dnf5 -y swap \
-    --repo copr:copr.fedorainfracloud.org:bazzite-org:bazzite \
-    ibus ibus
-
-dnf5 versionlock add ibus
+dnf5 -y config-manager setopt "*bazzite*".priority=1
 
 STEAM_PACKAGES=(
-    clinfo
+    VK_hdr_layer
     dbus-x11
     gamescope-libs.i686
     gamescope-libs.x86_64
     gamescope-shaders
     gamescope.x86_64
     gobject-introspection
-    latencyflex-vulkan-layer
     libFAudio.i686
     libFAudio.x86_64
     libobs_glcapture.i686
@@ -31,42 +26,16 @@ STEAM_PACKAGES=(
     lutris
     mangohud.i686
     mangohud.x86_64
-    mesa-va-drivers.i686
-    mesa-vulkan-drivers.i686
     steam
     umu-launcher
     vkBasalt.i686
     vkBasalt.x86_64
-    wine-core.i686
-    wine-core.x86_64
-    wine-pulseaudio.i686
-    wine-pulseaudio.x86_64
-    winetricks
     xdg-user-dirs
 )
 
 dnf5 install -y --setopt=install_weak_deps=False "${STEAM_PACKAGES[@]}"
 
 dnf5 remove -y gamemode
-
-ln -sf wine32 /usr/bin/wine
-ln -sf wine32-preloader /usr/bin/wine-preloader
-ln -sf wineserver64 /usr/bin/wineserver
-sed -i 's@\[Desktop Entry\]@\[Desktop Entry\]\nNoDisplay=true@g' /usr/share/applications/winetricks.desktop
-while [[ -z "${LatencyFleX:-}" ]]; do
-    LatencyFleX="$(curl -L https://api.github.com/repos/ishitatsuyuki/LatencyFleX/releases/latest | jq -r '.assets[] | select(.name| test(".*.tar.xz$")).browser_download_url')" || (true && sleep 5)
-done
-curl -Lo /tmp/latencyflex.tar.xz "$LatencyFleX"
-mkdir -p /tmp/latencyflex
-tar --no-same-owner --no-same-permissions --no-overwrite-dir --strip-components 1 -xvf /tmp/latencyflex.tar.xz -C /tmp/latencyflex
-rm -f /tmp/latencyflex.tar.xz
-cp -r /tmp/latencyflex/wine/usr/lib/wine/* /usr/lib64/wine/
-rm -rf /tmp/latencyflex
-curl -Lo /usr/bin/latencyflex https://raw.githubusercontent.com/KyleGospo/LatencyFleX-Installer/main/install.sh
-chmod +x /usr/bin/latencyflex
-sed -i 's@/usr/lib/wine/@/usr/lib64/wine/@g' /usr/bin/latencyflex
-sed -i 's@"dxvk.conf"@"/usr/share/latencyflex/dxvk.conf"@g' /usr/bin/latencyflex
-chmod +x /usr/bin/latencyflex
 
 dnf5 install -y \
     --enable-repo="copr:copr.fedorainfracloud.org:bazzite-org:bazzite" \

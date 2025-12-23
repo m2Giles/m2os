@@ -28,7 +28,6 @@ SERVER_PACKAGES=(
     erofs-utils
     just
     jq
-    python-ramalama
     rclone
     sbsigntools
     skopeo
