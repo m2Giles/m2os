@@ -254,6 +254,9 @@ rechunk image="bluefin":
         {{ PODMAN }} rm "$CREF"
         {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
     fi
+    # Workaround ublue-os/legacy-rechunk not being signed at this time
+    echo '{"default": [{"type": "insecureAcceptAnything"}]}' > /tmp/policy.json
+    {{ PODMAN }} pull --signature-policy=/tmp/policy.json {{ rechunker }}
     {{ PODMAN }} run --rm \
         --security-opt label=disable \
         --volume "$MOUNT":/var/tree \
