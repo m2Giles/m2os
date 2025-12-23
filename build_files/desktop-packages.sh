@@ -28,6 +28,7 @@ LAYERED_PACKAGES=(
     cascadia-fonts-all
     git-credential-libsecret
     git-credential-oauth
+    emacs
     qemu-ui-gtk
     spice-gtk-tools
     sunshine
@@ -78,23 +79,23 @@ ln -s /usr/share/factory/opt/macadam/bin/macadam /usr/bin/macadam
 /usr/bin/macadam completion fish >/usr/share/fish/completions/macadam.fish
 
 # Sysexts
-mkdir -p /usr/lib/sysupdate.d
-SYSEXTS=(emacs)
-for s in "${SYSEXTS[@]}"; do
-    tee /usr/lib/sysupdate.d/"$s".transfer <<EOF
-[Transfer]
-Verify=false
+# mkdir -p /usr/lib/sysupdate.d
+# SYSEXTS=(emacs)
+# for s in "${SYSEXTS[@]}"; do
+#     tee /usr/lib/sysupdate.d/"$s".transfer <<EOF
+# [Transfer]
+# Verify=false
 
-[Source]
-Type=url-file
-Path=https://extensions.fcos.fr/fedora/$s/
-MatchPattern=emacs-@v-%w-%a.raw
+# [Source]
+# Type=url-file
+# Path=https://extensions.fcos.fr/fedora/$s/
+# MatchPattern=emacs-@v-%w-%a.raw
 
-[Target]
-InstancesMax=2
-Type=regular-file
-Path=/var/lib/extensions.d/
-MatchPattern=emacs-@v-%w-%a.raw
-CurrentSymlink=/var/lib/extensions/emacs.raw
-EOF
-done
+# [Target]
+# InstancesMax=2
+# Type=regular-file
+# Path=/var/lib/extensions.d/
+# MatchPattern=emacs-@v-%w-%a.raw
+# CurrentSymlink=/var/lib/extensions/emacs.raw
+# EOF
+# done
