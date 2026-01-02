@@ -57,9 +57,9 @@ aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:63a263be4144b9f82d160979f
 [private]
 aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:1ec9e31e20eb0a1ae69f626e5083f6d9d12cce44eb5610c37578289c8b0a5b9b"
 [private]
-bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:229915e5ed2cc479c1b78b07e1cfa36bcdfae2edc71aa1ec31654d05271d091a"
+bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:404a93df1bf35fbfcc0a34187a1aeffc57743a0956df316e2283fa26695ec10b"
 [private]
-bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:6ff20bc64817c1ed15fbe9499d9a9380562e746bf486114750a071fd2c602272"
+bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:9c3c888810250cae3938430e453dab494d16fabd3a1cfa0e4baf6bf13e7daaff"
 [private]
 bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:fee609e2f53a9979a236170dd5ec1c7302a37ca182a7dbb9558c9ce04c1fb5f1"
 [private]
