@@ -4,16 +4,16 @@ images:
   # Stable
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
-    tag: coreos-stable-43
-    digest: sha256:1286046565d9f030fde0d26068c1b1d060379ea57950ffe8c5150133c30d83f9
+    tag: coreos-stable-43-6.17.12-300.fc43.x86_64
+    digest: sha256:41a660a3e4bcaa42583a39dd3b71309ed6af1e469466cb22f2c4f6fd9827c36e
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
-    tag: coreos-stable-43
-    digest: sha256:7a0e531dcb669d834b219a14470fce726e396df8b1dc30bcfa8e94b8128bcb0a
+    tag: coreos-stable-43-6.17.12-300.fc43.x86_64
+    digest: sha256:6f912a9160584417f75ebed7ffd9bcf79bb442b1cfa1610eb6e108bae22c2bc4
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
-    tag: coreos-stable-43
-    digest: sha256:5ee8c6ff70305d516f30f62cc453f2eb76d0d0a0cd99f609cc591001defa7961
+    tag: coreos-stable-43-6.17.12-300.fc43.x86_64
+    digest: sha256:a3f36cbed6289ea692fd46d69c841f78252453db62b5ea124af0dfb6d1e7e9e3
 
   # Testing
   - name: akmods-testing
