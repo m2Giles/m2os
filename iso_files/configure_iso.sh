@@ -136,22 +136,23 @@ os_id = bazzite
 custom_stylesheet = /usr/share/anaconda/pixmaps/fedora.css
 EOF
 
-mkdir -p /usr/share/anaconda/pixmaps/silverblue
+# TODO: Figure out what happened to branding
+# mkdir -p /usr/share/anaconda/pixmaps/silverblue
 
-if [[ "$IMAGE_TAG" =~ aurora|bluefin|cosmic ]]; then
-    git clone --depth=1 https://github.com/ublue-os/packages.git /root/packages
-elif [[ "$IMAGE_TAG" =~ bazzite ]]; then
-    git clone --depth=1 https://github.com/ublue-os/bazzite.git /root/packages
-fi
+# if [[ "$IMAGE_TAG" =~ aurora|bluefin|cosmic ]]; then
+#     git clone --depth=1 https://github.com/ublue-os/packages.git /root/packages
+# elif [[ "$IMAGE_TAG" =~ bazzite ]]; then
+#     git clone --depth=1 https://github.com/ublue-os/bazzite.git /root/packages
+# fi
 
-if [[ "$IMAGE_TAG" =~ bluefin|cosmic ]]; then
-    cp -r /root/packages/bluefin/fedora-logos/src/anaconda/* /usr/share/anaconda/pixmaps/silverblue/
-elif [[ "$IMAGE_TAG" =~ bazzite ]]; then
-    cp -r /root/packages/installer/branding/* /usr/share/anaconda/pixmaps/
-elif [[ "$IMAGE_TAG" =~ aurora ]]; then
-    cp -r /root/packages/aurora/fedora-logos/src/anaconda/* /usr/share/anaconda/pixmaps/
-fi
-rm -rf /root/packages
+# if [[ "$IMAGE_TAG" =~ bluefin|cosmic ]]; then
+#     cp -r /root/packages/bluefin/fedora-logos/src/anaconda/* /usr/share/anaconda/pixmaps/silverblue/
+# elif [[ "$IMAGE_TAG" =~ bazzite ]]; then
+#     cp -r /root/packages/installer/branding/* /usr/share/anaconda/pixmaps/
+# elif [[ "$IMAGE_TAG" =~ aurora ]]; then
+#     cp -r /root/packages/aurora/fedora-logos/src/anaconda/* /usr/share/anaconda/pixmaps/
+# fi
+# rm -rf /root/packages
 
 tee -a /usr/share/anaconda/interactive-defaults.ks <<EOF
 ostreecontainer --url=$IMAGE_REF:$IMAGE_TAG --transport=containers-storage --no-signature-verification

@@ -57,7 +57,7 @@ jobs:
       - name: Maximize Build Space
         # if: ${{ ! contains(matrix.image, 'ucore') }}
         # yamllint disable-line rule:line-length rule:comments
-        uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
+        uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6 # v10
 
       - name: Setup Just
         # yamllint disable-line rule:line-length rule:comments
@@ -80,18 +80,13 @@ jobs:
           free -h
           swapon --show
           echo "=== MAKING SWAPFILE ==="
-          sudo swapoff /mnt/swapfile
-          sudo rm -f /mnt/swapfile
-          SWAP_FILE="/mnt/swapfile"
-          SWAP_FILE_2="/swapfile"
+          sudo swapoff /swapfile
+          sudo rm -f /swapfile
+          SWAP_FILE="/swapfile"
           sudo fallocate -l 60G "$SWAP_FILE"
-          sudo fallocate -l 16G "$SWAP_FILE_2"
           sudo chmod 600 "$SWAP_FILE"
-          sudo chmod 600 "$SWAP_FILE_2"
           sudo mkswap "$SWAP_FILE"
-          sudo mkswap "$SWAP_FILE_2"
           sudo swapon "$SWAP_FILE"
-          sudo swapon "$SWAP_FILE_2"
           echo "=== FREE SPACE ==="
           df -h
           echo "=== MEMORY AND SWAP ==="
