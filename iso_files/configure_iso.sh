@@ -51,6 +51,7 @@ SPECS=(
     "anaconda-webui"
 )
 
+dnf5 versionlock delete NetworkManager NetworkManager-wifi NetworkManager-libnm
 dnf5 install -y --allowerasing "${SPECS[@]}"
 
 tee /etc/anaconda/profile.d/bluefin.conf <<'EOF'
