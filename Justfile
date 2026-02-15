@@ -313,7 +313,8 @@ load-image image="bluefin":
 build-iso image="bluefin":
     {{ shell("mkdir -p $1/output", BUILD_DIR) }}
     {{ SUDOIF }} \
-        HOOK_post_rootfs={{ GIT_ROOT / "iso_files/configure_iso.sh" }} \
+        HOOK_pre_initramfs="{{ if image =~ 'bazzite' { GIT_ROOT / 'iso_files/preinitramfs.sh' } else { '' } }}" \
+        HOOK_post_rootfs="{{ GIT_ROOT / 'iso_files/configure_iso.sh' }}" \
         CI="{{ CI }}" \
         {{ just }} titanoboa::build \
         {{ FQ_IMAGE_NAME + ":" + image }} \

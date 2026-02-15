@@ -5,12 +5,10 @@
 
 set -eoux pipefail
 
-sed -i "0,/enabled=0/{s/enabled=0/enabled=1/}" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
-
+dnf5 -y config-manager setopt fedora-multimedia.enabled=1
 dnf5 -y config-manager setopt "*bazzite*".priority=1
 
 STEAM_PACKAGES=(
-    VK_hdr_layer
     dbus-x11
     gamescope-libs.i686
     gamescope-libs.x86_64
@@ -30,6 +28,7 @@ STEAM_PACKAGES=(
     umu-launcher
     vkBasalt.i686
     vkBasalt.x86_64
+    xdg-terminal-exec
     xdg-user-dirs
 )
 
@@ -42,7 +41,7 @@ dnf5 install -y \
     gamescope-session-plus \
     gamescope-session-steam
 
-sed -i "s@enabled=1@enabled=0@" /etc/yum.repos.d/negativo17-fedora-multimedia.repo
+dnf5 -y config-manager setopt fedora-multimedia.enabled=0
 # this allows mangohud to read CPU power wattage
 tee /usr/lib/systemd/system/sysfs-read-powercap-intel.service <<EOF
 [Unit]
