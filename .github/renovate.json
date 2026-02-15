@@ -74,7 +74,7 @@
     },
     {
       "matchPackageNames": [
-        "/ublue-os/remove-unwanted-software"
+        "ublue-os/remove-unwanted-software"
       ],
       "matchManagers": [
         "github-actions"
