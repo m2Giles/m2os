@@ -1,0 +1,92 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+  "rebaseWhen": "never",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^Justfile$/"
+      ],
+      "matchStrings": [
+        "(?<justName>.+?)\\s:=\\s\"(?<packageName>\\S+):(?<currentValue>\\S+)@(?<currentDigest>sha256:[a-f0-9]+?)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^image-versions.yml$/"
+      ],
+      "matchStrings": [
+        "image:\\s*(?<packageName>\\S+)\\s*tag:\\s*(?<currentValue>\\S+)\\s*digest:\\s*(?<currentDigest>sha256:[a-f0-9]+)"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "automerge": true,
+      "groupName": "Base Images",
+      "matchPackageNames": [
+        "ghcr.io/ublue-os/*"
+      ],
+      "matchUpdateTypes": [
+        "pin",
+        "digest",
+        "pinDigest"
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "ghcr.io/ublue-os/*"
+      ],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "enabled": false
+    },
+    {
+      "automerge": true,
+      "groupName": "Build Containers",
+      "matchPackageNames": [
+        "ghcr.io/jasonn3/build-container-installer",
+        "ghcr.io/hhd-dev/rechunk",
+        "ghcr.io/qemus/qemu",
+        "cgr.dev/chainguard/cosign",
+        "ghcr.io/anchore/syft"
+      ]
+    },
+    {
+      "automerge": true,
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "pin",
+        "digest",
+        "pinDigest"
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "ublue-os/remove-unwanted-software"
+      ],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "enabled": false
+    },
+    {
+      "matchFileNames": [
+        ".devcontainer.json",
+        "Containerfile.in"
+      ],
+      "enabled": false
+    }
+  ]
+}
