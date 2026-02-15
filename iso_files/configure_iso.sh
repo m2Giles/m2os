@@ -51,7 +51,7 @@ SPECS=(
     "anaconda-webui"
 )
 
-dnf5 install -y "${SPECS[@]}"
+dnf5 install -y --allowerasing "${SPECS[@]}"
 
 tee /etc/anaconda/profile.d/bluefin.conf <<'EOF'
 # Anaconda Configuration Profile for Bluefin
