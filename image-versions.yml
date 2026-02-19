@@ -19,18 +19,18 @@ images:
   - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-43
-    digest: sha256:b0daba48ba77c97574d5e95527c145b439f1122f3d7e330d030e386032c9fb74
+    digest: sha256:d142b6e2a86bcfc9f0cb337fb3c9c65803cd99a646e6eb8c1971031998055a7e
   - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-43
-    digest: sha256:73a42070a40d109a1125e4a1b1449d59dbe5468f316e0b3732a23abedc392259
+    digest: sha256:b9b54b4799c59c6d3cf50dc8e099edb567ef47ce5e1a691d89b3ae189391bda5
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-43
-    digest: sha256:e99a200ae576fde25d4f97542ff14db7c3707945a879d85686dbeeca4d192bda
+    digest: sha256:23443dfa95c6a70bac1260c3abe797542ae1db216c2dbcc6fdd956afd1542f26
 
   # Fedora 43
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:cf451554fe66d83374f6545688b9eb0dfe4f133ea95904a9dfc097b2c44b5d64
+    digest: sha256:e07114e8ddc13a0a0e6d0b954730f4e78479a306da0048ae58c75e1967517825
