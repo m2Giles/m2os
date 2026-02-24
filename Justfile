@@ -53,21 +53,14 @@ syft-installer := "ghcr.io/anchore/syft:v1.42.1@sha256:392b65f29a410d2c1294d347b
 # Base Containers
 
 [private]
-<<<<<<< use-COPY
 brew := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "brew")
 [private]
 common := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "common")
-=======
-aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:a9fb191d71136099337a190be51fa874846b102191a098b948ab7f631b4dd44c"
-[private]
-aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:60035c3e94fbb94b21d3560f569a625b8c55023e3137c59f9e73a25703be6f38"
->>>>>>> main
 [private]
 aurora := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "aurora")
 [private]
 aurora_nvidia := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "aurora-nvidia")
 [private]
-<<<<<<< use-COPY
 bazzite := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bazzite")
 [private]
 bazzite_deck := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bazzite-deck")
@@ -75,11 +68,6 @@ bazzite_deck := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image)
 bluefin := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bluefin")
 [private]
 bluefin_nvidia := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bluefin-nvidia")
-=======
-bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:371fabae98aa0782d7a7a85c157e20fa4c68ed09d49c2f483c1cfbdbfb8ad48b"
-[private]
-bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open:stable-daily@sha256:e72f56f7e35509acee64cb6a3b1e12f93d454745265ebac5cd48fe2b76cc6a29"
->>>>>>> main
 [private]
 ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:ec2bfae0a8aa84add04ee802a8b116995dc8ce609b193540655203e4abcf3937"
 [private]
