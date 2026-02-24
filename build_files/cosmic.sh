@@ -25,7 +25,10 @@ dnf5 config-manager setopt charm.enabled=1 tailscale-stable.enabled=1
 # Cosmic Packages
 PACKAGES=(
     NetworkManager-openvpn
+    ark
     cosmic-files
+    cosmic-initial-setup
+    cosmic-player
     cosmic-session
     cosmic-store
     cosmic-term
@@ -37,9 +40,12 @@ PACKAGES=(
     gnome-disk-utility
     gnome-keyring
     gnome-keyring-pam
+    playerctl
     plymouth-system-theme
     pop-launcher
+    system-config-printer
     toolbox
+    xdg-desktop-portal-gtk
 )
 
 # Bluefin Packages
