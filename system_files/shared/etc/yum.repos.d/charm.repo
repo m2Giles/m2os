@@ -4,3 +4,4 @@ baseurl=https://repo.charm.sh/yum/
 enabled=0
 gpgcheck=1
 gpgkey=https://repo.charm.sh/yum/gpg.key
+repo_gpgcheck=1

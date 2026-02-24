@@ -6,7 +6,8 @@ After=local-fs.target
 [Service]
 Type=oneshot
 ExecStart=/usr/libexec/m2os-flatpak-overrides.sh
-ExecStop=/usr/bin/touch /etc/.%N.stamp
+ExecStartPost=/usr/bin/touch /etc/.%N.stamp
+RemainAfterExit=true
 
 [Install]
 WantedBy=default.target multi-user.target

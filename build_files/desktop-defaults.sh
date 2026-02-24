@@ -7,9 +7,7 @@ set -eoux pipefail
 
 # AURORA helpers
 if [[ ! ${IMAGE} =~ aurora ]]; then
-    rm -f /usr/libexec/ssh-add-identities 
     rm -f /etc/environment.d/zed.conf
-    rm -f /etc/xdg/autostart/ssh-add-identities.desktop
 fi
 
 # GSCHEMA OVERRIDES

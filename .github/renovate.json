@@ -32,8 +32,10 @@
       "groupName": "Base Images",
       "matchPackageNames": [
         "ghcr.io/ublue-os/*",
-        "!ghcr.io/ublue-os/legacy-rechunk",
         "ghcr.io/projectbluefin/common"
+      ],
+      "excludePackageNames": [
+        "ghcr.io/ublue-os/legacy-rechunk"
       ],
       "matchUpdateTypes": [
         "pin",

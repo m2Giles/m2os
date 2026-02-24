@@ -4,4 +4,4 @@ Icon=application-x-shellscript
 Name=ssh-add-identities
 Type=Application
 X-KDE-AutostartScript=true
-OnlyShowIn=KDE
+OnlyShowIn=KDE;
