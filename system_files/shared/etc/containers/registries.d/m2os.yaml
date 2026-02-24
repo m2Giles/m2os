@@ -1,0 +1,4 @@
+---
+docker:
+  ghcr.io/m2giles/m2os:
+    use-sigstore-attachments: true

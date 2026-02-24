@@ -28,7 +28,6 @@ STEAM_PACKAGES=(
     umu-launcher
     vkBasalt.i686
     vkBasalt.x86_64
-    xdg-terminal-exec
     xdg-user-dirs
 )
 
@@ -42,20 +41,3 @@ dnf5 install -y \
     gamescope-session-steam
 
 dnf5 -y config-manager setopt fedora-multimedia.enabled=0
-# this allows mangohud to read CPU power wattage
-tee /usr/lib/systemd/system/sysfs-read-powercap-intel.service <<EOF
-[Unit]
-Description=Set readable intel cpu power
-After=systemd-udevd.service
-After=tuned.service
-ConditionPathExists=/sys/class/powercap/intel-rapl:0/energy_uj
-
-[Service]
-Type=oneshot
-ExecStart=chmod a+r /sys/class/powercap/intel-rapl:0/energy_uj
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-EOF
-systemctl enable sysfs-read-powercap-intel.service

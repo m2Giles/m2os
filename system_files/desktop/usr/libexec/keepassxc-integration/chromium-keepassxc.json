@@ -1,0 +1,10 @@
+{
+    "allowed_origins": [
+        "chrome-extension://pdffhmdngciaglkoonimfcmckehcpafo/",
+        "chrome-extension://oboonakemofpalcgghocfoadofidjkkk/"
+    ],
+    "description": "KeePassXC integration with native messaging support",
+    "name": "org.keepassxc.keepassxc_browser",
+    "path": "/run/keepassxc-integration/keepassxc-proxy-wrapper",
+    "type": "stdio"
+}

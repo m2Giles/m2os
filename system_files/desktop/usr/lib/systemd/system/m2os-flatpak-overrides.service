@@ -1,0 +1,12 @@
+[Unit]
+Description=Set Overrides for Flatpaks
+ConditionPathExists=!/etc/.%N.stamp
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/m2os-flatpak-overrides.sh
+ExecStop=/usr/bin/touch /etc/.%N.stamp
+
+[Install]
+WantedBy=default.target multi-user.target

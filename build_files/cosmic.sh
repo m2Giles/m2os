@@ -19,64 +19,86 @@ dnf5 -y copr enable ublue-os/packages
 # Add Nerd Fonts Repo
 dnf5 -y copr enable che/nerd-fonts
 
-# Add Charm Repo
-tee /etc/yum.repos.d/charm.repo <<'EOF'
-[charm]
-name=Charm
-baseurl=https://repo.charm.sh/yum/
-enabled=1
-gpgcheck=1
-gpgkey=https://repo.charm.sh/yum/gpg.key
-EOF
-
-# Add Tailscale Repo
-dnf5 config-manager addrepo --from-repofile https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+# Enable Charm/Tailscale Repos
+dnf5 config-manager setopt charm.enabled=1 tailscale-stable.enabled=1
 
 # Cosmic Packages
 PACKAGES=(
     NetworkManager-openvpn
-    cosmic-edit
     cosmic-files
-    cosmic-player
     cosmic-session
     cosmic-store
     cosmic-term
     distrobox
+    fedora-release-cosmic-atomic
+    fedora-release-identity-cosmic-atomic
     flatpak
     gdisk
     gnome-disk-utility
     gnome-keyring
     gnome-keyring-pam
     plymouth-system-theme
+    pop-launcher
     toolbox
 )
 
 # Bluefin Packages
 PACKAGES+=(
-    "bluefin-*"
     adcli
     adw-gtk3-theme
+    alsa-firmware
     bash-color-prompt
     bcache-tools
     bootc
     borgbackup
     cascadia-code-fonts
     clevis
+    cryfs
+    davfs2
+    ddcutil
+    evolution-data-server
+    evolution-ews-core
     evtest
     fastfetch
     firewall-config
     fish
+    flatpak-spawn
     foo2zjs
+    fuse-encfs
     git-credential-libsecret
     glow
+    gnupg2-scdaemon
     gum
+    gvfs
+    gvfs-archive
+    gvfs-fuse
+    gvfs-nfs
+    gvfs-smb
     hplip
+    ibus-mozc
+    ifuse
+    igt-gpu-tools
+    iwd
+    krb5-workstation
+    libavcodec
+    libcamera-gstreamer
+    libcamera-tools
+    libinput-utils
+    libsss_autofs
+    libwacom
+    libwacom-data
+    libwacom-utils
     libxcrypt-compat
     lm_sensors
+    lsb_release
+    make
     mesa-libGLU
+    mozc
     nerd-fonts
     oddjob-mkhomedir
-    ptyxis
+    openssh-askpass
+    pam-u2f
+    pam_yubico
     pulseaudio-utils
     rclone
     restic
@@ -89,6 +111,7 @@ PACKAGES+=(
     sssd-ad
     sssd-krb5
     sssd-nfs-idmap
+    symlinks
     tailscale
     tmux
     topgrade
@@ -96,13 +119,11 @@ PACKAGES+=(
     tuned-gtk
     tuned-ppd
     tuned-profiles-atomic
-    ublue-bling
-    ublue-brew
-    ublue-fastfetch
-    ublue-setup-services
+    usbip
     usbmuxd
     wireguard-tools
     wl-clipboard
+    yubikey-manager
 )
 
 # FWUPD
@@ -112,7 +133,6 @@ dnf5 swap -y \
 
 dnf5 install -y --allowerasing \
     --setopt=install_weak_deps=False \
-    -x bluefin-readymade-config \
     "${PACKAGES[@]}"
 
 # Remove Unneeded and Disable Repos
@@ -128,8 +148,6 @@ sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 curl -Lo /tmp/starship.tar.gz "https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz"
 tar -xzf /tmp/starship.tar.gz -C /tmp
 install -c -m 0755 /tmp/starship /usr/bin
-# shellcheck disable=SC2016
-echo 'eval "$(starship init bash)"' >>/etc/bashrc
 
 # Systemd
 systemctl enable cosmic-greeter

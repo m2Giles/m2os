@@ -13,6 +13,11 @@ FROM ZFS AS zfs
 FROM NVIDIA AS nvidia
 #endif /* NVIDIA */
 
+#ifdef COSMIC
+FROM COMMON AS common
+FROM BREW AS brew
+#endif /* COSMIC */
+
 FROM ${BASE_IMAGE}:${TAG_VERSION}
 
 ARG IMAGE="bluefin"
@@ -21,35 +26,15 @@ ARG VERSION=""
 ARG CI="1"
 #endif /* GHCI */
 
+# /* COPY SYSTEM FILES */
+COPY system_files/shared/ /
+
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
     --mount=type=bind,src=build_files/remove-cliwrap.sh,dst=/ctx/remove-cliwrap.sh \
     --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
     ["/ctx/remove-cliwrap.sh"]
-
-RUN --mount=type=cache,dst=/var/cache \
-    --mount=type=tmpfs,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    --mount=type=bind,src=build_files/distrobox.sh,dst=/ctx/distrobox.sh \
-    --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
-    ["/ctx/distrobox.sh"]
-
-RUN --mount=type=cache,dst=/var/cache \
-    --mount=type=tmpfs,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    --mount=type=bind,src=build_files/branding.sh,dst=/ctx/branding.sh \
-    --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
-    ["/ctx/branding.sh"]
-
-RUN --mount=type=cache,dst=/var/cache \
-    --mount=type=tmpfs,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    --mount=type=bind,src=build_files/signing.sh,dst=/ctx/signing.sh \
-    --mount=type=bind,src=cosign.pub,dst=/ctx/cosign.pub \
-    --mount=type=bind,src=cosign-backup.pub,dst=/ctx/cosign-backup.pub \
-    --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
-    ["/ctx/signing.sh"]
 
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/var/log \
@@ -94,7 +79,15 @@ RUN --mount=type=cache,dst=/var/cache \
     ["/ctx/install-zfs.sh"]
 #endif /* ZFS */
 
+# /* DESKTOP FILES */
+#ifndef SERVER
+COPY /system_files/desktop/ /
+#endif /* SERVER */
+
 #ifdef COSMIC
+COPY --from=common /system_files/shared /
+COPY --from=common /system_files/bluefin /
+COPY --from=brew /system_files /
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
@@ -117,13 +110,6 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,src=build_files/desktop-defaults.sh,dst=/ctx/desktop-defaults.sh \
     --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
     ["/ctx/desktop-defaults.sh"]
-
-RUN --mount=type=cache,dst=/var/cache \
-    --mount=type=tmpfs,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    --mount=type=bind,src=build_files/flatpak.sh,dst=/ctx/flatpak.sh \
-    --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
-    ["/ctx/flatpak.sh"]
 #endif /* SERVER */
 
 #if !defined(BAZZITE) && !defined(SERVER)
@@ -135,6 +121,28 @@ RUN --mount=type=cache,dst=/var/cache \
     ["/ctx/steam.sh"]
 #endif /* !defined(BAZZITE) && !defined(SERVER) */
 
+# /* OVERRIDE FILES */
+COPY system_files/override/ /
+
+# /* BRANDING */
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=tmpfs,dst=/var/log \
+    --mount=type=tmpfs,dst=/tmp \
+    --mount=type=bind,src=build_files/branding.sh,dst=/ctx/branding.sh \
+    --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
+    ["/ctx/branding.sh"]
+
+# /* SIGNING */
+COPY cosign.pub /etc/pki/containers/m2os.pub
+COPY cosign-backup.pub /etc/pki/containers/m2os-backup.pub
+RUN --mount=type=cache,dst=/var/cache \
+    --mount=type=tmpfs,dst=/var/log \
+    --mount=type=tmpfs,dst=/tmp \
+    --mount=type=bind,src=build_files/signing.sh,dst=/ctx/signing.sh \
+    --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
+    ["/ctx/signing.sh"]
+
+# /* GENERATE INITRAMFS */
 RUN --mount=type=cache,dst=/var/cache \
     --mount=type=tmpfs,dst=/var/log \
     --mount=type=tmpfs,dst=/tmp \
@@ -142,6 +150,7 @@ RUN --mount=type=cache,dst=/var/cache \
     --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
     ["/ctx/initramfs.sh"]
 
+# /* CLEANUP */
 RUN --mount=type=bind,src=build_files/cleanup.sh,dst=/ctx/cleanup.sh \
     --mount=type=bind,src=build_files/common.sh,dst=/ctx/common.sh \
     ["/ctx/cleanup.sh"]
