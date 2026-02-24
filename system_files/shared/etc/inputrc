@@ -1,0 +1,5 @@
+set completion-ignore-case on
+set completion-map-case on
+
+set colored-completion-prefix on
+set colored-stats on

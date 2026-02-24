@@ -78,24 +78,10 @@ ln -s /usr/share/factory/opt/macadam/bin/macadam /usr/bin/macadam
 /usr/bin/macadam completion bash >/etc/bash_completion.d/macadam.sh
 /usr/bin/macadam completion fish >/usr/share/fish/completions/macadam.fish
 
-# Sysexts
-# mkdir -p /usr/lib/sysupdate.d
-# SYSEXTS=(emacs)
-# for s in "${SYSEXTS[@]}"; do
-#     tee /usr/lib/sysupdate.d/"$s".transfer <<EOF
-# [Transfer]
-# Verify=false
+# Enable p11-kit-server for Flatpak support in browsers and other applications
+systemctl enable --global p11-kit-server.socket
+systemctl enable --global p11-kit-server.service
+systemctl enable m2os-flatpak-overrides.service
 
-# [Source]
-# Type=url-file
-# Path=https://extensions.fcos.fr/fedora/$s/
-# MatchPattern=emacs-@v-%w-%a.raw
-
-# [Target]
-# InstancesMax=2
-# Type=regular-file
-# Path=/var/lib/extensions.d/
-# MatchPattern=emacs-@v-%w-%a.raw
-# CurrentSymlink=/var/lib/extensions/emacs.raw
-# EOF
-# done
+# this allows mangohud to read CPU power wattage
+systemctl enable sysfs-read-powercap-intel.service

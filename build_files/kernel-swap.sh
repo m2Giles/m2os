@@ -24,12 +24,11 @@ KERNEL_RPMS=(
     "/tmp/kernel-rpms/kernel-modules-${KERNEL_VERSION}.rpm"
     "/tmp/kernel-rpms/kernel-modules-core-${KERNEL_VERSION}.rpm"
     "/tmp/kernel-rpms/kernel-modules-extra-${KERNEL_VERSION}.rpm"
-    "/tmp/kernel-rpms/kernel-devel-${KERNEL_VERSION}.rpm"
 )
 
 AKMODS_RPMS=(
-    /tmp/rpms/kmods/*framework-laptop-"${KERNEL_VERSION}"-*.rpm
-    /tmp/rpms/kmods/*xone-"${KERNEL_VERSION}"-*.rpm
+    /tmp/rpms/kmods/*.rpm
+    /tmp/rpms/common/*.rpm
 )
 
 # Delete Kernel Packages for Install
@@ -42,7 +41,6 @@ dnf5 versionlock delete kernel $OLD_PACKAGES
 # Install
 export DRACUT_NO_XATTR=1
 dnf5 install -y \
-    --enablerepo="copr:copr.fedorainfracloud.org:ublue-os:akmods" \
     --allowerasing \
     --setopt=disable_excludes='*' \
     "${KERNEL_RPMS[@]}" "${AKMODS_RPMS[@]}"

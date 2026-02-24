@@ -1,0 +1,13 @@
+[Unit]
+Description=Set readable intel cpu power
+After=systemd-udevd.service
+After=tuned.service
+ConditionPathExists=/sys/class/powercap/intel-rapl:0/energy_uj
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/chmod a+r /sys/class/powercap/intel-rapl:0/energy_uj
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

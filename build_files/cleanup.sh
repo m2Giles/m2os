@@ -55,10 +55,16 @@ done
 rmdir /opt
 ln -sf var/opt /opt
 
-rm -rf /tmp/*
-rm -rf /var/*
-rm -rf /boot/*
+rm -rf /tmp
+# shellcheck disable=SC2114
+rm -rf /var
+# shellcheck disable=SC2114
+rm -rf /boot
 rm -rf /usr/etc
+rm -rf /usr/lib/.build-id
+rm -rf /usr/src/kernels/*
+
 mkdir -p /tmp
 mkdir -p /var/tmp
+mkdir -p /boot
 chmod -R 1777 /var/tmp

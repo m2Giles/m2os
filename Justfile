@@ -53,37 +53,45 @@ syft-installer := "ghcr.io/anchore/syft:v1.42.1@sha256:392b65f29a410d2c1294d347b
 # Base Containers
 
 [private]
-aurora := "ghcr.io/ublue-os/aurora:stable-daily@sha256:1c05db178a621840c78128586fd27a5ab2ef57db77f8e85f4238bdc71f463c4d"
+brew := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "brew")
 [private]
-aurora_nvidia := "ghcr.io/ublue-os/aurora-nvidia-open:stable-daily@sha256:97771b1e737c203ed19c6a6dc76af206012e8d82bcd8ea2e67107ddaf8ee452f"
+common := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "common")
 [private]
-bazzite := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:stable@sha256:ce6f081a5f14785450ee59e18f64f91fb4b3f860585e8cf6df0cff8d3db9a182"
+aurora := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "aurora")
 [private]
-bazzite_deck := "ghcr.io/ublue-os/bazzite-deck-gnome:stable@sha256:380363179417deeed40b756c2212beed1d8de9fc85f1a6e919fbb6e5cdf6074b"
+aurora_nvidia := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "aurora-nvidia")
 [private]
-bluefin := "ghcr.io/ublue-os/bluefin:stable-daily@sha256:9093872edfee25403751ed99d49dad8704c5231f17b124055bf345fc7bebf9b8"
+bazzite := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bazzite")
 [private]
-bluefin_nvidia := "ghcr.io/ublue-os/bluefin-nvidia-open:stable-daily@sha256:80debaf148e7c48a7afad08376b715b1aced40beb6930094bdda9d4708277b1f"
+bazzite_deck := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bazzite-deck")
+[private]
+bluefin := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bluefin")
+[private]
+bluefin_nvidia := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bluefin-nvidia")
 [private]
 ucore := "ghcr.io/ublue-os/ucore:stable-zfs@sha256:ec2bfae0a8aa84add04ee802a8b116995dc8ce609b193540655203e4abcf3937"
 [private]
 ucore_nvidia := "ghcr.io/ublue-os/ucore:stable-nvidia-zfs@sha256:ecda298f835a15eddd203a574428ab1358c3bf103532eb607f0f15c3006aa83b"
 [private]
-aurora_beta := "ghcr.io/ublue-os/aurora:latest@sha256:9432a0391891ffa1ee66aa4be1a2f60b71622bdae6c24b8351a8ad07c55de3d5"
+aurora_beta := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "aurora-beta")
 [private]
-aurora_nvidia_beta := "ghcr.io/ublue-os/aurora-nvidia-open:latest@sha256:c14414a74cf989c050f4617ad3394043ff8aa2622513a87709ea0777432d13a5"
+aurora_nvidia_beta := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "aurora-nvidia-beta")
 [private]
-bazzite_beta := "ghcr.io/ublue-os/bazzite-gnome-nvidia-open:testing@sha256:cbc79899275a932f70cb5fa887d440772f1ce8b3712d9ea5c39a36c81ab71603"
+bazzite_beta := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bazzite-beta")
 [private]
-bazzite_deck_beta := "ghcr.io/ublue-os/bazzite-deck-gnome:testing@sha256:37bcb493d895d684bbc0cbaadfc15d27b1dd15725ba68bd601864a3d65f0dbfc"
+bazzite_deck_beta := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bazzite-deck-beta")
 [private]
-bluefin_beta := "ghcr.io/ublue-os/bluefin:latest@sha256:0b7ec5e8bc72fd60ab924aaa0df0d7265c8f7c1de0a21e7e91e960863bd911ce"
+bluefin_beta := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bluefin-beta")
 [private]
-bluefin_nvidia_beta := "ghcr.io/ublue-os/bluefin-nvidia-open:latest@sha256:75e8f41a6a7a01df66076fd3552857711e067740ad2e3bc6339a999a9aecd210"
+bluefin_nvidia_beta := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "bluefin-nvidia-beta")
 [private]
 ucore_beta := "ghcr.io/ublue-os/ucore:testing-zfs@sha256:71f47c5cac34ae48714026ea1a8197730ce6bd172cf1d1c394cdb1e5626c96b2"
 [private]
 ucore_nvidia_beta := "ghcr.io/ublue-os/ucore:testing-nvidia-zfs@sha256:ded20788bbd11957552c950c53733fe15726c46e397306edad2533fea75dc149"
+[private]
+akmods_stable := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "akmods-stable")
+[private]
+akmods_testing := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "akmods-testing")
 
 [private]
 default:
@@ -144,6 +152,9 @@ build-image image="bluefin":
         fedora_version="$(skopeo inspect docker://"${bluefin/:*@/@}" | jq -r '.Labels["ostree.linux"]' | grep -oP 'fc\K[0-9]+')"
         check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
         BUILD_ARGS+=("--cpp-flag=-DCOSMIC")
+        verify-container "{{ replace_regex(brew, "^.+/", "") }}"
+        verify-container "{{ replace_regex(common, "^.+/", "") }}" "ghcr.io/projectbluefin" "https://raw.githubusercontent.com/projectbluefin/common/refs/heads/main/cosign.pub"
+        BUILD_ARGS+=("--cpp-flag=-DBREW={{ brew }}" "--cpp-flag=-DCOMMON={{ common }}")
         ;;
     "ucore"*) BUILD_ARGS+=("--cpp-flag=-DSERVER") ;;
     esac
@@ -153,6 +164,8 @@ build-image image="bluefin":
 
     # AKMODS
     {{ if image =~ 'beta' { 'akmods_version=testing' } else if image =~ 'aurora|bluefin|cosmic' { 'akmods_version=stable' } else { '' } }}
+
+    # TODO: should instead take advantage of the kernel version tags on the akmods images to avoid skew between nvidia/zfs and akmods.
 
     # akmods
     {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
@@ -166,7 +179,7 @@ build-image image="bluefin":
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'verify-container "${akmods_nvidia#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DNVIDIA=$akmods_nvidia")' } else { '' } }}
 
-    skopeo inspect docker://{{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { '${akmods/:*@/@}' } else { '${check/:*@/@}' } }} > "$BUILDTMP/inspect-{{ image }}.json"
+    skopeo inspect docker://{{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { '"${akmods/:*@/@}"' } else { '"${check/:*@/@}"' } }} > "$BUILDTMP/inspect-{{ image }}.json"
 
     # Get The Version
     fedora_version="$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP/inspect-{{ image }}.json" | grep -oP 'fc\K[0-9]+')"
@@ -188,6 +201,8 @@ build-image image="bluefin":
     {{ if image =~ 'cosmic|aurora|bluefin' { PODMAN + ' pull "$akmods"' } else { '' } }}
     {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { PODMAN + ' pull "$akmods_zfs"' } else { '' } }}
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { PODMAN + ' pull "$akmods_nvidia"' } else { '' } }}
+    {{ if image =~ 'cosmic' { PODMAN + ' pull ' + common } else { '' } }}
+    {{ if image =~ 'cosmic' { PODMAN + ' pull ' + brew } else { '' } }}
 
     # Labels
     BUILD_ARGS+=(

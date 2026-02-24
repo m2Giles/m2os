@@ -1,0 +1,7 @@
+[Desktop Entry]
+Exec=/usr/libexec/ssh-add-identities.sh
+Icon=application-x-shellscript
+Name=ssh-add-identities
+Type=Application
+X-KDE-AutostartScript=true
+OnlyShowIn=KDE;

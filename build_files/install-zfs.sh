@@ -21,7 +21,6 @@ ZFS_RPMS=(
 )
 
 dnf5 install -y \
-    --enablerepo="copr:copr.fedorainfracloud.org:ublue-os:akmods" \
     --allowerasing \
     --setopt=disable_excludes='*' \
     "${ZFS_RPMS[@]}"

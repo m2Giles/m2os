@@ -31,7 +31,11 @@
       "automerge": true,
       "groupName": "Base Images",
       "matchPackageNames": [
-        "ghcr.io/ublue-os/*"
+        "ghcr.io/ublue-os/*",
+        "ghcr.io/projectbluefin/common"
+      ],
+      "excludePackageNames": [
+        "ghcr.io/ublue-os/legacy-rechunk"
       ],
       "matchUpdateTypes": [
         "pin",
@@ -55,7 +59,7 @@
       "groupName": "Build Containers",
       "matchPackageNames": [
         "ghcr.io/jasonn3/build-container-installer",
-        "ghcr.io/hhd-dev/rechunk",
+        "ghcr.io/ublue-os/legacy-rechunk",
         "ghcr.io/qemus/qemu",
         "cgr.dev/chainguard/cosign",
         "ghcr.io/anchore/syft"

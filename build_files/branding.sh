@@ -40,16 +40,14 @@ if [[ "$IMAGE" =~ nvidia|bazzite($|-beta$) ]]; then
 fi
 
 # Branding
-cat <<<"$(jq ".\"image-name\" |= \"m2os\" |
-              .\"image-flavor\" |= \"${image_flavor}\" |
-              .\"image-vendor\" |= \"m2giles\" |
-              .\"image-ref\" |= \"ostree-image-signed:docker://ghcr.io/m2giles/m2os\" |
-              .\"image-tag\" |= \"${IMAGE}\" |
-              .\"base-image-name\" |= \"${base_image}\" |
-              .\"fedora-version\" |= \"$(rpm -E %fedora)\"" \
-    </usr/share/ublue-os/image-info.json)" \
->/tmp/image-info.json
-cp /tmp/image-info.json /usr/share/ublue-os/image-info.json
+yq -i ".\"image-name\" = \"m2os\" |
+       .\"image-flavor\" = \"${image_flavor}\" |
+       .\"image-vendor\" = \"m2giles\" |
+       .\"image-ref\" = \"ostree-image-signed:docker://ghcr.io/m2giles/m2os\" |
+       .\"image-tag\" = \"${IMAGE}\" |
+       .\"base-image-name\" = \"${base_image}\" |
+       .\"fedora-version\" = \"$(rpm -E %fedora)\"" \
+    /usr/share/ublue-os/image-info.json
 
 if [[ "$IMAGE" =~ bazzite ]]; then
     sed -i 's/image-branch/image-tag/' /usr/libexec/bazzite-fetch-image
