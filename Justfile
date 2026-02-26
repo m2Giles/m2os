@@ -617,7 +617,7 @@ sbom-sign input $sbom="": install-cosign
     # Verify Signature
     cosign verify-blob "${SBOM_VERIFY_ARGS[@]}"
 
-# SBOM Attest
+# SBOM Attach (ORAS attach + cosign sign)
 [group('CI')]
 sbom-attach input $sbom="" $destination="": install-cosign
     #!/usr/bin/bash
