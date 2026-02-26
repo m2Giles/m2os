@@ -633,7 +633,7 @@ sbom-attach input $sbom="" $destination="": install-cosign
 
     pushd "$(dirname "$sbom")" > /dev/null
     oras attach "$destination/{{ repo_image_name }}@${digest}" "$(basename "$sbom")" --artifact-type example/sbom
-    sbom_digest="$(oras discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type example/sbom -o json | jq -r '.manifests[].\"digest\"')"
+    sbom_digest="$(oras discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type example/sbom -o json | jq -r '.manifests[].digest')"
     cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@${sbom_digest}"
     popd > /dev/null
 
