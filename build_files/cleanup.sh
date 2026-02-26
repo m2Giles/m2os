@@ -11,6 +11,7 @@ repos=(
     docker-ce
     fedora-cisco-openh264
     fedora-nvidia
+    fedora-updates
     fedora-updates-archive
     fedora-updates-testing
     ganto-lxc4-fedora-"$(rpm -E %fedora)"
