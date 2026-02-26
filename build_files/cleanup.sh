@@ -10,7 +10,7 @@ repos=(
     charm
     docker-ce
     fedora-cisco-openh264
-    fedora-updates
+    fedora-nvidia
     fedora-updates-archive
     fedora-updates-testing
     ganto-lxc4-fedora-"$(rpm -E %fedora)"

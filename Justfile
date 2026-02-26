@@ -619,7 +619,7 @@ sbom-sign input $sbom="": install-cosign
 
 # SBOM Attest
 [group('CI')]
-sbom-attest input $sbom="" $destination="": install-cosign
+sbom-attach input $sbom="" $destination="": install-cosign
     #!/usr/bin/bash
     set -eoux pipefail
 
@@ -628,39 +628,14 @@ sbom-attest input $sbom="" $destination="": install-cosign
         sbom="$({{ just }} gen-sbom {{ input }})"
     fi
 
-    # Compress
-    sbom_type="urn:ublue-os:attestation:spdx+json+zstd:v1"
-    compress_sbom="$sbom.zst"
-    zstd "$sbom" -o "$compress_sbom"
-
-    # Generate Payload
-    base64_payload="payload.b64"
-    base64 "$compress_sbom" | tr -d '\n' > "$base64_payload"
-
-    # Generate Predicate
-    predicate_file="wrapped-predicate.json"
-    jq -n \
-            --arg compression "zstd" \
-            --arg mediaType "application/spdx+json" \
-            --rawfile payload "$base64_payload" \
-            '{compression: $compression, mediaType: $mediaType, payload: $payload}' \
-            > "$predicate_file"
-
-    rm "$base64_payload"
-
-    # SBOM Attest args
-    SBOM_ATTEST_ARGS=(
-        "--predicate" "$predicate_file"
-        "--type" "$sbom_type"
-        "--key" "env://COSIGN_PRIVATE_KEY"
-    )
-
     : "${destination:={{ IMAGE_REGISTRY }}}"
     digest="$(skopeo inspect "{{ input }}" --format '{{{{ .Digest }}')"
 
-    cosign attest -y \
-        "${SBOM_ATTEST_ARGS[@]}" \
-        "$destination/{{ repo_image_name }}@${digest}"
+    pushd $(dirname "$sbom") > /dev/null
+    oras attach "$destination/{{ repo_image_name }}@${digest}" "$(basename "$sbom")" --artifact-type example/sbom
+    sbom_digest="$(oras discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type example/sbom -o json | jq -r '.manifests[].\"digest\"')"
+    cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@${sbom_digest}"
+    popd > /dev/null
 
 # Utils
 

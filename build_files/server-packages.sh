@@ -12,6 +12,7 @@ dnf5 -y copr enable ganto/lxc4
 dnf5 -y copr enable ganto/umoci
 
 SERVER_PACKAGES=(
+    bcvk
     binutils
     bootc
     cpp
