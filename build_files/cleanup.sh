@@ -10,6 +10,7 @@ repos=(
     charm
     docker-ce
     fedora-cisco-openh264
+    fedora-nvidia
     fedora-updates
     fedora-updates-archive
     fedora-updates-testing

@@ -125,7 +125,48 @@ jobs:
           sarif_file: ${{ steps.scan.outputs.sarif }}
           category: ${{ matrix.image }}
 
-      - name: Login to GHCR, Attest and Sign
+      - name: Setup Cosign
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
+        # yamllint disable-line rule:line-length rule:comments
+        uses: sigstore/cosign-installer@v4.0.0 # v4
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: Sign SBOM
+        id: sign
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
+        env:
+          COSIGN_EXPERIMENTAL: false
+          COSIGN_PRIVATE_KEY: ${{ secrets.SIGNING_SECRET }}
+          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+        shell: bash
+        run: |
+          set -eou pipefail
+
+          just sbom-sign \
+            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+
+      - name: Upload SBOM
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: ${{ matrix.image }}.sbom
+          path: |-
+            ${{ runner.temp }}/${{ matrix.image }}.sbom.json*
+
+      - name: Install ORAS
+        if: >-
+          contains(fromJson('["workflow_dispatch", "merge_group"]'),
+          github.event_name) || github.event.schedule == '41 6 * * 0'
+        # yamllint disable-line rule:line-length rule:comments
+        uses: oras-project/setup-oras@v1.2.4 # v1.2.4
+
+      - name: Attach SBOM
         id: attest
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
@@ -140,21 +181,9 @@ jobs:
 
           just login-to-ghcr ${{ github.actor }} ${{ github.token }}
 
-          just sbom-attest \
+          just sbom-attach \
             "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
             ${{ runner.temp }}/${{ matrix.image }}.sbom.json
-
-          just sbom-sign \
-            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
-            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
-
-      - name: Upload SBOM
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
-        with:
-          name: ${{ matrix.image }}.sbom
-          path: |-
-            ${{ runner.temp }}/${{ matrix.image }}.sbom.json*
 
   check:
     name: Check Gen SBOM Successful
