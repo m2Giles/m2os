@@ -130,7 +130,7 @@ jobs:
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
         # yamllint disable-line rule:line-length rule:comments
-        uses: sigstore/cosign-installer@v4.0.0 # v4
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
         with:
           cosign-release: 'v2.4.1'
 
@@ -164,7 +164,7 @@ jobs:
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
         # yamllint disable-line rule:line-length rule:comments
-        uses: oras-project/setup-oras@v1.2.4 # v1.2.4
+        uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
 
       - name: Attach SBOM
         id: attest
