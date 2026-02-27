@@ -632,8 +632,8 @@ sbom-attach input $sbom="" $destination="": install-cosign
     digest="$(skopeo inspect "{{ input }}" --format '{{{{ .Digest }}')"
 
     pushd "$(dirname "$sbom")" > /dev/null
-    oras attach "$destination/{{ repo_image_name }}@${digest}" "$(basename "$sbom")" --artifact-type example/sbom
-    sbom_digest="$(oras discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type example/sbom -o json | jq -r '.manifests[].digest')"
+    oras attach "$destination/{{ repo_image_name }}@${digest}" "$(basename "$sbom")" --artifact-type sbom/spdx+json
+    sbom_digest="$(oras discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type sbom/spdx+json -o json | jq -r '.manifests[0].digest')"
     cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@${sbom_digest}"
     popd > /dev/null
 
