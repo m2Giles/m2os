@@ -476,6 +476,7 @@ lint-recipes:
         rechunk
         run-iso
         sbom-sign
+        sbom-attach
         secureboot
     )
     for recipe in "${recipes[@]}"; do
@@ -574,7 +575,7 @@ sbom-attach input $sbom="" $destination="":
     : "${destination:={{ IMAGE_REGISTRY }}}"
     TMPDIR="$(mktemp -d -p .)"
     trap 'rm -rf "$TMPDIR"' EXIT SIGINT
-    info="$({{ skopeo }} inspect "{{ input }}" > "$TMPDIR/info.json")"
+    {{ skopeo }} inspect "{{ input }}" > "$TMPDIR/info.json"
     digest="$({{ jq }} -r '.Digest' < "$TMPDIR/info.json")"
     version="$({{ jq }} -r '.Labels["org.opencontainers.image.version"]' < "$TMPDIR/info.json")"
 
