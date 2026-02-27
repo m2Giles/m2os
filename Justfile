@@ -593,17 +593,17 @@ just := just_executable() + " -f " + justfile()
 [private]
 image-file := GIT_ROOT / "image-versions.yml"
 [private]
-yq := require("yq")
+yq := which("yq")
 [private]
-jq := require("jq")
+jq := which("jq")
 [private]
-skopeo := require("skopeo")
+skopeo := which("skopeo")
 [private]
-oras := require("oras")
+oras := which("oras")
 [private]
-cosign := require("cosign")
+cosign := which("cosign")
 [private]
-syft := require("syft")
+syft := which("syft")
 
 # SUDO
 
