@@ -45,10 +45,6 @@ images := '(
 rechunker := "ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64@sha256:1ee0b4ad0eee9b300cca1afd8cf78b78ce77bcc0d5aa16b07a195c6c22f1c9b4"
 [private]
 qemu := "ghcr.io/qemus/qemu:7.29@sha256:a2a76a6b5d2304a132c7fda832670af972c1e1437d48b4bc3dea08d001b08eba"
-[private]
-cosign-installer := "ghcr.io/sigstore/cosign/cosign:v2.4.1"
-[private]
-syft-installer := "ghcr.io/anchore/syft:v1.42.1@sha256:392b65f29a410d2c1294d347bb3ad6f37608345ab6e7b43d2df03ea18bd6f5b0"
 
 # Base Containers
 
@@ -116,7 +112,7 @@ clean:
 
 # Build
 [group('Image')]
-build image="bluefin": install-cosign (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
+build image="bluefin": (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
 
 # Build Image
 [group('Image')]
@@ -357,7 +353,7 @@ changelogs target="Desktop" urlmd="" handwritten="":
 
 # Verify Container with Cosign
 [group('Utility')]
-verify-container container registry="ghcr.io/ublue-os" key="": install-cosign
+verify-container container registry="ghcr.io/ublue-os" key="":
     if ! cosign verify --key "{{ if key == '' { 'https://raw.githubusercontent.com/ublue-os/main/main/cosign.pub' } else { key } }}" "{{ if registry != '' { registry / container } else { container } }}" >/dev/null; then \
         echo "NOTICE: Verification failed. Please ensure your public key is correct." && exit 1 \
     ; fi
@@ -480,6 +476,7 @@ lint-recipes:
         rechunk
         run-iso
         sbom-sign
+        sbom-attach
         secureboot
     )
     for recipe in "${recipes[@]}"; do
@@ -487,42 +484,12 @@ lint-recipes:
     done
     recipes=(
         clean
-        install-cosign
         lint-recipes
         merge-changelog
     )
     for recipe in "${recipes[@]}"; do
         {{ just }} _lint-recipe "shellcheck" "$recipe"
     done
-
-# Get Cosign if Needed
-[group('CI')]
-install-cosign:
-    #!/usr/bin/bash
-    {{ ci_grouping }}
-    set -euox pipefail
-
-    # Get Cosign from Chainguard
-    if ! command -v cosign >/dev/null; then
-        # TMPDIR
-        TMPDIR="$(mktemp -d)"
-        trap 'rm -rf $TMPDIR' EXIT SIGINT
-
-        # Get Binary
-        COSIGN_CONTAINER_ID="$({{ PODMAN }} create {{ cosign-installer }} bash)"
-        {{ PODMAN }} cp "${COSIGN_CONTAINER_ID}":/ko-app/cosign "$TMPDIR"/cosign
-        {{ PODMAN }} rm -f "${COSIGN_CONTAINER_ID}"
-        {{ PODMAN }} rmi -f {{ cosign-installer }}
-
-        # Install
-        {{ SUDOIF }} install -c -m 0755 "$TMPDIR"/cosign /usr/local/bin/cosign
-
-        # Verify Cosign Image Signatures if needed
-        # if ! cosign verify --certificate-oidc-issuer=https://token.actions.githubusercontent.com --certificate-identity=https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main cgr.dev/chainguard/cosign >/dev/null; then
-        #     echo "NOTICE: Failed to verify cosign image signatures."
-        #     exit 1
-        # fi
-    fi
 
 # Login to GHCR
 [group('CI')]
@@ -539,7 +506,7 @@ push-to-registry image dryrun="true" $destination="":
 
 # Sign Images with Cosign
 [group('CI')]
-cosign-sign digest $destination="": install-cosign
+cosign-sign digest $destination="":
     cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}/{{ repo_image_name + "@" + digest }}"
 
 # Push and Sign
@@ -548,7 +515,7 @@ push-and-sign image: (login-to-ghcr env('ACTOR') env('TOKEN')) (push-to-registry
 
 # Generate SBOM
 [group('CI')]
-gen-sbom $input $output="": install-syft
+gen-sbom $input $output="":
     #!/usr/bin/bash
     set -eoux pipefail
 
@@ -563,32 +530,9 @@ gen-sbom $input $output="": install-syft
     # Output Path
     echo "$OUTPUT_PATH"
 
-# Install Syft
-[group('CI')]
-install-syft:
-    #!/usr/bin/bash
-    {{ ci_grouping }}
-    set -eoux pipefail
-
-    # Get SYFT if needed
-    if ! command -v syft >/dev/null; then
-        # Make TMPDIR
-        TMPDIR="$(mktemp -d)"
-        trap 'rm -rf $TMPDIR' EXIT SIGINT
-
-        # Get Binary
-        SYFT_ID="$({{ PODMAN }} create {{ syft-installer }})"
-        {{ PODMAN }} cp "$SYFT_ID":/syft "$TMPDIR"/syft
-        {{ PODMAN }} rm -f "$SYFT_ID" > /dev/null
-        {{ PODMAN }} rmi -f {{ syft-installer }}
-
-        # Install
-        {{ SUDOIF }} install -c -m 0755 "$TMPDIR"/syft /usr/local/bin/syft
-    fi
-
 # Add SBOM Signing
 [group('CI')]
-sbom-sign input $sbom="": install-cosign
+sbom-sign input $sbom="":
     #!/usr/bin/bash
     set -eoux pipefail
 
@@ -615,11 +559,11 @@ sbom-sign input $sbom="": install-cosign
     )
 
     # Verify Signature
-    cosign verify-blob "${SBOM_VERIFY_ARGS[@]}"
+    {{ cosign }} verify-blob "${SBOM_VERIFY_ARGS[@]}"
 
 # SBOM Attach (ORAS attach + cosign sign)
 [group('CI')]
-sbom-attach input $sbom="" $destination="": install-cosign
+sbom-attach input $sbom="" $destination="":
     #!/usr/bin/bash
     set -eoux pipefail
 
@@ -629,12 +573,16 @@ sbom-attach input $sbom="" $destination="": install-cosign
     fi
 
     : "${destination:={{ IMAGE_REGISTRY }}}"
-    digest="$(skopeo inspect "{{ input }}" --format '{{{{ .Digest }}')"
+    TMPDIR="$(mktemp -d -p .)"
+    trap 'rm -rf "$TMPDIR"' EXIT SIGINT
+    {{ skopeo }} inspect "{{ input }}" > "$TMPDIR/info.json"
+    digest="$({{ jq }} -r '.Digest' < "$TMPDIR/info.json")"
+    version="$({{ jq }} -r '.Labels["org.opencontainers.image.version"]' < "$TMPDIR/info.json")"
 
     pushd "$(dirname "$sbom")" > /dev/null
-    oras attach "$destination/{{ repo_image_name }}@${digest}" "$(basename "$sbom")" --artifact-type sbom/spdx+json
-    sbom_digest="$(oras discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type sbom/spdx+json -o json | jq -r '.manifests[0].digest')"
-    cosign sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@${sbom_digest}"
+    {{ oras }} attach "$destination/{{ repo_image_name }}@${digest}" "$(basename "$sbom")" --artifact-type application/vnd.spdx+json -a "filename=$(basename "$sbom")" -a "org.opencontainers.image.version=$version"
+    sbom_digest="$({{ oras }} discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type application/vnd.spdx+json --format json | {{ jq }} -r '.manifests[0].digest')"
+    {{ cosign }} sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@${sbom_digest}"
     popd > /dev/null
 
 # Utils
@@ -648,11 +596,17 @@ just := just_executable() + " -f " + justfile()
 [private]
 image-file := GIT_ROOT / "image-versions.yml"
 [private]
-yq := require("yq")
+yq := which("yq")
 [private]
-jq := require("jq")
+jq := which("jq")
 [private]
-skopeo := require("skopeo")
+skopeo := which("skopeo")
+[private]
+oras := which("oras")
+[private]
+cosign := which("cosign")
+[private]
+syft := which("syft")
 
 # SUDO
 
