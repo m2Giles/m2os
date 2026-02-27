@@ -572,13 +572,15 @@ sbom-attach input $sbom="" $destination="":
     fi
 
     : "${destination:={{ IMAGE_REGISTRY }}}"
-    {{ skopeo }} inspect "{{ input }}" > info.json
-    digest="$({{ jq }} -r '.Digest' < info.json)"
-    version="$({{ jq }} -r '.Labels["org.opencontainers.image.version"]' < info.json)"
+    TMPDIR="$(mktemp -d -p .)"
+    trap 'rm -rf "$TMPDIR"' EXIT SIGINT
+    info="$({{ skopeo }} inspect "{{ input }}" > "$TMPDIR/info.json")"
+    digest="$({{ jq }} -r '.Digest' < "$TMPDIR/info.json")"
+    version="$({{ jq }} -r '.Labels["org.opencontainers.image.version"]' < "$TMPDIR/info.json")"
 
     pushd "$(dirname "$sbom")" > /dev/null
     {{ oras }} attach "$destination/{{ repo_image_name }}@${digest}" "$(basename "$sbom")" --artifact-type application/vnd.spdx+json -a "filename=$(basename "$sbom")" -a "org.opencontainers.image.version=$version"
-    sbom_digest="$({{ oras }} discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type application/vnd.spdx+json --format json | {{ jq }} -r '.manifests[0].digest')'"
+    sbom_digest="$({{ oras }} discover "$destination/{{ repo_image_name }}@${digest}" --artifact-type application/vnd.spdx+json --format json | {{ jq }} -r '.manifests[0].digest')"
     {{ cosign }} sign -y --key env://COSIGN_PRIVATE_KEY "$destination/{{ repo_image_name }}@${sbom_digest}"
     popd > /dev/null
 
