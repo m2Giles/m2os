@@ -33,7 +33,7 @@ images:
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:60b9701db6d1ac09a598692e0bc441c2e2ef97427042499791feb22afd777953
+    digest: sha256:972e119c2dca57f8ec36e26e046c47a071392cd200e891693baa78b79c4116e0
 
   # Aurora
   - name: aurora
@@ -81,22 +81,22 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:4c934ec956a211d4729b2a65954732399b795844a21e9f0bc7577f04bc8d5845
+    digest: sha256:7f9963d9c4be66fee8ba7f2028b8ccee1ead53c3416f427339d024fbabc9f8fa
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:0b3e88967d9947aab7a68776661e6b28fcef996f3e93de8396e3fc3c10a2d03c
+    digest: sha256:d355faefcc94b08568c9eb1ad5a3bebd5529cf0944d259e8d83bd66dc5fc00f2
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:638cbf1f242beafa3e88ae8c7502cfc579a7d2297232c643294eb74c873800d1
+    digest: sha256:bacf56dab0c3479255e1f5161acecd5c0eaaebb9175417047b098d8afa37a7ac
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:5887ab126c087c12c39854dd770337ca2588455b931913512f958b6c1e8a1317
+    digest: sha256:e1d33fb2a8515c7ee4def5712b6e4361cd2edca146cb3cc37a00ca32e10b7468
 
   # Brew
   - name: brew
