@@ -25,7 +25,7 @@ function ghcurl() {
     OPTIONS=("$@")
 
     if [[ -n "$AUTH_HEADER" ]]; then
-        curl -sSL -H "$AUTH_HEADER" "${OPTIONS[@]}" "$URL"
+        curl -sSL -H "${AUTH_HEADER}" "${OPTIONS[@]}" "$URL"
     else
         curl -sSL "${OPTIONS[@]}" "$URL"
     fi

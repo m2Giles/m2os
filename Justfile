@@ -235,7 +235,7 @@ rechunk image="bluefin":
     #!/usr/bin/bash
     set -eou pipefail
     IMG="localhost/{{ repo_image_name + ":" + image }}"
-    CHUNKAH_CONFIG_STR="$({{ PODMAN }} inspect $IMG)"
+    CHUNKAH_CONFIG_STR="$({{ PODMAN }} inspect "$IMG")"
     {{ PODMAN }} run --rm --mount=type=image,src="$IMG",dst=/chunkah \
         --security-opt label=disable \
         --env CHUNKAH_CONFIG_STR="$CHUNKAH_CONFIG_STR" \
