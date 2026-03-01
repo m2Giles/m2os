@@ -60,7 +60,8 @@
         "ghcr.io/ublue-os/legacy-rechunk",
         "ghcr.io/qemus/qemu",
         "cgr.dev/chainguard/cosign",
-        "ghcr.io/anchore/syft"
+        "ghcr.io/anchore/syft",
+        "quay.io/jlebon/chunkah"
       ]
     },
     {

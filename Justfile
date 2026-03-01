@@ -133,8 +133,8 @@ build-image image="bluefin":
     fi
 
     BUILD_ARGS=({{ if CI != '' { '--cpp-flag=-DGHCI' } else { '' } }})
-    mkdir -p {{ BUILD_DIR }}
-    BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
+    mkdir -p {{ GIT_ROOT / BUILD_DIR }}
+    BUILDTMP="$(mktemp -d -p {{ GIT_ROOT / BUILD_DIR }})"
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
 
     set -eoux pipefail
@@ -225,7 +225,7 @@ build-image image="bluefin":
         "--tag" "{{ repo_image_name + ":" + image }}"
     )
 
-    {{ PODMAN }} build "${BUILD_ARGS[@]}" {{ justfile_dir() }}
+    {{ PODMAN }} build "${BUILD_ARGS[@]}" {{ GIT_ROOT }}
 
     {{ if CI != '' { PODMAN + ' rmi -f "${check%@*}"' } else { '' } }}
 
@@ -234,11 +234,12 @@ build-image image="bluefin":
 rechunk image="bluefin":
     #!/usr/bin/bash
     {{ ci_grouping }}
-    {{ shell('mkdir -p $1', BUILD_DIR) }}
+    {{ shell('mkdir -p $1', GIT_ROOT / BUILD_DIR) }}
     set -eou pipefail
+    {{ if CI != '' { 'set -x' } else { '' } }}
     IMG="localhost/{{ repo_image_name + ":" + image }}"
     {{ PODMAN }} image exists "$IMG" || { echo "Image $IMG not found. Please build the image first." >&2; exit 1; }
-    TMPDIR="$(mktemp -d -p {{ BUILD_DIR }})"
+    TMPDIR="$(mktemp -d -p {{ GIT_ROOT / BUILD_DIR }})"
     trap 'rm -rf "$TMPDIR"' EXIT SIGINT
     {{ PODMAN }} inspect "$IMG" > "$TMPDIR/inspect.json"
     {{ PODMAN }} run --rm \
@@ -246,10 +247,15 @@ rechunk image="bluefin":
         --mount=type=bind,src="$TMPDIR/inspect.json",dst=/tmp/inspect.json,ro \
         --security-opt label=disable \
         {{ chunkah }} build \
+        {{ if CI != '' { '-v' } else { '' } }} \
         --config /tmp/inspect.json \
         --prune /sysroot/ \
-        --max-layers 256 \
-        > {{ repo_image_name + "_" + image + ".tar" }}
+        --prune /var/ \
+        --prune /run/ \
+        --prune /tmp/ \
+        --prune /run/ \
+        --max-layers 448 \
+        > {{ repo_image_name + "_" + image + ".tar.gz" }}
 
 # Load Image into Podman and Tag
 [group('Image')]
@@ -264,7 +270,7 @@ load-image image="bluefin":
 # Build ISO
 [group('ISO')]
 build-iso image="bluefin":
-    {{ shell("mkdir -p $1/output", BUILD_DIR) }}
+    {{ shell("mkdir -p $1/output", GIT_ROOT / BUILD_DIR) }}
     {{ SUDOIF }} \
         HOOK_pre_initramfs="{{ if image =~ 'bazzite' { GIT_ROOT / 'iso_files/preinitramfs.sh' } else { '' } }}" \
         HOOK_post_rootfs="{{ GIT_ROOT / 'iso_files/configure_iso.sh' }}" \
@@ -278,8 +284,8 @@ build-iso image="bluefin":
         {{ FQ_IMAGE_NAME + ":" + image }} \
         "1"
     {{ SUDOIF }} chown "$(id -u):$(id -g)" output.iso
-    sha256sum output.iso | tee {{ BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso-CHECKSUM" }}
-    mv output.iso {{ BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
+    sha256sum output.iso | tee {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso-CHECKSUM" }}
+    mv output.iso {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
     {{ SUDOIF }} {{ just }} titanoboa::clean
 
 # Run ISO

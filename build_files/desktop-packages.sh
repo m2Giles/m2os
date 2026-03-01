@@ -28,7 +28,6 @@ LAYERED_PACKAGES=(
     cascadia-fonts-all
     git-credential-libsecret
     git-credential-oauth
-    emacs
     emacs-pgtk
     qemu-ui-gtk
     spice-gtk-tools
