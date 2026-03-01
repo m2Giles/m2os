@@ -77,17 +77,18 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
         with:
-          name: ${{ matrix.image }}.tar
+          name: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
           path: ${{ runner.temp }}
 
       - name: Load Image into Podman
         shell: bash
         run: |
-          podman tag \
-            "$(podman load -i ${{ runner.temp }}/${{ matrix.image }}.tar)" \
+          cid="$(podman load -i \
+            ${{ runner.temp }}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar)"
+          podman tag "${cid}" \
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
           podman images
-          rm -f ${{ runner.temp }}/${{ matrix.image }}.tar
+          rm -f ${{ runner.temp }}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
 
       - name: Build ISO
         shell: bash
