@@ -83,7 +83,9 @@ jobs:
       - name: Load Image into Podman
         shell: bash
         run: |
-          podman tag $(podman load -i ${{ runner.temp }}/${{ matrix.image }}.oci) ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+          podman tag \
+            "$(podman load -i ${{ runner.temp }}/${{ matrix.image }}.oci)" \
+            ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
           podman images
           rm -f ${{ runner.temp }}/${{ matrix.image }}.oci
 

@@ -14,7 +14,7 @@ trap "$trap_build" EXIT
 function ghcurl() {
     set +x
     if [[ -f /run/secrets/GITHUB_TOKEN ]]; then
-        GITHUB_TOKEN="$(< /run/secrets/GITHUB_TOKEN)"
+        GITHUB_TOKEN="$(</run/secrets/GITHUB_TOKEN)"
         AUTH_HEADER="Authorization: Bearer ${GITHUB_TOKEN}"
     else
         AUTH_HEADER=""

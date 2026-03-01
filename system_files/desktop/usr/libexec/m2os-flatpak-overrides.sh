@@ -50,28 +50,28 @@ flatpak override \
     org.mozilla.firefox
 
 # Firefox Nvidia
-IMAGE_FLAVOR=$(jq -r '."image-flavor"' < /usr/share/ublue-os/image-info.json)
-if [[ $IMAGE_FLAVOR =~ "nvidia" ]] && [ "$(grep -o "\-display" <<< "$(lshw -C display)" | wc -l)" -le 1 ] && grep -q "vendor: NVIDIA Corporation" <<< "$(lshw -C display)"; then
-  flatpak override \
-    --system \
-    --filesystem=host-os \
-    --env=LIBVA_DRIVER_NAME=nvidia \
-    --env=LIBVA_DRIVERS_PATH=/run/host/usr/lib64/dri \
-    --env=LIBVA_MESSAGING_LEVEL=1 \
-    --env=MOZ_DISABLE_RDD_SANDBOX=1 \
-    --env=NVD_BACKEND=direct \
-    org.mozilla.firefox
+IMAGE_FLAVOR=$(jq -r '."image-flavor"' </usr/share/ublue-os/image-info.json)
+if [[ $IMAGE_FLAVOR =~ "nvidia" ]] && [ "$(grep -o "\-display" <<<"$(lshw -C display)" | wc -l)" -le 1 ] && grep -q "vendor: NVIDIA Corporation" <<<"$(lshw -C display)"; then
+    flatpak override \
+        --system \
+        --filesystem=host-os \
+        --env=LIBVA_DRIVER_NAME=nvidia \
+        --env=LIBVA_DRIVERS_PATH=/run/host/usr/lib64/dri \
+        --env=LIBVA_MESSAGING_LEVEL=1 \
+        --env=MOZ_DISABLE_RDD_SANDBOX=1 \
+        --env=NVD_BACKEND=direct \
+        org.mozilla.firefox
 else
-  # Undo if user was previously using a Nvidia image and is no longer
-  flatpak override \
-    --system \
-    --nofilesystem=host-os \
-    --unset-env=LIBVA_DRIVER_NAME \
-    --unset-env=LIBVA_DRIVERS_PATH \
-    --unset-env=LIBVA_MESSAGING_LEVEL \
-    --unset-env=MOZ_DISABLE_RDD_SANDBOX \
-    --unset-env=NVD_BACKEND \
-    org.mozilla.firefox
+    # Undo if user was previously using a Nvidia image and is no longer
+    flatpak override \
+        --system \
+        --nofilesystem=host-os \
+        --unset-env=LIBVA_DRIVER_NAME \
+        --unset-env=LIBVA_DRIVERS_PATH \
+        --unset-env=LIBVA_MESSAGING_LEVEL \
+        --unset-env=MOZ_DISABLE_RDD_SANDBOX \
+        --unset-env=NVD_BACKEND \
+        org.mozilla.firefox
 fi
 
 # Mozilla Thunderbird
