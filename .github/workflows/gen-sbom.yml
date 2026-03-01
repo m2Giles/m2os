@@ -72,7 +72,7 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
         with:
-          name: ${{ matrix.image }}.oci
+          name: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
           path: ${{ runner.temp }}
 
       - name: Setup
