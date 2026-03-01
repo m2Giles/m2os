@@ -96,6 +96,7 @@ jobs:
           # yamllint disable-line rule:line-length rule:comments
           path: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
           if-no-files-found: error
+          archive: false
 
   check:
     name: Check Build Images Successful

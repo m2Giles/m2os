@@ -73,6 +73,20 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
 
+      - name: Download OCI-Archive
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
+        with:
+          name: ${{ matrix.image }}.oci
+          path: ${{ runner.temp }}
+
+      - name: Load Image into Podman
+        shell: bash
+        run: |
+          podman tag $(podman load -i ${{ runner.temp }}/${{ matrix.image }}.oci) ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+          podman images
+          rm -f ${{ runner.temp }}/${{ matrix.image }}.oci
+
       - name: Build ISO
         shell: bash
         run: |
@@ -91,6 +105,7 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
+          archive: false
 
       - name: Make URL Artifact
         shell: bash
