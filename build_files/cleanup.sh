@@ -56,10 +56,8 @@ done
 rmdir /opt
 ln -sf var/opt /opt
 
-find /tmp -mindepth 1 -exec rm -rf {} \;
-find /var/tmp -mindepth 1 -exec rm -rf {} \;
-find /var -mindepth 1 -exec rm -rf {} \;
-find /boot -mindepth 1 -exec rm -rf {} \;
+#shellcheck disable=SC2114
+rm -rf /tmp /var/tmp /var /boot
 rm -rf /usr/etc
 rm -rf /usr/lib/.build-id
 rm -rf /usr/src/kernels/*
