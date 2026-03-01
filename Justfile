@@ -255,7 +255,7 @@ rechunk image="bluefin":
         --prune /tmp/ \
         --prune /run/ \
         --max-layers 448 \
-        > {{ repo_image_name + "_" + image + ".tar.gz" }}
+        > {{ repo_image_name + "_" + image + ".tar" }}
 
 # Load Image into Podman and Tag
 [group('Image')]

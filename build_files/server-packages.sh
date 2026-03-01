@@ -75,6 +75,9 @@ tar --zstd -xvf /tmp/data.tar.zst
 mv /opt/incus /usr/lib/
 sed -i 's@\[Service\]@\[Service\]\nEnvironment=INCUS_UI=/usr/lib/incus/ui/@g' /usr/lib/systemd/system/incus.service
 
+sed 's/docker/incus/' /etc/firewalld/policies/docker-forwarding.xml > /etc/firewalld/policies/incus-forwarding.xml
+sed 's/docker/incus/' /etc/firewalld/zones/docker.xml > /etc/firewalld/zones/incus.xml
+
 # Statically assign groups eventually there will be a better solution for this.
 groupmod -g 250 incus-admin
 groupmod -g 251 incus
