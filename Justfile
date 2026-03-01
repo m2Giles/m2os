@@ -42,9 +42,9 @@ images := '(
 # Build Containers
 
 [private]
-rechunker := "ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64@sha256:1ee0b4ad0eee9b300cca1afd8cf78b78ce77bcc0d5aa16b07a195c6c22f1c9b4"
+chunkah := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "chunkah")
 [private]
-qemu := "ghcr.io/qemus/qemu:7.29@sha256:a2a76a6b5d2304a132c7fda832670af972c1e1437d48b4bc3dea08d001b08eba"
+qemu := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "qemu")
 
 # Base Containers
 
@@ -233,10 +233,11 @@ build-image image="bluefin":
 [group('Image')]
 rechunk image="bluefin":
     #!/usr/bin/bash
+    {{ ci_grouping }}
+    {{ shell('mkdir -p $1', BUILD_DIR) }}
     set -eou pipefail
     IMG="localhost/{{ repo_image_name + ":" + image }}"
     {{ PODMAN }} image exists "$IMG" || { echo "Image $IMG not found. Please build the image first." >&2; exit 1; }
-    mkdir -p {{ BUILD_DIR }}
     TMPDIR="$(mktemp -d -p {{ BUILD_DIR }})"
     trap 'rm -rf "$TMPDIR"' EXIT SIGINT
     {{ PODMAN }} inspect "$IMG" > "$TMPDIR/inspect.json"
@@ -244,18 +245,18 @@ rechunk image="bluefin":
         --mount=type=image,src="$IMG",dst=/chunkah \
         --mount=type=bind,src="$TMPDIR/inspect.json",dst=/tmp/inspect.json,ro \
         --security-opt label=disable \
-        quay.io/jlebon/chunkah:dev build \
+        {{ chunkah }} build \
         --config /tmp/inspect.json \
         --prune /sysroot/ \
-        --max-layers 447 \
+        --max-layers 256 \
         > {{ repo_image_name + "_" + image + ".tar" }}
 
 # Load Image into Podman and Tag
 [group('Image')]
 load-image image="bluefin":
     #!/usr/bin/bash
-    {{ PODMAN }} rmi -f localhost/{{ repo_image_name + ":" + image }} || true
     {{ if CI == '' { '' } else { 'exit 0' } }}
+    {{ PODMAN }} rmi -f localhost/{{ repo_image_name + ":" + image }} || true
     {{ PODMAN }} tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
     {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name }}:"$(skopeo inspect oci-archive:{{ repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')"
     {{ PODMAN }} images

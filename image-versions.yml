@@ -109,3 +109,15 @@ images:
     image: ghcr.io/projectbluefin/common
     tag: latest
     digest: sha256:b8fe93b16674a547b4cf38493af19caa484d9575956fc3be04ca3d10faec23ff
+
+  # Chunkah
+  - name: chunkah
+    image: quay.io/jlebon/chunkah
+    tag: dev
+    digest: sha256:e125450ca2a4ae9230a1a48936b56340beba5b6f70993ad0c5e9935d887103fe 
+
+  # QEMU
+  - name: qemu
+    image: ghcr.io/qemus/qemu
+    tag: 7.29
+    digest: sha256:a2a76a6b5d2304a132c7fda832670af972c1e1437d48b4bc3dea08d001b08eba

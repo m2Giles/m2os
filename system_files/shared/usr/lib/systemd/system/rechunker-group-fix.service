@@ -22,7 +22,7 @@ ConditionPathExists=!/etc/.rechunker-fix-do-not-remove
 
 [Service]
 Type=oneshot
-ExecStartPre=/usr/bin/bash '/usr/bin/mv -f /etc/gshadow "/etc/gshadow-rechunker-backup.$(/usr/bin/date +%%Y%%m%%d%%H%%M%%S)" || true'
+ExecStartPre=/usr/bin/bash -c '/usr/bin/mv -f /etc/gshadow "/etc/gshadow-rechunker-backup.$(/usr/bin/date +%%Y%%m%%d%%H%%M%%S)" || true'
 ExecStart=/usr/bin/systemd-sysusers
 ExecStart=/usr/bin/rechunker-group-fix
 ExecStart=/usr/bin/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
