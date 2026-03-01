@@ -68,7 +68,7 @@ dnf5 swap -y \
 
 # Incus UI
 curl -Lo --retry 7 /tmp/incus-ui-canonical.deb \
-    https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/"$(curl https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/ | grep -E incus-ui-canonical | cut -d '"' -f 2 | sort -r | head -1)"
+    https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/"$(curl -L --retry 7 https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/ | grep -E incus-ui-canonical | cut -d '"' -f 2 | sort -r | head -1)"
 
 ar -x --output=/tmp /tmp/incus-ui-canonical.deb
 tar --zstd -xvf /tmp/data.tar.zst
