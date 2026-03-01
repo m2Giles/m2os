@@ -17,15 +17,16 @@ Description=Fix groups for Legacy rechunker
 Wants=local-fs.target
 After=local-fs.target
 Before=systemd-user-sessions.service
+ConditionPathExists=!/etc/.rechunker-fix-do-not-remove
 # Before=systemd-sysusers.service
 
 [Service]
 Type=oneshot
-ExecStart=bash -c 'touch /etc/gshadow && chmod 600 /etc/gshadow'
-ExecStart=bash -c 'rm /etc/gshadow'
-ExecStart=systemd-sysusers
-ExecStart=rechunker-group-fix
-ExecStart=systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
+ExecStartPre=/usr/bin/bash '/usr/bin/mv -f /etc/gshadow "/etc/gshadow-rechunker-backup.$(/usr/bin/date +%%Y%%m%%d%%H%%M%%S)" || true'
+ExecStart=/usr/bin/systemd-sysusers
+ExecStart=/usr/bin/rechunker-group-fix
+ExecStart=/usr/bin/systemd-tmpfiles --create --remove --boot --exclude-prefix=/dev
+RemainAfterExit=true
 
 [Install]
 WantedBy=default.target multi-user.target

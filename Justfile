@@ -235,11 +235,17 @@ rechunk image="bluefin":
     #!/usr/bin/bash
     set -eou pipefail
     IMG="localhost/{{ repo_image_name + ":" + image }}"
-    CHUNKAH_CONFIG_STR="$({{ PODMAN }} inspect "$IMG")"
-    {{ PODMAN }} run --rm --mount=type=image,src="$IMG",dst=/chunkah \
+    {{ PODMAN }} image exists "$IMG" || { echo "Image $IMG not found. Please build the image first." >&2; exit 1; }
+    mkdir -p {{ BUILD_DIR }}
+    TMPDIR="$(mktemp -d -p {{ BUILD_DIR }})"
+    trap 'rm -rf "$TMPDIR"' EXIT SIGINT
+    {{ PODMAN }} inspect "$IMG" > "$TMPDIR/inspect.json"
+    {{ PODMAN }} run --rm \
+        --mount=type=image,src="$IMG",dst=/chunkah \
+        --mount=type=bind,src="$TMPDIR/inspect.json",dst=/tmp/inspect.json,ro \
         --security-opt label=disable \
-        --env CHUNKAH_CONFIG_STR="$CHUNKAH_CONFIG_STR" \
         quay.io/jlebon/chunkah:dev build \
+        --config /tmp/inspect.json \
         --prune /sysroot/ \
         --max-layers 447 \
         > {{ repo_image_name + "_" + image + ".tar" }}

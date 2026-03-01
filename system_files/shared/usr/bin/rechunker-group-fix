@@ -16,3 +16,14 @@ while IFS= read -r f; do
    grep -q "^${group_name}:" "$GSHADOW_FILE" 2>/dev/null || \
      printf '%s\n' "${group_name}:!*::" >> "$GSHADOW_FILE"
 done < "$GROUP_FILE"
+
+cat > /etc/.rechunker-fix-do-not-remove <<EOF
+This file is for the group fix for the legacy rechunker. Do not remove this file, otherwise your groups will be modified.
+On Fedora Silverblue and many Universal Blue images, the groups are split into 2 files: /usr/lib/group, and /etc/group.
+This is a bad implementation that breaks the ability to rebase to an image that doesn't have a /usr/lib/group file. [1]
+This is functionality that is created by nss-altfiles[2], which is NOT standard, and modifies glibc to use /usr/lib/group.
+
+
+[1]: https://github.com/ublue-os/main/issues/759
+[2]: https://github.com/aperezdc/nss-altfiles
+EOF
