@@ -218,7 +218,14 @@ build-image image="bluefin":
         "--build-arg" "VERSION=$VERSION"
     )
 
-    {{ PODMAN }} build "${BUILD_ARGS[@]}" --security-opt label=disable --file Containerfile.in --tag localhost/{{ repo_image_name + ':' + image }} {{ justfile_dir() }}
+    # Additional Args
+    BUILD_ARGS+=(
+        "--security-opt" "label=disable"
+        "--file" "Containerfile.in"
+        "--tag" "{{ repo_image_name + ":" + image }}"
+    )
+
+    {{ PODMAN }} build "${BUILD_ARGS[@]}" {{ justfile_dir() }}
 
     {{ if CI != '' { PODMAN + ' rmi -f "${check%@*}"' } else { '' } }}
 
@@ -226,94 +233,22 @@ build-image image="bluefin":
 [group('Image')]
 rechunk image="bluefin":
     #!/usr/bin/bash
-    {{ PODMAN }} image exists localhost/{{ repo_image_name + ":" + image }} || { exit 1 ; }
-
-    if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman$ ]]; then
-       # Use Podman Unshare, and then exit
-       {{ PODMAN }} unshare -- {{ just }} rechunk {{ image }}
-       # Exit with previous exit code
-       exit "$?"
-    fi
-
-    {{ ci_grouping }}
-    echo "################################################################################"
-    echo "image  := {{ image }}"
-    echo "PODMAN := {{ PODMAN }}"
-    echo "CI     := {{ CI }}"
-    echo "################################################################################"
-    set -eoux pipefail
-
-    CREF=$({{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
-    OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
-    VERSION="$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')"
-    LABELS="
-    org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
-    org.opencontainers.image.revision=$(git rev-parse HEAD)
-    org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}
-    org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
-    ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}
-    ostree.linux=$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
-    "
-    if [[ ! "{{ PODMAN }}" =~ remote ]]; then
-        MOUNT=$({{ PODMAN }} mount "$CREF")
-    else
-        MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
-        {{ SUDOIF }} rm -rf "$MOUNTFS"
-        mkdir -p "$MOUNTFS"
-        {{ PODMAN }} export "$CREF" | tar --xattrs-include='*' -p -xf - -C "$MOUNTFS"
-        MOUNT="{{ GIT_ROOT }}/$MOUNTFS"
-        {{ PODMAN }} rm "$CREF"
-        {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
-    fi
-    # Workaround ublue-os/legacy-rechunk not being signed at this time
-    echo '{"default": [{"type": "insecureAcceptAnything"}]}' > /tmp/policy.json
-    {{ PODMAN }} pull --signature-policy=/tmp/policy.json {{ rechunker }}
-    {{ PODMAN }} run --rm \
+    set -eou pipefail
+    IMG="localhost/{{ repo_image_name + ":" + image }}"
+    CHUNKAH_CONFIG_STR="$({{ PODMAN }} inspect $IMG)"
+    {{ PODMAN }} run --rm --mount=type=image,src="$IMG",dst=/chunkah \
         --security-opt label=disable \
-        --volume "$MOUNT":/var/tree \
-        --env TREE=/var/tree \
-        --user 0:0 \
-        {{ rechunker }} \
-        /sources/rechunk/1_prune.sh
-    {{ PODMAN }} run --rm \
-        --security-opt label=disable \
-        --volume "$MOUNT":/var/tree \
-        --volume "cache_ostree:/var/ostree" \
-        --env TREE=/var/tree \
-        --env REPO=/var/ostree/repo \
-        --env RESET_TIMESTAMP=1 \
-        --user 0:0 \
-        {{ rechunker }} \
-        /sources/rechunk/2_create.sh
-    if [[ ! "{{ PODMAN }}" =~ remote ]]; then
-        {{ PODMAN }} unmount "$CREF"
-        {{ PODMAN }} rm "$CREF"
-        {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
-    else
-        {{ SUDOIF }} rm -rf "$MOUNTFS"
-    fi
-    {{ PODMAN }} run --rm \
-        --security-opt label=disable \
-        --volume "{{ GIT_ROOT }}:/workspace" \
-        --volume "{{ GIT_ROOT }}:/var/git" \
-        --volume cache_ostree:/var/ostree \
-        --env REPO=/var/ostree/repo \
-        --env PREV_REF={{ FQ_IMAGE_NAME + ":" + image }} \
-        --env LABELS="$LABELS" \
-        --env OUT_NAME="$OUT_NAME" \
-        --env VERSION="$VERSION" \
-        --env VERSION_FN=/workspace/version.txt \
-        --env OUT_REF="oci-archive:$OUT_NAME" \
-        --env GIT_DIR="/var/git" \
-        --user 0:0 \
-        {{ rechunker }} \
-        /sources/rechunk/3_chunk.sh
-    {{ PODMAN }} volume rm cache_ostree
+        --env CHUNKAH_CONFIG_STR="$CHUNKAH_CONFIG_STR" \
+        quay.io/jlebon/chunkah:dev build \
+        --prune /sysroot/ \
+        --max-layers 447 \
+        > {{ repo_image_name + "_" + image + ".tar" }}
 
 # Load Image into Podman and Tag
 [group('Image')]
 load-image image="bluefin":
     #!/usr/bin/bash
+    {{ PODMAN }} rmi -f localhost/{{ repo_image_name + ":" + image }} || true
     {{ if CI == '' { '' } else { 'exit 0' } }}
     {{ PODMAN }} tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
     {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name }}:"$(skopeo inspect oci-archive:{{ repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')"
@@ -345,11 +280,6 @@ build-iso image="bluefin":
 run-iso image="bluefin":
     {{ if path_exists(GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso") == "true" { '' } else { just + " build-iso " + image } }}
     {{ just }} titanoboa::container-run-vm {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
-
-# Test Changelogs
-[group('Changelogs')]
-changelogs target="Desktop" urlmd="" handwritten="":
-    python3 changelogs.py {{ target }} ./output-{{ target }}.env ./changelog-{{ target }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
 [group('Utility')]
@@ -406,28 +336,6 @@ secureboot image="bluefin":
     fi
     exit "$returncode"
 
-# Merge Changelogs
-[group('Changelogs')]
-merge-changelog type="stable":
-    #!/usr/bin/bash
-    set -eoux pipefail
-    rm -f changelog.md
-    cat {{ if type =~ 'beta' { 'changelog-Beta-Desktop.md changelog-Beta-Bazzite.md' } else { 'changelog-Desktop.md changelog-Bazzite.md' } }} > changelog.md
-    last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
-    date_extract="$(echo "${last_tag:-}" | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
-    date_version="$(echo "${last_tag:-}" | grep -oP '\.\K[0-9]+$' || true)"
-    if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
-        tag="{{ repo_image_name }}-${date_extract:-}.$(( ${date_version:-} + 1 ))"
-    else
-        tag="{{ repo_image_name }}-$(date +%Y%m%d)"
-    fi
-    cat << EOF
-    {
-        "title": "$tag{{ if type =~ 'beta' { '-beta' } else { '' } }} (#$(git rev-parse --short HEAD))",
-        "tag": "$tag{{ if type =~ 'beta' { '-beta' } else { '' } }}"
-    }
-    EOF
-
 # Lint Files
 [group('Utility')]
 lint:
@@ -470,7 +378,6 @@ lint-recipes:
     recipes=(
         build-image
         build-iso
-        changelogs
         cosign-sign
         gen-sbom
         rechunk
@@ -485,7 +392,6 @@ lint-recipes:
     recipes=(
         clean
         lint-recipes
-        merge-changelog
     )
     for recipe in "${recipes[@]}"; do
         {{ just }} _lint-recipe "shellcheck" "$recipe"

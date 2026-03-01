@@ -79,3 +79,8 @@ sed -i 's@\[Service\]@\[Service\]\nEnvironment=INCUS_UI=/usr/lib/incus/ui/@g' /u
 groupmod -g 250 incus-admin
 groupmod -g 251 incus
 groupmod -g 252 docker
+
+# Enable and start services
+
+# Workaround use of hhd-dev rechunk
+systemctl enable rechunker-group-fix.service

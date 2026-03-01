@@ -65,6 +65,7 @@ jobs:
 
       - name: Setup Syft
         id: setup-syft
+        # yamllint disable-line rule:line-length rule:comments
         uses: anchore/sbom-action/download-syft@v0
 
       - name: Download OCI-Archive
