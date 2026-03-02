@@ -40,8 +40,10 @@ for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
     for rpm in $rpms; do
         for file in $(rpm -q --queryformat '%{FILENAMES}\n' "$rpm"); do
             [[ "$file" =~ .build-id ]] && continue
+            if getfatter -n user.component "$file" &> /dev/null; then
+                continue
+            fi
             [[ -f "$file" ]] && setfattr -n user.component -v "rpm/$srpm" "$file"
-            # [[ -f "$file" ]] && echo "$file: rpm/$srpm"
         done
     done
 done
@@ -49,7 +51,7 @@ done
 find /usr /etc -type f -size +1M 2>/dev/null | while read -r file; do
     if ! rpm -qf "$file" &> /dev/null; then
         if ! getfattr -n user.component "$file" &> /dev/null; then
-        echo "$file: unpackaged"
+            echo "$file: unpackaged"
         fi
     fi
 done
