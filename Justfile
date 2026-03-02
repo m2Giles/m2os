@@ -42,7 +42,7 @@ images := '(
 # Build Containers
 
 [private]
-chunkah := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "chunkah")
+chunkah := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)\"" $1', image-file, "chunkah")
 [private]
 qemu := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "qemu")
 
@@ -202,18 +202,16 @@ build-image image="bluefin":
 
     # Labels
     BUILD_ARGS+=(
+        "--inherit-labels=false"
+        "--inherit-annotations=false"
         "--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
         "--label" "org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}"
         "--label" "org.opencontainers.image.title={{ repo_image_name }}"
         "--label" "org.opencontainers.image.version=$VERSION"
         "--label" "ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}"
         "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
-        "--unsetlabel=dev.hdd.rechunk.info"
-        "--unsetlabel=io.artifacthub.package.deprecated"
-        "--unsetlabel=io.artifacthub.package.keywords"
-        "--unsetlabel=io.artifacthub.package.logo-url"
-        "--unsetlabel=io.artifacthub.package.maintainers"
-        "--unsetlabel=io.artifacthub.package.readme-url"
+        "--label" "containers.bootc=1"
+        "--label" "ostree.bootable=true"
     )
 
     #Build Args
