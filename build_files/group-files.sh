@@ -85,11 +85,11 @@ for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
                 setfattr -n user.component -v "$srpm" "$file" 2>/dev/null || :
             fi
         done
-    ((rpm_count++))
-    ((total_rpms++))
+    ((rpm_count+=1))
+    ((total_rpms+=1))
     done
     echo "Processed $rpm_count RPMs for $srpm"
-    ((srpm_count++))
+    ((srpm_count+=1))
 done
 echo "Processed $total_rpms RPMs across $srpm_count SRPMs"
 
