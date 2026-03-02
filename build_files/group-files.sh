@@ -31,23 +31,29 @@ for file in $(rpm -q --fileprovide rpm); do
     [[ -f "$file" ]] && setfattr -n user.component -v "rpm/rpm" "$file"
 done
 
+set +x
 rawdata="$(rpm -qa --queryformat '%{SOURCERPM}|%{NAME}\n' | grep -v "(none)")"
 json_srpms="$(echo "$rawdata" | jq -R 'split("|") | {srpm: .[0], rpm: .[1]}')"
 json_data="$(echo "$json_srpms" | jq -s 'group_by(.srpm) | map({(.[0].srpm): map(.rpm)}) | add')"
 
 for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
     rpms="$(echo "$json_data" | jq -r --arg srpm "$srpm" '.[$srpm][]')"
+    set -x
     for rpm in $rpms; do
         for file in $(rpm -q --queryformat '%{FILENAMES}\n' "$rpm"); do
             [[ "$file" =~ .build-id ]] && continue
             if getfatter -n user.component "$file" &> /dev/null; then
                 continue
             fi
-            [[ -f "$file" ]] && setfattr -n user.component -v "rpm/$srpm" "$file"
+            if [[ -f "$file" ]]; then
+                setfattr -n user.component -v "rpm/$srpm" "$file" 2>/dev/null || :
+            fi
         done
     done
+    set +x
 done
 
+set -x
 find /usr /etc -type f -size +1M 2>/dev/null | while read -r file; do
     if ! rpm -qf "$file" &> /dev/null; then
         if ! getfattr -n user.component "$file" &> /dev/null; then
