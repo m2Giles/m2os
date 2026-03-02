@@ -68,11 +68,12 @@ json_data="$(echo "$json_srpms" | jq -s 'group_by(.srpm) | map({(.[0].srpm): map
 total_rpms=0
 srpm_count=0
 for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
-    rpm_count=0
+    file_count=0
     rpms="$(echo "$json_data" | jq -r --arg srpm "$srpm" '.[$srpm][]')"
     for rpm in $rpms; do
         if [[ "$rpm" =~ kernel-core ]]; then
             setfattr -n user.component -v "$srpm" "$(find /usr/lib/modules -type f -name initramfs.img)" 2>/dev/null || :
+            ((file_count+=1))
         fi
         for file in $(rpm -q --queryformat '%{FILENAMES}\n' "$rpm"); do
             if [[ "$file" =~ .build-id ]]; then
@@ -83,12 +84,12 @@ for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
             fi
             if [[ -e "$file" ]]; then
                 setfattr -n user.component -v "$srpm" "$file" 2>/dev/null || :
+                ((file_count+=1))
             fi
         done
-    ((rpm_count+=1))
     ((total_rpms+=1))
     done
-    echo "Processed $rpm_count RPMs for $srpm"
+    echo "Processed $file_count files for $srpm"
     ((srpm_count+=1))
 done
 echo "Processed $total_rpms RPMs across $srpm_count SRPMs"
