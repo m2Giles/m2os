@@ -65,7 +65,10 @@ rawdata="$(rpm -qa --queryformat '%{SOURCERPM}|%{NAME}\n' | grep -v "(none)")"
 json_srpms="$(echo "$rawdata" | jq -R 'split("|") | {srpm: .[0], rpm: .[1]}')"
 json_data="$(echo "$json_srpms" | jq -s 'group_by(.srpm) | map({(.[0].srpm): map(.rpm)}) | add')"
 
+total_rpms=0
+srpm_count=0
 for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
+    rpm_count=0
     rpms="$(echo "$json_data" | jq -r --arg srpm "$srpm" '.[$srpm][]')"
     for rpm in $rpms; do
         if [[ "$rpm" =~ kernel-core ]]; then
@@ -82,8 +85,13 @@ for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
                 setfattr -n user.component -v "$srpm" "$file" 2>/dev/null || :
             fi
         done
+    ((rpm_count++))
+    ((total_rpms++))
     done
+    echo "Processed $rpm_count RPMs for $srpm"
+    ((srpm_count++))
 done
+echo "Processed $total_rpms RPMs across $srpm_count SRPMs"
 
 find /usr /etc -type f -size +1M 2>/dev/null | while read -r file; do
     if ! rpm -qf "$file" &> /dev/null; then
@@ -92,5 +100,3 @@ find /usr /etc -type f -size +1M 2>/dev/null | while read -r file; do
         fi
     fi
 done
-
-
