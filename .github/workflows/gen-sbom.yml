@@ -100,8 +100,11 @@ jobs:
         run: |
           set -eou pipefail
           # Load the image into the container runtime (podman)
-          podman tag \
-          "$(podman load -i "/__w/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar")" \
+          cid="$(podman load -i \
+            /__w/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar | sed 's/Loaded image: //')"
+          podman tag "${cid}" \
+            ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+          podman tag "${cid}" \
           "localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}"
 
       - name: Create Rootfs
