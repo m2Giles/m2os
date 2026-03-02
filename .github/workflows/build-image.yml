@@ -87,6 +87,21 @@ jobs:
       - name: Mark Directory as Safe
         run: git config --system --ad safe.directory "$GITHUB_WORKSPACE"
 
+      - name: Update Dependencies
+        shell: bash
+        run: |
+          dnf swap -y --from-repo=updates-testing rpm-ostree rpm-ostree
+          dnf swap -y --from-repo=updates-testing podman podman
+          dnf swap -y --from-repo=updates-testing skopeo skopeo
+          dnf swap -y --from-repo=updates-testing buildah buildah
+
+      - name: Pull Older Image for Rechunking
+        shell: bash
+        run: |
+          if [[ "$(date -u +%d)" -gt 7 ]]; then
+            podman pull "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}"
+          fi
+
       - name: Build Image
         shell: bash
         run: |

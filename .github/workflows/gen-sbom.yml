@@ -107,7 +107,7 @@ jobs:
           echo "=== MAKING SWAPFILE ==="
           sudo swapoff /swapfile || true
           sudo rm -f /swapfile || true
-          SWAP_FILE="/swapfile"
+          SWAP_FILE="/mnt/swapfile"
           sudo fallocate -l 60G "$SWAP_FILE"
           sudo chmod 600 "$SWAP_FILE"
           sudo mkswap "$SWAP_FILE"
@@ -124,8 +124,8 @@ jobs:
           OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
           just gen-sbom \
-            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
-            "${{ runner.temp }}/${{ matrix.image }}.sbom.json"
+            "oci-archive:${GITHUB_WORKSPACE}/_temp/${{ env.OCI_ARCHIVE }}" \
+            "${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json"
 
       - name: Scan SBOM
         env:
@@ -134,7 +134,7 @@ jobs:
         uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7
         id: scan
         with:
-          sbom: ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+          sbom: ${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json
           fail-build: false
 
       - name: Inspect Sarif
@@ -173,8 +173,8 @@ jobs:
           set -eou pipefail
 
           just sbom-sign \
-            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
-            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+            "oci-archive:${GITHUB_WORKSPACE}/_temp/${{ env.OCI_ARCHIVE }}" \
+            "${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json"
 
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
@@ -182,7 +182,7 @@ jobs:
         with:
           name: ${{ matrix.image }}.sbom
           path: |-
-            ${{ runner.temp }}/${{ matrix.image }}.sbom.json*
+            ${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json*
 
       - name: Install ORAS
         if: >-
@@ -207,8 +207,8 @@ jobs:
           just login-to-ghcr ${{ github.actor }} ${{ github.token }}
 
           just sbom-attach \
-            "oci-archive:${{ runner.temp }}/${{ env.OCI_ARCHIVE }}" \
-            ${{ runner.temp }}/${{ matrix.image }}.sbom.json
+            "oci-archive:${GITHUB_WORKSPACE}/_temp/${{ env.OCI_ARCHIVE }}" \
+            "${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json"
 
   check:
     name: Check Gen SBOM Successful

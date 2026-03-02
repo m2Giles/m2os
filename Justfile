@@ -112,7 +112,7 @@ clean:
 
 # Build
 [group('Image')]
-build image="bluefin": (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
+build image="bluefin": (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image)
 
 # Build Image
 [group('Image')]
@@ -208,6 +208,12 @@ build-image image="bluefin":
         "--label" "org.opencontainers.image.version=$VERSION"
         "--label" "ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}"
         "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
+        "--unsetlabel=dev.hdd.rechunk.info"
+        "--unsetlabel=io.artifacthub.package.deprecated"
+        "--unsetlabel=io.artifacthub.package.keywords"
+        "--unsetlabel=io.artifacthub.package.logo-url"
+        "--unsetlabel=io.artifacthub.package.maintainers"
+        "--unsetlabel=io.artifacthub.package.readme-url"
     )
 
     #Build Args
@@ -233,39 +239,27 @@ build-image image="bluefin":
 [group('Image')]
 rechunk image="bluefin":
     #!/usr/bin/bash
+    if [[ "$(id -u)" -ne 0 ]]; then
+        {{ PODMAN + " unshare -- " + just + " rechunk " + image }}
+        exit $?
+    fi
     {{ ci_grouping }}
-    {{ shell('mkdir -p $1', GIT_ROOT / BUILD_DIR) }}
-    set -eou pipefail
-    {{ if CI != '' { 'set -x' } else { '' } }}
+    echo "################################################################################"
+    echo "image  := {{ image }}"
+    echo "PODMAN := {{ PODMAN }}"
+    echo "CI     := {{ CI }}"
+    echo "whoami := {{ shell("whoami") }}"
+    echo "################################################################################"
+    set -eoux pipefail
     IMG="localhost/{{ repo_image_name + ":" + image }}"
     {{ PODMAN }} image exists "$IMG" || { echo "Image $IMG not found. Please build the image first." >&2; exit 1; }
-    TMPDIR="$(mktemp -d -p {{ GIT_ROOT / BUILD_DIR }})"
-    trap 'rm -rf "$TMPDIR"' EXIT SIGINT
-    {{ PODMAN }} inspect "$IMG" > "$TMPDIR/inspect.json"
-    {{ PODMAN }} run --rm \
-        --mount=type=image,src="$IMG",dst=/chunkah \
-        --mount=type=bind,src="$TMPDIR/inspect.json",dst=/tmp/inspect.json,ro \
-        --security-opt label=disable \
-        {{ chunkah }} build \
-        {{ if CI != '' { '-v' } else { '' } }} \
-        --config /tmp/inspect.json \
-        --prune /sysroot/ \
-        --prune /var/ \
-        --prune /run/ \
-        --prune /tmp/ \
-        --prune /run/ \
-        --max-layers 448 \
-        > {{ repo_image_name + "_" + image + ".tar" }}
+    /usr/libexec/bootc-base-imagectl rechunk --max-layers=128 \
+        localhost/{{ repo_image_name + ":" + image }} \
+        {{ FQ_IMAGE_NAME + ":" + image }}
 
-# Load Image into Podman and Tag
-[group('Image')]
-load-image image="bluefin":
-    #!/usr/bin/bash
-    {{ if CI == '' { '' } else { 'exit 0' } }}
-    {{ PODMAN }} rmi -f localhost/{{ repo_image_name + ":" + image }} || true
-    {{ PODMAN }} tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
-    {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name }}:"$(skopeo inspect oci-archive:{{ repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')"
     {{ PODMAN }} images
+    {{ PODMAN }} rmi -f "$IMG"
+    {{ skopeo }} copy containers-storage:{{ FQ_IMAGE_NAME + ":" + image }} oci-archive:{{ repo_image_name + "_" + image + ".tar" }}
 
 # Build ISO
 [group('ISO')]
@@ -419,8 +413,8 @@ login-to-ghcr $user $token:
 # Push Images to Registry
 [group('CI')]
 push-to-registry image dryrun="true" $destination="":
-    for tag in {{ image }} {{ shell("skopeo inspect oci-archive:$1_$2.tar | jq -r '.Labels[\"org.opencontainers.image.version\"]'", repo_image_name, image) }}; do \
-        {{ if dryrun == "false" { 'skopeo copy oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
+    for tag in {{ image }} {{ shell("skopeo inspect containers-storage:$1:$2 | jq -r '.Labels[\"org.opencontainers.image.version\"]'", FQ_IMAGE_NAME, image) }}; do \
+        {{ if dryrun == "false" { 'skopeo copy containers-storage:' + FQ_IMAGE_NAME + ":" + image + " ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
     ; done
 
 # Sign Images with Cosign

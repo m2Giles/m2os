@@ -109,11 +109,11 @@ jobs:
         shell: bash
         run: |
           cid="$(podman load -i \
-            ${{ runner.temp }}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar)"
+            ${GITHUB_WORKSPACE}/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar)"
           podman tag "${cid}" \
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
           podman images
-          rm -f ${{ runner.temp }}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+          rm -f ${GITHUB_WORKSPACE}/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
 
       - name: Build ISO
         shell: bash
@@ -127,8 +127,8 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: ${{ matrix.image }}-iso
-          path: |
-            ./${{ env.IMAGE_NAME }}_build/output/
+          path: |-
+            ${GITHUB_WORKSPACE}/${{ env.IMAGE_NAME }}_build/output/
           if-no-files-found: warn
           retention-days: 0
           compression-level: 0
