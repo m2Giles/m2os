@@ -95,37 +95,35 @@ jobs:
           name: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
           path: ${{ runner.temp }}
 
-      - name: Setup
-        id: setup
+      - name: Load Image into Container Runtime
+        shell: bash
         run: |
           set -eou pipefail
-          echo "=== FREE SPACE ==="
-          df -h
-          echo "=== MEMORY AND SWAP ==="
-          free -h
-          swapon --show
-          echo "=== MAKING SWAPFILE ==="
-          sudo swapoff /swapfile || true
-          sudo rm -f /swapfile || true
-          SWAP_FILE="/mnt/swapfile"
-          sudo fallocate -l 60G "$SWAP_FILE"
-          sudo chmod 600 "$SWAP_FILE"
-          sudo mkswap "$SWAP_FILE"
-          sudo swapon "$SWAP_FILE"
-          echo "=== FREE SPACE ==="
-          df -h
-          echo "=== MEMORY AND SWAP ==="
-          free -h
-          swapon --show
+          # Load the image into the container runtime (podman)
+          podman tag \
+          "$(podman load -i "/__w/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar")" \
+          "localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}"
+
+      - name: Create Rootfs
+        shell: bash
+        run: |
+          set -eou pipefail
+          mkdir -p "/__w/_temp/${{ matrix.image }}-rootfs"
+          podman container create \
+            --replace --name sbom-gen \
+            "localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}"
+          podman export sbom-gen | tar -C "/__w/_temp/${{ matrix.image }}-rootfs" -xf -
+          podman rm sbom-gen
 
       - name: Generate SBOM
         id: gen
-        env:
-          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         run: |
+          export SYFT_PARALLISM="$(($(nproc) * 2))"
+          export SYFT_SOURCE_NAME="${{ env.IMAGE_NAME }}-${{ matrix.image }}"
           just gen-sbom \
-            "oci-archive:${GITHUB_WORKSPACE}/_temp/${{ env.OCI_ARCHIVE }}" \
-            "${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json"
+            "/__w/_temp/${{ matrix.image }}-rootfs" \
+            "/__w/_temp/${{ matrix.image }}.sbom.json"
+          rm -rf "/__w/_temp/${{ matrix.image }}-rootfs"
 
       - name: Scan SBOM
         env:
@@ -134,7 +132,7 @@ jobs:
         uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7
         id: scan
         with:
-          sbom: ${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json
+          sbom: /__w/_temp/${{ matrix.image }}.sbom.json
           fail-build: false
 
       - name: Inspect Sarif
@@ -150,15 +148,6 @@ jobs:
           sarif_file: ${{ steps.scan.outputs.sarif }}
           category: ${{ matrix.image }}
 
-      - name: Setup Cosign
-        if: >-
-          contains(fromJson('["workflow_dispatch", "merge_group"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
-        # yamllint disable-line rule:line-length rule:comments
-        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
-        with:
-          cosign-release: 'v2.4.1'
-
       - name: Sign SBOM
         id: sign
         if: >-
@@ -173,8 +162,8 @@ jobs:
           set -eou pipefail
 
           just sbom-sign \
-            "oci-archive:${GITHUB_WORKSPACE}/_temp/${{ env.OCI_ARCHIVE }}" \
-            "${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json"
+            "oci-archive:/__w/_temp/${{ env.OCI_ARCHIVE }}" \
+            "/__w/_temp/${{ matrix.image }}.sbom.json"
 
       - name: Upload SBOM
         # yamllint disable-line rule:line-length rule:comments
@@ -182,14 +171,7 @@ jobs:
         with:
           name: ${{ matrix.image }}.sbom
           path: |-
-            ${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json*
-
-      - name: Install ORAS
-        if: >-
-          contains(fromJson('["workflow_dispatch", "merge_group"]'),
-          github.event_name) || github.event.schedule == '41 6 * * 0'
-        # yamllint disable-line rule:line-length rule:comments
-        uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
+            /__w/_temp/${{ matrix.image }}.sbom.json*
 
       - name: Attach SBOM
         id: attest
@@ -207,8 +189,8 @@ jobs:
           just login-to-ghcr ${{ github.actor }} ${{ github.token }}
 
           just sbom-attach \
-            "oci-archive:${GITHUB_WORKSPACE}/_temp/${{ env.OCI_ARCHIVE }}" \
-            "${GITHUB_WORKSPACE}/_temp/${{ matrix.image }}.sbom.json"
+            "oci-archive:/__w/_temp/${{ env.OCI_ARCHIVE }}" \
+            "/__w/_temp/${{ matrix.image }}.sbom.json"
 
   check:
     name: Check Gen SBOM Successful
