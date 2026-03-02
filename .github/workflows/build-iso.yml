@@ -108,10 +108,11 @@ jobs:
       - name: Load Image into Podman
         shell: bash
         run: |
+          image_registry="${{ env.IMAGE_REGISTRY }}"
           cid="$(podman load -i \
             /__w/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar | sed 's/Loaded image: //')"
           podman tag "${cid}" \
-            ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+            ${image_registry,,}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
           podman images
           rm -f /__w/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
 

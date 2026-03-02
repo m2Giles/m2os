@@ -99,11 +99,12 @@ jobs:
         shell: bash
         run: |
           set -eou pipefail
+          image_registry="${{ env.IMAGE_REGISTRY }}"
           # Load the image into the container runtime (podman)
           cid="$(podman load -i \
             /__w/_temp/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar | sed 's/Loaded image: //')"
           podman tag "${cid}" \
-            ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+            ${image_registry,,}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
           podman tag "${cid}" \
           "localhost/${{ env.IMAGE_NAME }}:${{ matrix.image }}"
 
@@ -129,8 +130,6 @@ jobs:
           rm -rf "/__w/_temp/${{ matrix.image }}-rootfs"
 
       - name: Scan SBOM
-        env:
-          OCI_ARCHIVE: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
         # yamllint disable-line rule:line-length rule:comments
         uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7
         id: scan
