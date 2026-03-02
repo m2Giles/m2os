@@ -28,7 +28,7 @@ LAYERED_PACKAGES=(
     cascadia-fonts-all
     git-credential-libsecret
     git-credential-oauth
-    emacs
+    emacs-pgtk
     qemu-ui-gtk
     spice-gtk-tools
     sunshine
@@ -65,14 +65,14 @@ systemctl disable brew-upgrade.timer
 systemctl enable uupd.timer
 
 # Devpod cli
-curl -Lo /usr/bin/devpod "https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-amd64"
+ghcurl "https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-amd64" -o /usr/bin/devpod
 chmod +x /usr/bin/devpod
 /usr/bin/devpod completion bash >/etc/bash_completion.d/devpod.sh
 /usr/bin/devpod completion fish >/usr/share/fish/completions/devpod.fish
 
 # Macadam
 mkdir -p /usr/share/factory/opt/macadam/bin/
-curl -Lo /usr/share/factory/opt/macadam/bin/macadam https://github.com/crc-org/macadam/releases/latest/download/macadam-linux-amd64
+ghcurl https://github.com/crc-org/macadam/releases/latest/download/macadam-linux-amd64 -o /usr/share/factory/opt/macadam/bin/macadam
 chmod +x /usr/share/factory/opt/macadam/bin/macadam
 ln -s /usr/share/factory/opt/macadam/bin/macadam /usr/bin/macadam
 /usr/bin/macadam completion bash >/etc/bash_completion.d/macadam.sh

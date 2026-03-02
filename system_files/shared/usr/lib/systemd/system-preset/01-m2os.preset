@@ -1,0 +1,5 @@
+enable brew-setup.service
+enable m2os-flatpak-overrides.service
+enable rechunker-group-fix.service
+enable tailscaled.service
+enable uupd.timer

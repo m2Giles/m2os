@@ -67,8 +67,10 @@ dnf5 swap -y \
     nano-default-editor vim-default-editor
 
 # Incus UI
-curl -Lo /tmp/incus-ui-canonical.deb \
-    https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/"$(curl https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/ | grep -E incus-ui-canonical | cut -d '"' -f 2 | sort -r | head -1)"
+deblist="$(curl --retry 7 https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/)"
+incusui_deb="$(echo "$deblist" | grep -E incus-ui-canonical | cut -d '"' -f 2 | sort -r | head -1)"
+curl --retry 7 -Lo /tmp/incus-ui-canonical.deb \
+    "https://pkgs.zabbly.com/incus/stable/pool/main/i/incus/$incusui_deb"
 
 ar -x --output=/tmp /tmp/incus-ui-canonical.deb
 tar --zstd -xvf /tmp/data.tar.zst
@@ -79,3 +81,8 @@ sed -i 's@\[Service\]@\[Service\]\nEnvironment=INCUS_UI=/usr/lib/incus/ui/@g' /u
 groupmod -g 250 incus-admin
 groupmod -g 251 incus
 groupmod -g 252 docker
+
+# Enable and start services
+
+# Workaround use of hhd-dev rechunk
+systemctl enable rechunker-group-fix.service

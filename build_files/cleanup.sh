@@ -56,14 +56,21 @@ done
 rmdir /opt
 ln -sf var/opt /opt
 
-rm -rf /tmp
-# shellcheck disable=SC2114
-rm -rf /var
-# shellcheck disable=SC2114
-rm -rf /boot
+#shellcheck disable=SC2114
+rm -rf /tmp /var/tmp /var /boot
 rm -rf /usr/etc
 rm -rf /usr/lib/.build-id
 rm -rf /usr/src/kernels/*
+
+rm -rf \
+    /etc/.pwd.lock \
+    /etc/passwd- \
+    /etc/group- \
+    /etc/shadow- \
+    /etc/gshadow- \
+    /etc/subuid- \
+    /etc/subgid- \
+    /.dockerenv
 
 mkdir -p /tmp
 mkdir -p /var/tmp

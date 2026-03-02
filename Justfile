@@ -42,9 +42,9 @@ images := '(
 # Build Containers
 
 [private]
-rechunker := "ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64@sha256:1ee0b4ad0eee9b300cca1afd8cf78b78ce77bcc0d5aa16b07a195c6c22f1c9b4"
+chunkah := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "chunkah")
 [private]
-qemu := "ghcr.io/qemus/qemu:7.29@sha256:a2a76a6b5d2304a132c7fda832670af972c1e1437d48b4bc3dea08d001b08eba"
+qemu := shell('yq -r ".images[] | select(.name == \"$2\") | \"\\(.image):\\(.tag)@\\(.digest)\"" $1', image-file, "qemu")
 
 # Base Containers
 
@@ -112,7 +112,7 @@ clean:
 
 # Build
 [group('Image')]
-build image="bluefin": (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image) (load-image image)
+build image="bluefin": (build-image image) (secureboot "localhost" / repo_image_name + ":" + image) (rechunk image)
 
 # Build Image
 [group('Image')]
@@ -133,8 +133,8 @@ build-image image="bluefin":
     fi
 
     BUILD_ARGS=({{ if CI != '' { '--cpp-flag=-DGHCI' } else { '' } }})
-    mkdir -p {{ BUILD_DIR }}
-    BUILDTMP="$(mktemp -d -p {{ BUILD_DIR }})"
+    mkdir -p {{ GIT_ROOT / BUILD_DIR }}
+    BUILDTMP="$(mktemp -d -p {{ GIT_ROOT / BUILD_DIR }})"
     trap 'rm -rf $BUILDTMP' EXIT SIGINT
 
     set -eoux pipefail
@@ -208,6 +208,12 @@ build-image image="bluefin":
         "--label" "org.opencontainers.image.version=$VERSION"
         "--label" "ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}"
         "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
+        "--unsetlabel=dev.hdd.rechunk.info"
+        "--unsetlabel=io.artifacthub.package.deprecated"
+        "--unsetlabel=io.artifacthub.package.keywords"
+        "--unsetlabel=io.artifacthub.package.logo-url"
+        "--unsetlabel=io.artifacthub.package.maintainers"
+        "--unsetlabel=io.artifacthub.package.readme-url"
     )
 
     #Build Args
@@ -218,7 +224,14 @@ build-image image="bluefin":
         "--build-arg" "VERSION=$VERSION"
     )
 
-    {{ PODMAN }} build "${BUILD_ARGS[@]}" --security-opt label=disable --file Containerfile.in --tag localhost/{{ repo_image_name + ':' + image }} {{ justfile_dir() }}
+    # Additional Args
+    BUILD_ARGS+=(
+        "--security-opt" "label=disable"
+        "--file" "Containerfile.in"
+        "--tag" "{{ repo_image_name + ":" + image }}"
+    )
+
+    {{ PODMAN }} build "${BUILD_ARGS[@]}" {{ GIT_ROOT }}
 
     {{ if CI != '' { PODMAN + ' rmi -f "${check%@*}"' } else { '' } }}
 
@@ -226,103 +239,32 @@ build-image image="bluefin":
 [group('Image')]
 rechunk image="bluefin":
     #!/usr/bin/bash
-    {{ PODMAN }} image exists localhost/{{ repo_image_name + ":" + image }} || { exit 1 ; }
-
-    if [[ "${UID}" -gt "0" && "{{ PODMAN }}" =~ podman$ ]]; then
-       # Use Podman Unshare, and then exit
-       {{ PODMAN }} unshare -- {{ just }} rechunk {{ image }}
-       # Exit with previous exit code
-       exit "$?"
+    if [[ "$(id -u)" -ne 0 ]]; then
+        {{ PODMAN + " unshare -- " + just + " rechunk " + image }}
+        exit $?
     fi
-
     {{ ci_grouping }}
     echo "################################################################################"
     echo "image  := {{ image }}"
     echo "PODMAN := {{ PODMAN }}"
     echo "CI     := {{ CI }}"
+    echo "whoami := {{ shell("whoami") }}"
     echo "################################################################################"
     set -eoux pipefail
+    IMG="localhost/{{ repo_image_name + ":" + image }}"
+    {{ PODMAN }} image exists "$IMG" || { echo "Image $IMG not found. Please build the image first." >&2; exit 1; }
+    /usr/libexec/bootc-base-imagectl rechunk --max-layers=128 \
+        localhost/{{ repo_image_name + ":" + image }} \
+        {{ FQ_IMAGE_NAME + ":" + image }}
 
-    CREF=$({{ PODMAN }} create localhost/{{ repo_image_name }}:{{ image }} bash)
-    OUT_NAME="{{ repo_image_name }}_{{ image }}.tar"
-    VERSION="$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["org.opencontainers.image.version"]')"
-    LABELS="
-    org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses.
-    org.opencontainers.image.revision=$(git rev-parse HEAD)
-    org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}
-    org.opencontainers.image.title={{ repo_image_name }}:{{ image }}
-    ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}
-    ostree.linux=$({{ PODMAN }} inspect "$CREF" | jq -r '.[].Config.Labels["ostree.linux"]')
-    "
-    if [[ ! "{{ PODMAN }}" =~ remote ]]; then
-        MOUNT=$({{ PODMAN }} mount "$CREF")
-    else
-        MOUNTFS="{{ BUILD_DIR }}/{{ image }}_rootfs"
-        {{ SUDOIF }} rm -rf "$MOUNTFS"
-        mkdir -p "$MOUNTFS"
-        {{ PODMAN }} export "$CREF" | tar --xattrs-include='*' -p -xf - -C "$MOUNTFS"
-        MOUNT="{{ GIT_ROOT }}/$MOUNTFS"
-        {{ PODMAN }} rm "$CREF"
-        {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
-    fi
-    # Workaround ublue-os/legacy-rechunk not being signed at this time
-    echo '{"default": [{"type": "insecureAcceptAnything"}]}' > /tmp/policy.json
-    {{ PODMAN }} pull --signature-policy=/tmp/policy.json {{ rechunker }}
-    {{ PODMAN }} run --rm \
-        --security-opt label=disable \
-        --volume "$MOUNT":/var/tree \
-        --env TREE=/var/tree \
-        --user 0:0 \
-        {{ rechunker }} \
-        /sources/rechunk/1_prune.sh
-    {{ PODMAN }} run --rm \
-        --security-opt label=disable \
-        --volume "$MOUNT":/var/tree \
-        --volume "cache_ostree:/var/ostree" \
-        --env TREE=/var/tree \
-        --env REPO=/var/ostree/repo \
-        --env RESET_TIMESTAMP=1 \
-        --user 0:0 \
-        {{ rechunker }} \
-        /sources/rechunk/2_create.sh
-    if [[ ! "{{ PODMAN }}" =~ remote ]]; then
-        {{ PODMAN }} unmount "$CREF"
-        {{ PODMAN }} rm "$CREF"
-        {{ PODMAN }} rmi -f localhost/{{ repo_image_name }}:{{ image }}
-    else
-        {{ SUDOIF }} rm -rf "$MOUNTFS"
-    fi
-    {{ PODMAN }} run --rm \
-        --security-opt label=disable \
-        --volume "{{ GIT_ROOT }}:/workspace" \
-        --volume "{{ GIT_ROOT }}:/var/git" \
-        --volume cache_ostree:/var/ostree \
-        --env REPO=/var/ostree/repo \
-        --env PREV_REF={{ FQ_IMAGE_NAME + ":" + image }} \
-        --env LABELS="$LABELS" \
-        --env OUT_NAME="$OUT_NAME" \
-        --env VERSION="$VERSION" \
-        --env VERSION_FN=/workspace/version.txt \
-        --env OUT_REF="oci-archive:$OUT_NAME" \
-        --env GIT_DIR="/var/git" \
-        --user 0:0 \
-        {{ rechunker }} \
-        /sources/rechunk/3_chunk.sh
-    {{ PODMAN }} volume rm cache_ostree
-
-# Load Image into Podman and Tag
-[group('Image')]
-load-image image="bluefin":
-    #!/usr/bin/bash
-    {{ if CI == '' { '' } else { 'exit 0' } }}
-    {{ PODMAN }} tag "$({{ PODMAN + " pull oci-archive:" + repo_image_name + "_" + image + ".tar" }})" localhost/{{ repo_image_name + ":" + image }}
-    {{ PODMAN }} tag localhost/{{ repo_image_name + ":" + image }} localhost/{{ repo_image_name }}:"$(skopeo inspect oci-archive:{{ repo_image_name + '_' + image + '.tar' }} | jq -r '.Labels["org.opencontainers.image.version"]')"
     {{ PODMAN }} images
+    {{ PODMAN }} rmi -f "$IMG"
+    {{ skopeo }} copy containers-storage:{{ FQ_IMAGE_NAME + ":" + image }} oci-archive:{{ repo_image_name + "_" + image + ".tar" }}
 
 # Build ISO
 [group('ISO')]
 build-iso image="bluefin":
-    {{ shell("mkdir -p $1/output", BUILD_DIR) }}
+    {{ shell("mkdir -p $1/output", GIT_ROOT / BUILD_DIR) }}
     {{ SUDOIF }} \
         HOOK_pre_initramfs="{{ if image =~ 'bazzite' { GIT_ROOT / 'iso_files/preinitramfs.sh' } else { '' } }}" \
         HOOK_post_rootfs="{{ GIT_ROOT / 'iso_files/configure_iso.sh' }}" \
@@ -336,8 +278,8 @@ build-iso image="bluefin":
         {{ FQ_IMAGE_NAME + ":" + image }} \
         "1"
     {{ SUDOIF }} chown "$(id -u):$(id -g)" output.iso
-    sha256sum output.iso | tee {{ BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso-CHECKSUM" }}
-    mv output.iso {{ BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
+    sha256sum output.iso | tee {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso-CHECKSUM" }}
+    mv output.iso {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
     {{ SUDOIF }} {{ just }} titanoboa::clean
 
 # Run ISO
@@ -345,11 +287,6 @@ build-iso image="bluefin":
 run-iso image="bluefin":
     {{ if path_exists(GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso") == "true" { '' } else { just + " build-iso " + image } }}
     {{ just }} titanoboa::container-run-vm {{ GIT_ROOT / BUILD_DIR / "output" / repo_image_name + "-" + image + ".iso" }}
-
-# Test Changelogs
-[group('Changelogs')]
-changelogs target="Desktop" urlmd="" handwritten="":
-    python3 changelogs.py {{ target }} ./output-{{ target }}.env ./changelog-{{ target }}.md --workdir . --handwritten "{{ handwritten }}" --urlmd "{{ urlmd }}"
 
 # Verify Container with Cosign
 [group('Utility')]
@@ -406,28 +343,6 @@ secureboot image="bluefin":
     fi
     exit "$returncode"
 
-# Merge Changelogs
-[group('Changelogs')]
-merge-changelog type="stable":
-    #!/usr/bin/bash
-    set -eoux pipefail
-    rm -f changelog.md
-    cat {{ if type =~ 'beta' { 'changelog-Beta-Desktop.md changelog-Beta-Bazzite.md' } else { 'changelog-Desktop.md changelog-Bazzite.md' } }} > changelog.md
-    last_tag=$(git tag --list {{ repo_image_name }}-\* | sort -V | tail -1)
-    date_extract="$(echo "${last_tag:-}" | grep -oP '{{ repo_image_name }}-\K[0-9]+')"
-    date_version="$(echo "${last_tag:-}" | grep -oP '\.\K[0-9]+$' || true)"
-    if [[ "${date_extract:-}" == "$(date +%Y%m%d)" ]]; then
-        tag="{{ repo_image_name }}-${date_extract:-}.$(( ${date_version:-} + 1 ))"
-    else
-        tag="{{ repo_image_name }}-$(date +%Y%m%d)"
-    fi
-    cat << EOF
-    {
-        "title": "$tag{{ if type =~ 'beta' { '-beta' } else { '' } }} (#$(git rev-parse --short HEAD))",
-        "tag": "$tag{{ if type =~ 'beta' { '-beta' } else { '' } }}"
-    }
-    EOF
-
 # Lint Files
 [group('Utility')]
 lint:
@@ -470,7 +385,6 @@ lint-recipes:
     recipes=(
         build-image
         build-iso
-        changelogs
         cosign-sign
         gen-sbom
         rechunk
@@ -485,7 +399,6 @@ lint-recipes:
     recipes=(
         clean
         lint-recipes
-        merge-changelog
     )
     for recipe in "${recipes[@]}"; do
         {{ just }} _lint-recipe "shellcheck" "$recipe"
@@ -500,8 +413,8 @@ login-to-ghcr $user $token:
 # Push Images to Registry
 [group('CI')]
 push-to-registry image dryrun="true" $destination="":
-    for tag in {{ image }} {{ shell("skopeo inspect oci-archive:$1_$2.tar | jq -r '.Labels[\"org.opencontainers.image.version\"]'", repo_image_name, image) }}; do \
-        {{ if dryrun == "false" { 'skopeo copy oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
+    for tag in {{ image }} {{ shell("skopeo inspect containers-storage:$1:$2 | jq -r '.Labels[\"org.opencontainers.image.version\"]'", FQ_IMAGE_NAME, image) }}; do \
+        {{ if dryrun == "false" { 'skopeo copy containers-storage:' + FQ_IMAGE_NAME + ":" + image + " ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
     ; done
 
 # Sign Images with Cosign
