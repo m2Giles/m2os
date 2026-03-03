@@ -113,7 +113,7 @@ jobs:
           archive: false
 
       - name: Upload ISO Checksums to Job Artifacts
-        id: upload
+        id: checksum
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
