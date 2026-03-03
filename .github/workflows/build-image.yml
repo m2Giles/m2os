@@ -49,7 +49,7 @@ jobs:
       matrix:
         image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
     container:
-      image: "ghcr.io/ublue-os/devcontainer:latest"
+      image: "ghcr.io/ublue-os/devcontainer:latest@sha256:a17bd272f76d0eed630ffc5ddc46bcdf380a03be8f21de4cb466b78f30ee1cd6"
       # yamllint disable-line rule:line-length rule:comments
       options: "--privileged --volume /:/host-sys --volume /var/lib/containers:/var/lib/containers
         --security-opt seccomp=unconfined --security-opt apparmor=unconfined --security-opt
