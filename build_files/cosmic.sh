@@ -25,7 +25,6 @@ dnf5 config-manager setopt charm.enabled=1 tailscale-stable.enabled=1
 # Cosmic Packages
 PACKAGES=(
     NetworkManager-openvpn
-    ark
     cosmic-files
     cosmic-initial-setup
     cosmic-player
@@ -151,7 +150,7 @@ dnf5 remove -y "${UNINSTALL_PACKAGES[@]}"
 sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/_copr_ublue-os-akmods.repo
 
 # Starship Shell Prompt
-curl -Lo /tmp/starship.tar.gz "https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz"
+ghcurl "https://github.com/starship/starship/releases/latest/download/starship-x86_64-unknown-linux-gnu.tar.gz" -o /tmp/starship.tar.gz
 tar -xzf /tmp/starship.tar.gz -C /tmp
 install -c -m 0755 /tmp/starship /usr/bin
 

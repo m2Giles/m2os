@@ -60,11 +60,6 @@ jobs:
       matrix:
         image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
     steps:
-      - name: Checkout
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          submodules: true
       - name: Maximize Build Space
         # yamllint disable-line rule:line-length rule:comments
         uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6 # v10
@@ -73,24 +68,63 @@ jobs:
         # yamllint disable-line rule:line-length rule:comments
         uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
 
+      - name: Checkout
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          submodules: true
+
+      - name: Download OCI-Archive
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
+        with:
+          name: ${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+          path: ${{ runner.temp }}
+
+      - name: Load Image into Podman
+        shell: bash
+        run: |
+          image_registry="${{ env.IMAGE_REGISTRY }}"
+          cid="$(sudo -E podman load -i \
+            ${{ runner.temp }}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar | sed 's/Loaded image: //')"
+          sudo -E podman tag "${cid}" \
+            ${image_registry,,}/${{ env.IMAGE_NAME }}:${{ matrix.image }}
+          sudo -E podman images
+          rm -f ${{ runner.temp }}/${{ env.IMAGE_NAME }}_${{ matrix.image }}.tar
+
       - name: Build ISO
         shell: bash
         run: |
           just build-iso ${{ matrix.image }}
           tree "./${{ env.IMAGE_NAME }}_build/output/"
 
-      - name: Upload ISOs and Checksum to Job Artifacts
+      - name: Upload ISOs to Job Artifacts
         id: upload
         # yamllint disable-line rule:line-length rule:comments
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: ${{ matrix.image }}-iso
-          path: |
-            ./${{ env.IMAGE_NAME }}_build/output/
+          path: |-
+            ./${{ env.IMAGE_NAME }}_build/output/*.iso
           if-no-files-found: warn
           retention-days: 0
           compression-level: 0
           overwrite: true
+          archive: false
+
+      - name: Upload ISO Checksums to Job Artifacts
+        id: checksum
+        # yamllint disable-line rule:line-length rule:comments
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: ${{ matrix.image }}-iso-CHECKSUM
+          path: |-
+            ./${{ env.IMAGE_NAME }}_build/output/*.iso-CHECKSUM
+          if-no-files-found: warn
+          retention-days: 0
+          compression-level: 0
+          overwrite: true
+          archive: false
 
       - name: Make URL Artifact
         shell: bash
@@ -112,6 +146,7 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
+          archive: false
 
   check-iso:
     name: Check all ISOs Created
@@ -130,58 +165,3 @@ jobs:
       - name: Exit
         shell: bash
         run: exit 0
-
-  generate-release:
-    name: Generate ${{ inputs.image_flavor }} Changelog
-    needs: [check-iso]
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout last 500 commits (for <commits> to work)
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 500
-
-      - name: Download Artifacts
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
-        with:
-          pattern: url-${{ inputs.image_flavor }}-*
-          merge-multiple: true
-
-      - name: Merge Artifacts into url.md
-        id: merge-artifacts
-        shell: bash
-        run: |
-          set -eoux pipefail
-          touch url.md
-          for artifact in $(find url-${{ inputs.image_flavor }}-*); do
-            cat $artifact >> url.md
-          done
-          echo "urlmd=url.md" >> $GITHUB_OUTPUT
-
-      - name: Generate Release Text
-        id: generate-release
-        run: |
-          set -eoux pipefail
-          python3 ./changelogs.py \
-            "${{ inputs.image_flavor }}" \
-            ./output-${{ inputs.image_flavor }}.env \
-            ./changelog-${{ inputs.image_flavor }}.md \
-            --workdir . \
-            --handwritten "" \
-            --urlmd "${{ steps.merge-artifacts.outputs.urlmd }}"
-          source ./output-${{ inputs.image_flavor }}.env
-
-      - name: Upload Changelogs as Artifact
-        # yamllint disable-line rule:line-length rule:comments
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
-        with:
-          name: changelogs-${{ inputs.image_flavor }}
-          path: ./changelog-${{ inputs.image_flavor }}.md
-          if-no-files-found: error
-          retention-days: 0
-          compression-level: 0
-          overwrite: true

@@ -28,7 +28,7 @@ LAYERED_PACKAGES=(
     cascadia-fonts-all
     git-credential-libsecret
     git-credential-oauth
-    emacs
+    emacs-pgtk
     qemu-ui-gtk
     spice-gtk-tools
     sunshine
@@ -65,18 +65,24 @@ systemctl disable brew-upgrade.timer
 systemctl enable uupd.timer
 
 # Devpod cli
-curl -Lo /usr/bin/devpod "https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-amd64"
+ghcurl "https://github.com/loft-sh/devpod/releases/latest/download/devpod-linux-amd64" -o /usr/bin/devpod
 chmod +x /usr/bin/devpod
 /usr/bin/devpod completion bash >/etc/bash_completion.d/devpod.sh
 /usr/bin/devpod completion fish >/usr/share/fish/completions/devpod.fish
+setfattr -n user.component -v "rpm/devpod" /usr/bin/devpod
+setfattr -n user.component -v "rpm/devpod" /etc/bash_completion.d/devpod.sh
+setfattr -n user.component -v "rpm/devpod" /usr/share/fish/completions/devpod.fish
 
 # Macadam
 mkdir -p /usr/share/factory/opt/macadam/bin/
-curl -Lo /usr/share/factory/opt/macadam/bin/macadam https://github.com/crc-org/macadam/releases/latest/download/macadam-linux-amd64
+ghcurl https://github.com/crc-org/macadam/releases/latest/download/macadam-linux-amd64 -o /usr/share/factory/opt/macadam/bin/macadam
 chmod +x /usr/share/factory/opt/macadam/bin/macadam
 ln -s /usr/share/factory/opt/macadam/bin/macadam /usr/bin/macadam
 /usr/bin/macadam completion bash >/etc/bash_completion.d/macadam.sh
 /usr/bin/macadam completion fish >/usr/share/fish/completions/macadam.fish
+setfattr -n user.component -v "rpm/macadam" /usr/bin/macadam
+setfattr -n user.component -v "rpm/macadam" /etc/bash_completion.d/macadam.sh
+setfattr -n user.component -v "rpm/macadam" /usr/share/fish/completions/macadam.fish
 
 # Enable p11-kit-server for Flatpak support in browsers and other applications
 systemctl enable --global p11-kit-server.socket

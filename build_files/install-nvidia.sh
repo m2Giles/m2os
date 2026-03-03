@@ -21,7 +21,7 @@ case "${IMAGE}" in
 esac
 
 # Install Nvidia RPMs
-curl -Lo /tmp/nvidia-install.sh https://raw.githubusercontent.com/ublue-os/akmods/2b5007d2c21a65dff06c302db84838b7efb46c30/build_files/nvidia/nvidia-install.sh
+ghcurl https://raw.githubusercontent.com/ublue-os/akmods/2b5007d2c21a65dff06c302db84838b7efb46c30/build_files/nvidia/nvidia-install.sh -o /tmp/nvidia-install.sh
 chmod +x /tmp/nvidia-install.sh
 IMAGE_NAME="$base" RPMFUSION_MIRROR="" /tmp/nvidia-install.sh
 rm -f /usr/share/vulkan/icd.d/nouveau_icd.*.json

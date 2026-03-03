@@ -9,3 +9,4 @@ version.txt
 *.sbom.*
 *.tmp*
 titanoboa/**
+.devcontainer/
