@@ -417,8 +417,8 @@ lint-recipes:
 # Login to GHCR
 [group('CI')]
 login-to-ghcr $user $token:
-    echo "$token" | {{ if which("podman") != "" { 'podman login ghcr.io -u "$user" --password-stdin' } else { 'docker login ghcr.io -u "$user" --password-stdin' } }}
-    {{ if which("podman") != "" { 'cat ' + env("XDG_RUNTIME_DIR", "/run/user/$(id -u)/") + 'containers/auth.json > ~/.docker/config.json' } else { '' } }}
+    echo "$token" | {{ if which("podman") != "" { PODMAN + ' login ghcr.io -u "$user" --password-stdin' } else { 'docker login ghcr.io -u "$user" --password-stdin' } }}
+    {{ if which("podman") != "" { 'echo $token | ' + PODMAN + ' login ghcr.io -u "$user" --password-stdin --authfile ~/.docker/config.json' } else { '' } }}
 
 # Push Images to Registry
 [group('CI')]

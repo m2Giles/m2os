@@ -82,7 +82,7 @@ for srpm in $(echo "$json_data" | jq -r 'keys[]'); do
             if getfattr -n user.component "$file" &> /dev/null; then
                 continue
             fi
-            if [[ -e "$file" ]]; then
+            if [[ -f "$file" || -d "$file" ]]; then
                 setfattr -n user.component -v "$srpm" "$file" 2>/dev/null || :
                 ((file_count+=1))
             fi
