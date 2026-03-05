@@ -95,8 +95,8 @@ fi
 # echo "Processed $total_rpms RPMs across $srpm_count SRPMs"
 
 find /usr /etc -type f -size +1M 2>/dev/null | while read -r file; do
-    if ! rpm -qf "$file" &> /dev/null; then
-        if ! getfattr -n user.component "$file" &> /dev/null; then
+    if ! rpm -qf "$file" &>/dev/null; then
+        if ! getfattr -n user.component "$file" &>/dev/null; then
             echo "$file: unpackaged"
         fi
     fi
