@@ -267,7 +267,7 @@ rechunk image="bluefin":
         > {{ repo_image_name + "_" + image + ".tar" }}
 
     {{ PODMAN }} images
-    {{ if CI != '' { PODMAN + ' -y system reset' } else { PODMAN + ' rmi -f $IMG' } }}
+    {{ if CI != '' { PODMAN + ' system reset --force' } else { PODMAN + ' rmi -f $IMG' } }}
     {{ skopeo }} copy oci-archive:{{ repo_image_name + "_" + image + ".tar" }} containers-storage:{{ FQ_IMAGE_NAME + ":" + image }} 
     {{ PODMAN }} images
 
