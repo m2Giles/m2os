@@ -203,7 +203,6 @@ build-image image="bluefin":
     # Labels
     BUILD_ARGS+=(
         "--inherit-labels=false"
-        "--inherit-annotations=false"
         "--label" "org.opencontainers.image.description={{ repo_image_name }} is my OCI image built from ublue projects. It mainly extends them for my uses."
         "--label" "org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}"
         "--label" "org.opencontainers.image.title={{ repo_image_name }}"
@@ -221,6 +220,8 @@ build-image image="bluefin":
         "--build-arg" "TAG_VERSION=${check#*:}"
         "--build-arg" "VERSION=$VERSION"
     )
+
+    {{ if env("GITHUB_TOKEN", "") != "" { 'echo "Adding GitHub Token as build secret..."; BUILD_ARGS+=("--secret" "id=GITHUB_TOKEN,env=GITHUB_TOKEN")' } else { '' } }}
 
     # Additional Args
     BUILD_ARGS+=(
@@ -266,7 +267,7 @@ rechunk image="bluefin":
         > {{ repo_image_name + "_" + image + ".tar" }}
 
     {{ PODMAN }} images
-    {{ PODMAN }} rmi -f "$IMG"
+    {{ if CI != '' { PODMAN + ' system reset --force' } else { PODMAN + ' rmi -f $IMG' } }}
     {{ skopeo }} copy oci-archive:{{ repo_image_name + "_" + image + ".tar" }} containers-storage:{{ FQ_IMAGE_NAME + ":" + image }} 
     {{ PODMAN }} images
 
@@ -416,8 +417,8 @@ lint-recipes:
 # Login to GHCR
 [group('CI')]
 login-to-ghcr $user $token:
-    echo "$token" | podman login ghcr.io -u "$user" --password-stdin
-    {{ if `command -v docker || true` != '' { 'echo "$token" | docker login ghcr.io -u "$user" --password-stdin' } else { 'cat "${XDG_RUNTIME_DIR}/containers/auth.json" > ~/.docker/config.json' } }}
+    echo "$token" | {{ if which("podman") != "" { PODMAN + ' login ghcr.io -u "$user" --password-stdin' } else { 'docker login ghcr.io -u "$user" --password-stdin' } }}
+    {{ if which("podman") != "" { 'echo $token | ' + PODMAN + ' login ghcr.io -u "$user" --password-stdin --authfile ~/.docker/config.json' } else { '' } }}
 
 # Push Images to Registry
 [group('CI')]
