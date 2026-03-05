@@ -70,12 +70,12 @@ images:
   - name: bazzite-beta
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: testing
-    digest: sha256:b92cfef20e7b35be94ad067f1e26b5de632df138e2d58fe3eebc0908e50edace
+    digest: sha256:983146df3eec1e87690004fd4419788c4d6a3f3db2f070c7313768df1235882c
 
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: testing
-    digest: sha256:f9a1aae51219201ff4071b11c64a1e15e153aa4ac387d03533a34d572ec60452
+    digest: sha256:8a47ed43c3daee2ad238eefd6a713e49fc06ba691cd75b44f0d8064af3026a93
 
   # Bluefin
   - name: bluefin
