@@ -424,7 +424,7 @@ login-to-ghcr $user $token:
 [group('CI')]
 push-to-registry image dryrun="true" $destination="":
     for tag in {{ image }} {{ shell("skopeo inspect oci-archive:$1_$2.tar | jq -r '.Labels[\"org.opencontainers.image.version\"]'", repo_image_name, image) }}; do \
-        {{ if dryrun == "false" { 'skopeo copy oci-archive:' + repo_image_name + "_" + image + " ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
+        {{ if dryrun == "false" { 'skopeo copy oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
     ; done
 
 # Sign Images with Cosign
