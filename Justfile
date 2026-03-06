@@ -423,18 +423,31 @@ login-to-ghcr $user $token:
 # Push Images to Registry
 [group('CI')]
 push-to-registry image dryrun="true" $destination="":
-    for tag in {{ image }} {{ shell("skopeo inspect oci-archive:$1_$2.tar | jq -r '.Labels[\"org.opencontainers.image.version\"]'", repo_image_name, image) }}; do \
-        {{ if dryrun == "false" { 'skopeo copy oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }} \
-    ; done
+    #!/usr/bin/bash
+
+    {{ shell('mkdir -p $1', BUILD_DIR) }}
+    skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar > "{{ BUILD_DIR }}/inspect.json"
+
+    for tag in {{ image }} $(jq -r '.Labels["org.opencontainers.image.version"]' < "{{ BUILD_DIR }}/inpsect.json")
+        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile "{{ BUILD_DIR }}/digest1" oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }}
+        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile "{{ BUILD_DIR }}/digest2" oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }}
+    done
+    if ! diff {{ BUILD_DIR }}/{digest1,digest2}; then
+        echo "Digests are not the same..."
+        exit 1
+    else
+        mv {{ BUILD_DIR }}/digest{1,}
+        rm {{ BUILD_DIR }}/digest2
+    fi
 
 # Sign Images with Cosign
 [group('CI')]
-cosign-sign digest $destination="":
-    cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}/{{ repo_image_name + "@" + digest }}"
+cosign-sign digest="" $destination="":
+    cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}"/{{ repo_image_name }}@"${digest:-$(cat {{ BUILD_DIR }}/digest)}"
 
 # Push and Sign
 [group('CI')]
-push-and-sign image: (login-to-ghcr env('ACTOR') env('TOKEN')) (push-to-registry image 'false' '') (cosign-sign shell('skopeo inspect oci-archive:$1_$2.tar --format "{{ .Digest }}"', repo_image_name, image))
+push-and-sign image: (login-to-ghcr env('ACTOR') env('TOKEN')) (push-to-registry image 'false') cosign-sign
 
 # Generate SBOM
 [group('CI')]
