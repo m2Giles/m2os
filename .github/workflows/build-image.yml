@@ -108,7 +108,8 @@ jobs:
         shell: bash
         run: |
           set -eou pipefail
-          just push-and-sign "${{ matrix.image }}"
+          just login-to-ghcr "${ACTOR}" "${TOKEN}"
+          just push-and-sign "${{ matrix.image }}" "false" "true" "docker://${IMAGE_REGISTRY,,}"
 
       - name: Upload OCI Artifact
         # yamllint disable-line rule:line-length rule:comments

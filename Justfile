@@ -420,19 +420,29 @@ login-to-ghcr $user $token:
     echo "$token" | {{ if which("podman") != "" { PODMAN + ' login ghcr.io -u "$user" --password-stdin' } else { 'docker login ghcr.io -u "$user" --password-stdin' } }}
     {{ if which("podman") != "" { 'echo $token | ' + PODMAN + ' login ghcr.io -u "$user" --password-stdin --authfile ~/.docker/config.json' } else { '' } }}
 
-# Push Images to Registry
+# Push and Sign
 [group('CI')]
-push-to-registry image dryrun="true" $destination="":
+push-and-sign image dryrun="true" sign="false" $destination="":
     #!/usr/bin/bash
+    set -eoux pipefail
 
     {{ shell('mkdir -p $1', BUILD_DIR) }}
+    trap 'rm -f {{ BUILD_DIR }}/{digest{,1,2},inspect.json}' EXIT SIGINT
     skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar > "{{ BUILD_DIR }}/inspect.json"
 
-    for tag in {{ image }} $(jq -r '.Labels["org.opencontainers.image.version"]' < "{{ BUILD_DIR }}/inpsect.json")
+    for tag in {{ image }} $(jq -r '.Labels["org.opencontainers.image.version"]' < "{{ BUILD_DIR }}/inspect.json"); do
+        # Push twice do to bug with annotations not getting pushed on the first time?
         {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest1" oci-archive:' + repo_image_name + '_' + image + '.tar ${destination:-docker://' + IMAGE_REGISTRY + '}/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
         {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest2" oci-archive:' + repo_image_name + '_' + image + '.tar ${destination:-docker://' + IMAGE_REGISTRY + '}/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
     done
-    if ! diff {{ BUILD_DIR }}/{digest1,digest2}; then
+
+    if [[ "{{ dryrun }}" == "true" ]]; then
+        echo "Dry run complete. Digests not pushed."
+        exit 0
+    fi
+
+    # Compare digests are the same, if not fail as something went wrong with the push
+    if ! diff {{ BUILD_DIR }}/{digest1,digest2} >/dev/null; then
         echo "Digests are not the same..."
         exit 1
     else
@@ -440,14 +450,10 @@ push-to-registry image dryrun="true" $destination="":
         rm {{ BUILD_DIR }}/digest2
     fi
 
-# Sign Images with Cosign
-[group('CI')]
-cosign-sign digest="" $destination="":
-    cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}"/{{ repo_image_name }}@"${digest:-$(cat {{ BUILD_DIR }}/digest)}"
-
-# Push and Sign
-[group('CI')]
-push-and-sign image: (login-to-ghcr env('ACTOR') env('TOKEN')) (push-to-registry image 'false') cosign-sign
+    # Sign the image with Cosign if enabled
+    if [[ "{{ sign }}" == "true" ]]; then
+        cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}"/{{ repo_image_name }}@"$(cat {{ BUILD_DIR }}/digest)"
+    fi
 
 # Generate SBOM
 [group('CI')]
