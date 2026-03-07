@@ -395,7 +395,6 @@ lint-recipes:
     recipes=(
         build-image
         build-iso
-        cosign-sign
         gen-sbom
         rechunk
         run-iso
@@ -422,7 +421,7 @@ login-to-ghcr $user $token:
 
 # Push and Sign
 [group('CI')]
-push-and-sign image dryrun="true" sign="false" $destination="":
+push-and-sign image dryrun="true" sign="false":
     #!/usr/bin/bash
     set -eoux pipefail
 
@@ -432,8 +431,8 @@ push-and-sign image dryrun="true" sign="false" $destination="":
 
     for tag in {{ image }} $(jq -r '.Labels["org.opencontainers.image.version"]' < "{{ BUILD_DIR }}/inspect.json"); do
         # Push twice do to bug with annotations not getting pushed on the first time?
-        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest1" oci-archive:' + repo_image_name + '_' + image + '.tar ${destination:-docker://' + IMAGE_REGISTRY + '}/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
-        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest2" oci-archive:' + repo_image_name + '_' + image + '.tar ${destination:-docker://' + IMAGE_REGISTRY + '}/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
+        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest1 oci-archive:' + repo_image_name + '_' + image + '.tar docker://' + IMAGE_REGISTRY + '/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
+        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest2 oci-archive:' + repo_image_name + '_' + image + '.tar docker://' + IMAGE_REGISTRY + '/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
     done
 
     if [[ "{{ dryrun }}" == "true" ]]; then
@@ -452,7 +451,7 @@ push-and-sign image dryrun="true" sign="false" $destination="":
 
     # Sign the image with Cosign if enabled
     if [[ "{{ sign }}" == "true" ]]; then
-        cosign sign -y --key env://COSIGN_PRIVATE_KEY "${destination:-{{ IMAGE_REGISTRY }}}"/{{ repo_image_name }}@"$(cat {{ BUILD_DIR }}/digest)"
+        cosign sign -y --key env://COSIGN_PRIVATE_KEY "{{ IMAGE_REGISTRY + "/" + repo_image_name }}@$(cat {{ BUILD_DIR }}/digest)"
     fi
 
 # Generate SBOM
