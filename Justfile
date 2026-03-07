@@ -429,8 +429,8 @@ push-to-registry image dryrun="true" $destination="":
     skopeo inspect oci-archive:{{ repo_image_name }}_{{ image }}.tar > "{{ BUILD_DIR }}/inspect.json"
 
     for tag in {{ image }} $(jq -r '.Labels["org.opencontainers.image.version"]' < "{{ BUILD_DIR }}/inpsect.json")
-        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile "{{ BUILD_DIR }}/digest1" oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }}
-        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile "{{ BUILD_DIR }}/digest2" oci-archive:' + repo_image_name + "_" + image + ".tar ${destination:-docker://" + IMAGE_REGISTRY + "}/" + repo_image_name + ":$tag >&2" } else { 'echo "$tag" >&2' } }}
+        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest1" oci-archive:' + repo_image_name + '_' + image + '.tar ${destination:-docker://' + IMAGE_REGISTRY + '}/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
+        {{ if dryrun == "false" { 'skopeo copy --preserve-digests --digestfile ' + BUILD_DIR + '/digest2" oci-archive:' + repo_image_name + '_' + image + '.tar ${destination:-docker://' + IMAGE_REGISTRY + '}/' + repo_image_name + ':$tag >&2' } else { 'echo "$tag" >&2' } }}
     done
     if ! diff {{ BUILD_DIR }}/{digest1,digest2}; then
         echo "Digests are not the same..."
