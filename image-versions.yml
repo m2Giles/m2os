@@ -39,22 +39,22 @@ images:
   - name: aurora
     image: ghcr.io/ublue-os/aurora
     tag: stable-daily
-    digest: sha256:a46d1c77dc8682ed9df5eefca073c88b741f3adf572d997dba1ad9810307d252
+    digest: sha256:ebb294218f6d23688d7499c19218605fee7d635bcb5525507fb7c54601a51492
 
   - name: aurora-nvidia
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: stable-daily
-    digest: sha256:2fb81bae902a2ab96b989591ea41bda3dbed6d3bfba2be7aa19f01189217c93f
+    digest: sha256:ae5da271d7ee8a0b4974840f873e6f5efb70d184d390a731c0130964eccc808e
 
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:e9435a23f2d968a012eb9a8484efbe14f8b17cfe6e2fdba263de349785ebfd1a
+    digest: sha256:54129e2126edff7cab1d6f1adef15c2d60eeef3bd75cc45204833d571d37c65d
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:48ddf6d53492a128a983297c06a796930a06ac0dff24cf4c8d7d42a22d495a29
+    digest: sha256:e834e6547f2c1d06c71adbeeef92a26e7296130de12283763e753396eadbee6b
 
   # Bazzite
   - name: bazzite
@@ -81,7 +81,7 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:065af15702d97ebb7a3c352de6128feaf3d1d5f1df557f13e4b24d67b67956f7
+    digest: sha256:a1b0712eba88c4f817109076fd3781dfed937576dbb97e5829b55894a243de73
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
@@ -91,7 +91,7 @@ images:
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:189b73f3ec0fadb1a654568a1fa0a0fcf86a8221ce494f38338b097ff7b59bea
+    digest: sha256:a2c6d9594efdfbc6b7a69d1397364461f52199e0e94e188d2163a47f26052b7e
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
