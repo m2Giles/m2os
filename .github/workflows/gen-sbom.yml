@@ -143,7 +143,7 @@ jobs:
 
       - name: Upload Sarif Report
         # yamllint disable-line rule:line-length rule:comments
-        uses: github/codeql-action/upload-sarif@b1bff81932f5cdfc8695c7752dcee935dcd061c8 # v4
+        uses: github/codeql-action/upload-sarif@c6f931105cb2c34c8f901cc885ba1e2e259cf745 # v4
         if: >-
           contains(fromJson('["workflow_dispatch", "merge_group"]'),
           github.event_name) || github.event.schedule == '41 6 * * 0'
