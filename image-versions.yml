@@ -70,33 +70,33 @@ images:
   - name: bazzite-beta
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: testing
-    digest: sha256:be44b3a3d6fa85de5998f3f2cb16147e025d4fa8e2d0fd75e79995eacc0d46d5
+    digest: sha256:3f67719bf08a13ab00a8490ca050e1d0f408164fce29a72400e9f687f3701e84
 
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: testing
-    digest: sha256:3f6b8ecc99479c1a486c4d3309e43045393bf8b87bbb1989e6f8abd44e517c4b
+    digest: sha256:6a9bebecd2c5e5749e4b85793c3b9c1bf8c10f647f254cba848c7c0ac1f4d336
 
   # Bluefin
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:f99522c4c037b4b56a16305ad6737a2bddd741ed562cb1c06ed7da82bf4c0ad0
+    digest: sha256:40c2c9d946d35dcce3b0ec8f460f690cb1a1254b10706f4b3edaa770a914399f
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:90ca545e927b2669518e8c014c2c913b336248b711bc554d9cc074cea30d047e
+    digest: sha256:8bdb733de249618b890424eb70d10ec5eecc13af6a01d089ce9260ab38c02015
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:d063726132f267123c54301eb0351dd8bffb261a49f87efcdca72d01407f74d5
+    digest: sha256:3c59d20d018469ce818034e7bce2c8fe02b25c7ecc6455bb48628d19f56ba57e
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:9378be9397f3d62c0d416d47f75cfde063ff7e1e73a2bf7c9a84e94a0f518529
+    digest: sha256:ff7e312560cb2d05eb1235a5d33a141263f0b0fca2a553ce53df1c0c3cb67538
 
   # Brew
   - name: brew
