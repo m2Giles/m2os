@@ -39,22 +39,22 @@ images:
   - name: aurora
     image: ghcr.io/ublue-os/aurora
     tag: stable-daily
-    digest: sha256:fd5fad3199a4b7c08d0830dc3240f497d106632aac3f8f93ae7c206af3e88b36
+    digest: sha256:4dffa2557260a1b9b07a2cc3eba5c3753b5d1796274b9cc773cf4dca0fede38f
 
   - name: aurora-nvidia
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: stable-daily
-    digest: sha256:b28e307d304e244ddc2a5da7c2cc503885fcd3766e1cc0d978c403204852c54c
+    digest: sha256:5f288d39e9555b539139ad09b7a3f738797bf6cb8df3bd0d09ffe0a1a5e4c22c
 
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:340cad78bce826cb9fc223756a886068430b1bda0133fcf67e5269ad3952b51d
+    digest: sha256:bf9457d6c0d0a03ae67098537f32ff143eb135b57413b27f3db4a01bfb6e437e
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:8a0a2f6cd243751cb004ceb35d5641cb246b54649aa7f272483c7f49f358091c
+    digest: sha256:a2a0770590796e3adbebb67056a2cd1ac6be0e130fab865b02a9425fc1f77c7b
 
   # Bazzite
   - name: bazzite
