@@ -75,7 +75,7 @@ images:
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: testing
-    digest: sha256:5556ad0c043e1067308b91597658b18cdfade199c991ce396d6a3fbc9b491bf8
+    digest: sha256:8705ce874508d75217096e17a6c5a12d2f56779a9e1bf423172ae52e3a2600b5
 
   # Bluefin
   - name: bluefin
