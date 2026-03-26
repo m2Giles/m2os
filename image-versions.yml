@@ -33,7 +33,7 @@ images:
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:ddcac70ea4aa9eecb77f5d6e18f518a46a674169c1fe9eaa567e99a34b60c58a
+    digest: sha256:490d54efc339d56992c2d99f064d7e8505d5ba96f1d6a0198eed14bd6019e478
 
   # Aurora
   - name: aurora
