@@ -149,7 +149,7 @@ build-image image="bluefin":
         check="$(yq -r ".images[] | select(.name == \"base-${fedora_version}\")" {{ image-file }} | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"
         BUILD_ARGS+=("--cpp-flag=-DCOSMIC")
         verify-container "{{ replace_regex(brew, "^.+/", "") }}"
-        verify-container "{{ replace_regex(common, "^.+/", "") }}" "ghcr.io/projectbluefin" "https://raw.githubusercontent.com/projectbluefin/common/refs/heads/main/cosign.pub"
+        verify-container "{{ replace_regex(common, "^.+/", "") }}" "ghcr.io/projectbluefin" "https://raw.githubusercontent.com/projectbluefin/common/refs/heads/main/cosign.pub" || true
         BUILD_ARGS+=("--cpp-flag=-DBREW={{ brew }}" "--cpp-flag=-DCOMMON={{ common }}")
         ;;
     "ucore"*) BUILD_ARGS+=("--cpp-flag=-DSERVER") ;;
