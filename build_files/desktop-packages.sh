@@ -20,7 +20,7 @@ dnf5 -y copr enable bazzite-org/bazzite-multilib
 dnf5 -y copr enable bazzite-org/LatencyFleX
 
 # Sunshine
-dnf5 -y copr enable lizardbyte/beta
+dnf5 -y copr enable lizardbyte/stable
 
 # Layered Applications
 LAYERED_PACKAGES=(
