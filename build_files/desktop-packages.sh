@@ -19,9 +19,6 @@ dnf5 -y copr enable bazzite-org/bazzite
 dnf5 -y copr enable bazzite-org/bazzite-multilib
 dnf5 -y copr enable bazzite-org/LatencyFleX
 
-# Sunshine
-dnf5 -y copr enable lizardbyte/stable
-
 # Layered Applications
 LAYERED_PACKAGES=(
     adw-gtk3-theme
@@ -31,7 +28,6 @@ LAYERED_PACKAGES=(
     emacs-pgtk
     qemu-ui-gtk
     spice-gtk-tools
-    sunshine
     uupd
 )
 
