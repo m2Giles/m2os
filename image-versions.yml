@@ -39,22 +39,22 @@ images:
   - name: aurora
     image: ghcr.io/ublue-os/aurora
     tag: stable-daily
-    digest: sha256:edc343b71a2211c7a6da6db1c765e8169cfcbd42e3041593c32ab690b46c1dbc
+    digest: sha256:778d81e7fee2823f48e9f66a39bd9e674b34dfdb6c3d8cd0e503719a1c5251f0
 
   - name: aurora-nvidia
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: stable-daily
-    digest: sha256:e18ad0ee68f82e70b7e2ab90b099314fe2413d807dc592f2a50261dbbbe0d998
+    digest: sha256:fac488515d738005a321ce7ca851832d0fa5cc57364eaca3c28bcf365b27d7af
 
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:6de60b8136d28390a2915aae8463d4d1f7e4a494327d8a1abcd4ed47bdde65db
+    digest: sha256:a6ed6f48dfbb421f3096b16ee543ec946dacd0b059bee6688ddbf786f2bb382c
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:3c91c6ecad2f5423c569556cf38f97fe1a7d378029fc02b1a2c674f93c704568
+    digest: sha256:80ecb066909da899b78791ae47ffae3ab0dece11315c5143b4bb56ee89d5b822
 
   # Bazzite
   - name: bazzite
@@ -81,22 +81,22 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:5dc0168e4874515ec82806878f151812fe36e3e3179eba6845270b7a2b7c65b0
+    digest: sha256:15360a6065d11f5567b4738bfe11a6e3fda7c14556ac2c7756bc42c25a44f4dd
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:47b8fd666ebcc3997a2e240257060278b676646f9d6c87a23a7b50e295b005b3
+    digest: sha256:41ed9396f85798ec29339f9163be182f32bffe9bcb81692f57ee18841e68f194
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:bea093411c84bd29987e142a55797d042a8183babb68301351ff00b84877d267
+    digest: sha256:f61ec5494aae28e94bbe0b52a5816c8c8999fe5f5d9b72d6c4253c3fb43a6562
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:4896b33e2dc58247319d05c85967f532d5084667cde6d2ecfff415254261c2fb
+    digest: sha256:4ec2c91c2b7e53012ef9ee660c14fbc90c905662a946574e548c5e740c54c2a0
 
   # Brew
   - name: brew
@@ -108,7 +108,7 @@ images:
   - name: common
     image: ghcr.io/projectbluefin/common
     tag: latest
-    digest: sha256:6db2b568513789868023ecc80b4b87e5a354f6c83206bdca57db9c6647d48fe4
+    digest: sha256:47abba6e2a15e36efcb18255fefa7c65673337404719a925d74409c6e080929e
 
   # Chunkah
   - name: chunkah
