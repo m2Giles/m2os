@@ -39,12 +39,12 @@ images:
   - name: aurora
     image: ghcr.io/ublue-os/aurora
     tag: stable-daily
-    digest: sha256:786b475b7857c6e77bac057255ae323a2105ba9dede9ccc4e72a07783f00c441
+    digest: sha256:30f530138f7bac823054a58f5038e4451bb116510e1c15dcc36d204e0fa16f93
 
   - name: aurora-nvidia
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: stable-daily
-    digest: sha256:e63b1b9a7603df7f038eaa65bfaf75e4cbd83c564303d92fca218fe6986d9242
+    digest: sha256:a57b6d402e5f007af7e69d2945af39adab9db69997b218fb38077405182d6fcd
 
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
