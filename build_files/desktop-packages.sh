@@ -57,11 +57,11 @@ dnf5 remove -y google-noto-fonts-all
 
 # Services / Use uupd updater
 dnf5 remove -y ublue-os-update-services
-systemctl disable rpm-ostreed-automatic.timer
-systemctl disable flatpak-system-update.timer
-systemctl --global disable flatpak-user-update.timer
-systemctl disable brew-update.timer
-systemctl disable brew-upgrade.timer
+systemctl disable rpm-ostreed-automatic.timer || true
+systemctl disable flatpak-system-update.timer || true
+systemctl --global disable flatpak-user-update.timer || true
+systemctl disable brew-update.timer || true
+systemctl disable brew-upgrade.timer || true
 systemctl enable uupd.timer
 
 # Devpod cli
