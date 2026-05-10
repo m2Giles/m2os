@@ -51,7 +51,7 @@ jobs:
         image: ["${{ fromJson(needs.get-images.outputs.images) }}"]
     container:
       # yamllint disable-line rule:line-length rule:comments
-      image: "ghcr.io/ublue-os/devcontainer:latest@sha256:e1bf7e935c487727ec72798034548c20eec8b1d38e9340013b0ef8d3a9c7954b"
+      image: "ghcr.io/ublue-os/devcontainer:latest@sha256:ecc6b769af0e67e3f609747075044e6e5e74792dfaec5ac4308750ec42962ad0"
       # yamllint disable-line rule:line-length rule:comments
       options: "--privileged --volume /:/host-sys --volume /var/lib/containers:/var/lib/containers
         --security-opt seccomp=unconfined --security-opt apparmor=unconfined --security-opt
