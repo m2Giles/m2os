@@ -5,41 +5,41 @@ images:
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-43
-    digest: sha256:26f781b69f39b1df8687b9ab5b3fa93caa5d07aeac92df3d80790a281720e7fb
+    digest: sha256:66d11e77f5a0703f034fd826a75beb96e420df32bdcf170a7b88e17c59ede1f4
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-43
-    digest: sha256:d934ccc84056f3f9b6682a8c6fd7a33bf2b4e4892a07eefa20b036d56ecddd40
+    digest: sha256:61adb2439da8372ecee8bc41f15e2ad7f7a33f091ce187fb801fe642b072e120
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-43
-    digest: sha256:bfe006ccf476c8177fa008a8b265b3d8880f220cc374062e97f3ea76771461ae
+    digest: sha256:09eba97db3d994c8e215af8f55e6ba0596f4cb79c3da0c42ee2def17fb534603
 
   # Testing
   - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-44
-    digest: sha256:556a8a9ba392d0fa66c9d958ec37c788c6b78fa1ea9ae432afa2e262aac62165
+    digest: sha256:bbb3b7d8eb182a9148858120822513f235c1f32e5936f1e9c8a8b7bfe3bc67e3
   - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-44
-    digest: sha256:2d1de2373e446d2b7df59a2c60f5371ac216f0d23fda770a195169dfe02acb0e
+    digest: sha256:68d933b4e4344fb64f0eefdc18b43da38ca460f70ca6e754ec957d2277192089
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-44-x86_64
-    digest: sha256:4e9672f93ada65c9b959d3415d60b122cc6e28e343b459f207afa6d3ef23e48f
+    digest: sha256:107a7d5dde8b85a57426189e98f28c62bd698051936060c53877e7ad66182e22
 
   # Fedora 43
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:01fa0d62c20a074a922f90274631fb1aacf088b18fb0289d62ec0f61db46e5e5
+    digest: sha256:4674f1337bf2d055bfa5ed880746d2e8809466c788614f256213df14e9655764
 
   # Fedora 44
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:6b237079e2b23c6f3547d3b8d76d728b04eb508e1115fab6539520856b8f4ede
+    digest: sha256:abda657dbe7658b45d7a61a0bc2e411b1814083026225796e2de8aa4fe1dd979
 
   # Aurora
   - name: aurora
@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:cbf789574446c0b2316f16f269be702b1d4ee4b649b466b2416543afdd01003f
+    digest: sha256:9c69145496b20f732c8c5334a9930ba9bf652c5d8522468e6f999ae7081fc7f7
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:1118e06d0e098ce135cc08bc7b5102c7849b62c351e1e97b9a38e8bcfab44118
+    digest: sha256:c5dcfcf918ad579c9c18aec3c9ef320aa3197f76841cb3d634779f83205ed12b
 
   # Bazzite
   - name: bazzite
@@ -87,28 +87,28 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:04ecf3fb36fd9ba13bf98d57583e64f1c18a47ea76e17dff08b922c1baa59859
+    digest: sha256:23b9e90afc6575a496a91a5e27f9d07a86d5858685d84c21e0bf9f0397a2e6d6
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:3a0a8b421b756a62cb9cbda3e03bd25ff5cf2695c0d3a4ea0de38f8b60f5c1a4
+    digest: sha256:f4ff9ddc154453659870cdd9eb94f6793fa892312492f9bf3abb04fe7379dc8d
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:1c9ab7656dd65269335f26dd47394d573e91c57ff871638c61cf57663b86f9c1
+    digest: sha256:6385ad99f7fa3c6f10fffbee857eed03da2ebb7137e8bf5170b8228b1267d821
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:c5afa7bffaaef9a8d3c4dfc3d49cf5778351c707c75af14a40b14906aecfc881
+    digest: sha256:0b53f260bdbbdc8edd048c736a98f81e126cd59227aa5e2630b700f1cf837a03
 
   # Brew
   - name: brew
     image: ghcr.io/ublue-os/brew
     tag: latest
-    digest: sha256:7646a12d0369270ba479bde05d69e273af966a55178f283b0f717381d086ca7a
+    digest: sha256:9dab9ce3232b96d289d131201e007284044a4a9c2073087bb2c698994ec07988
 
   # Common
   - name: common
