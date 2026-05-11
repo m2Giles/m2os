@@ -45,12 +45,12 @@ images:
   - name: aurora
     image: ghcr.io/ublue-os/aurora
     tag: stable-daily
-    digest: sha256:478db9ab283b6051ed745034fcb1de275d053e6a83ed60ec7a49dd085b473f0d
+    digest: sha256:7c100fb36ea2a712387e661406ecf4bcb79eb7e185befba6566c1a3663e66914
 
   - name: aurora-nvidia
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: stable-daily
-    digest: sha256:2da4c6c4b9ad069dbd99f61db3fa8f0c1490f28b2fc514e5fcc4bcdd5770ff0c
+    digest: sha256:42ae271be19abc07fc438e13c1ab84a8d38fb59c5fd28347bef9d7322bd34fea
 
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
@@ -102,7 +102,7 @@ images:
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:87f2e70d6792ac4512d3fd831448cea17f099a42d40708433ff54fa7e6163fd4
+    digest: sha256:f9b1d866e769daa684b12c186ef29f310d677b9d6634ac83392469ce00448065
 
   # Brew
   - name: brew
