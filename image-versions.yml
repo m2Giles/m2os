@@ -126,4 +126,4 @@ images:
   - name: qemu
     image: ghcr.io/qemus/qemu
     tag: 7.30
-    digest: sha256:8ff43f2449e47cfd49bcd30c07fdd02a490959d90fb0b242332ed5bdf2c9c906
+    digest: sha256:8ccb2a14691c31a02bcbd9e15b67dd61fd02edc5912c0f22042d64c8aa27fcbf
