@@ -268,8 +268,7 @@ rechunk image="bluefin":
 
     {{ PODMAN }} images
     {{ if CI != '' { PODMAN + ' system reset --force' } else { PODMAN + ' rmi -f $IMG' } }}
-    {{ skopeo }} copy oci-archive:{{ repo_image_name + "_" + image + ".tar" }} containers-storage:{{ FQ_IMAGE_NAME + ":" + image }} 
-    {{ PODMAN }} images
+    {{ if CI != '' { '' } else { skopeo + ' copy oci-archive:' + repo_image_name + '_' + image + '.tar containers-storage:' + FQ_IMAGE_NAME + ':' + image + '; ' + PODMAN + ' images' } }}
 
 # Build ISO
 [group('ISO')]
