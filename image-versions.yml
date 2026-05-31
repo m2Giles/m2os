@@ -5,11 +5,11 @@ images:
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-43
-    digest: sha256:d3082b3e66e00c3e3825ad0e58e084df03efaf0da97e2afc7ab61aceaf618fb9
+    digest: sha256:816ae3a8b14e794307dfb2155c28e321a6e1823c0fd408d8d5506617556fdfa0
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-43
-    digest: sha256:33d9cd3b4fadfe0bcde2c6f80d4faaa4583850b813178059aa5bd66177198d28
+    digest: sha256:1a497d622d1e845b259317d42c6f6be0e6db2682e17887d3c744e7faef26beca
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-43
@@ -19,15 +19,15 @@ images:
   - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-44
-    digest: sha256:cd11f0a04d1c00c4bc71cef47846834f7a918693696d53dc1ad5f7608803f171
+    digest: sha256:664684cb9a428a85a27f3b3765883b976583521d2c148d381a141aaeb9886be8
   - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-44
-    digest: sha256:d8cdb5259a2a1a02f21e634ca7892e6999710fd1fefb42f02c3aed9865ca58ec
+    digest: sha256:b5f9ebedefdeacf101741a0e20726fb8124b886b03109bb5867d91eb08a65ed8
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-44-x86_64
-    digest: sha256:34141f88e9eaffa45ec2abaa0d12798a8a59783248d01b7db9c0303beb4284fa
+    digest: sha256:c4855cd455c077ca85b1a86ea6e88743b60a63b74b76c58aedb0f8dc2044ba3b
 
   # Fedora 43
   - name: base-43
@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:dac902c9b06db6058b0fc720a918b25df7d99d899e51cfea68636478c906ebfb
+    digest: sha256:d8f7dbda1bdb290c82bfc8c7fb4d006275cf7ffb3df265bb85a44de333bed37a
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:e6d5ec05b5c8eda3772805ae40fc2f075527a878f0b3d3ce60ea160c67ac06e0
+    digest: sha256:ab6862b71886ff3a7fe774661a346b726d599c3f6a0d50be43c147d71e97ec37
 
   # Bazzite
   - name: bazzite
@@ -108,7 +108,7 @@ images:
   - name: brew
     image: ghcr.io/ublue-os/brew
     tag: latest
-    digest: sha256:e00cea102a6e242b8f2afee77b171399f171c181cd5e7aa2964fd87102950fd5
+    digest: sha256:48be52bde586f6637ce83f128bf9ba1580b7e4de4d093fed94bec587082850ce
 
   # Common
   - name: common
