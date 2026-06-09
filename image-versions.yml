@@ -39,7 +39,7 @@ images:
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:c293ee503db6907742216d329dcbd755189df3cadbe04e72588e06917482d14b
+    digest: sha256:fcbdd8cf3cf763b9307c4b12bb7e88f73d7cc7d87b66836e36120e4779b4b7ed
 
   # Aurora
   - name: aurora
@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:30225a69a5936ebd9bedc629aec50f8b39d42684ac9ab0ee450171d9a296abe8
+    digest: sha256:7acbc2842e86cf4790095abbdf7a0720624ef31dd7b724b538e9c4a1b9e0e6a2
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:437f238b22c8ae8379da643b39a48c911a4be5ceb15d1e3e231ede57b97b35cc
+    digest: sha256:cb954243dd1dcbe4497ce564806401e4f4c90db8365c172684fe40723f935c3f
 
   # Bazzite
   - name: bazzite
