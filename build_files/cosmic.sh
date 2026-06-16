@@ -131,11 +131,6 @@ PACKAGES+=(
     yubikey-manager
 )
 
-# FWUPD
-dnf5 swap -y \
-    --repo=copr:copr.fedorainfracloud.org:ublue-os:staging \
-    fwupd fwupd
-
 dnf5 install -y --allowerasing \
     --setopt=install_weak_deps=False \
     "${PACKAGES[@]}"
