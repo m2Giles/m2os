@@ -76,7 +76,7 @@ images:
   - name: bazzite-beta
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: testing
-    digest: sha256:c8e96e01fbd25d54bb167ed88f11706a0942c00a25a0ae8fe40e0c54d0742cef
+    digest: sha256:bc61ee6298c3a1f796713c6f6de2d0d69fa1b6d93c70f82d9b4f031de00b86f6
 
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
