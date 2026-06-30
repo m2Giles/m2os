@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:9367692cc21ce31b58757727c056c4494ea68b3094a2855c4019f1fbb5569e16
+    digest: sha256:52ae406960a92d60aa1a2800551a9d08411ca769eaa203379f964faf86bcd8b8
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:5369dced770504bd5602748a1aa1a7adfe524c3a92e6fb8b21e07962b6436229
+    digest: sha256:3437208ef6d61cc5cac57dfddbac36cd7d072bab0deaa40ef3feefe412d0fac5
 
   # Bazzite
   - name: bazzite
