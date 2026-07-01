@@ -5,41 +5,41 @@ images:
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-43
-    digest: sha256:cd6e1e366cc4238993f01a818104b53be7ad797438cab746d734dd9218207779
+    digest: sha256:fc188951114cbe932518e3effd895f101711884e10e49596c8a6211017e10da4
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-43
-    digest: sha256:e49823d809cd4569810106ce9516d9cc5d4ac060e0449e9cb37b9106a27767f2
+    digest: sha256:d27866893994ebb8bb9ef37e627930073ba842eb2fa8533326ce827bbc8860d9
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-43
-    digest: sha256:c49be6e03e8aada5943226b5b8917aedd8302af1749d2da46e968c08a274ee09
+    digest: sha256:bc5f63d2daf01039e72fc8bb93e86b04c5ab98d24c15cbbb13b0b25629e701e2
 
   # Testing
   - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-44
-    digest: sha256:94a6416af07631e4daab1d971b131c16f3c439d1dc404447b0f2ee8c1c36b3ec
+    digest: sha256:ad14315d10439907f7858ffd809b5bae919fe227b6de7c8c22539e020759ec76
   - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-44
-    digest: sha256:ea33cfbde416ccf5c4323a048d9f978875337067147619e171d25b846b59211f
+    digest: sha256:71d50887c2a867864a5899e58a172e6ae92ba488b59fe0142db0988fa3b8b0ba
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-44-x86_64
-    digest: sha256:cc424dfbe20f68cf713a46be7f2b400cf3fa059d6eb712e9b2ab4ed858f1fdea
+    digest: sha256:6d8394d220237f2ac2f99ee9dfafb620d38cf8f7f0c6b5dd0eeb2a45e2ccfeae
 
   # Fedora 43
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:457d63533aeb92964bcc1e7464ea99d6c890ee7947cd1b05c97fac7fec8f9152
+    digest: sha256:0674fc558ccc06fb422f6b61664cdd791bd8e766626884be67210339ffc5c8fa
 
   # Fedora 44
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:3de26340c5ccc08e01a3abf65d0fbb590cab13d1afd71a64a4fb68117ea26880
+    digest: sha256:b143dfe2807fa7d5a634f08fbe8adc185928df40a28742e8a7fd02d3ef52a3a6
 
   # Aurora
   - name: aurora
@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:52ae406960a92d60aa1a2800551a9d08411ca769eaa203379f964faf86bcd8b8
+    digest: sha256:32281c83f9cdaf88225cf4ebfb3ee52ddbc03bbcccaf7b8e5b2118eb7c5f4768
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:3437208ef6d61cc5cac57dfddbac36cd7d072bab0deaa40ef3feefe412d0fac5
+    digest: sha256:7b02d703d4aacf3fb54eff7d043f53056629003d8060709066679b4cabf1f456
 
   # Bazzite
   - name: bazzite
@@ -87,22 +87,22 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:32eddae455c16a30e5e2aa67508e75912b8c1dd0a694443995c0450cb0e5dd82
+    digest: sha256:85cccd80a0c449790832d6e789c073b090c89caf1b80f1819931e7514ccea01c
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:15cc2ea0df1e7bc59285d821d84621cc2237f663494fa48b3474b6bd202237dd
+    digest: sha256:473819e74b5fe09c039d8ac65badceb35c04ad8f0c25e066befee2cfd165b198
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:b7b500f084726fd103a4954fb829858342fe033fc4cbad253fb25a322ec1394e
+    digest: sha256:fd954dce66aece2e690cab035717f55370ab97e9a98bb260a36d0f1c1bf47916
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:b6c9567f1058b48c1801ab8537485030c72d70eea981faa5388a93b3575413c5
+    digest: sha256:e84099fa5a59d7938e9ff79454e80ab0a68c325488406dac1506a342427d2f62
 
   # Brew
   - name: brew
@@ -114,7 +114,7 @@ images:
   - name: common
     image: ghcr.io/projectbluefin/common
     tag: latest
-    digest: sha256:a2d19cfffe082ec7e5bdee03e12ae55b592870e51ade33a44c04898eb423167f
+    digest: sha256:6c7b21df6f5da9d521c4629300c495e9c8085dd662af6e3bed577101858847e8
 
   # Chunkah
   - name: chunkah
