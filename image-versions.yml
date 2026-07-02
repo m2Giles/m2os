@@ -33,13 +33,13 @@ images:
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:0674fc558ccc06fb422f6b61664cdd791bd8e766626884be67210339ffc5c8fa
+    digest: sha256:0c0f5ba982083a40a5d363e70508ed7f74827c4c4e44ce574fabc0f0253ff791
 
   # Fedora 44
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:b143dfe2807fa7d5a634f08fbe8adc185928df40a28742e8a7fd02d3ef52a3a6
+    digest: sha256:56e349209263c5ed8415373568ca35168ef38cada3d4d2edd949019709cc54ad
 
   # Aurora
   - name: aurora
