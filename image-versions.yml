@@ -33,13 +33,13 @@ images:
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:2784f6135e9991f42a996b0396551954befbc1834793b9b5bdaee35ca3151844
+    digest: sha256:710aa6675e45023653e57dbc4be80106cb14e1b447d2fea31c958b1f8fdffaf8
 
   # Fedora 44
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:4f8b70bd4b99495b5aa0299d5b6cd3a3adb7a815594e5b915c934fe836cd1953
+    digest: sha256:436f616a397e37d94f8e663e1070edfa271f096485026f27787e40cff79b7beb
 
   # Aurora
   - name: aurora
@@ -76,12 +76,12 @@ images:
   - name: bazzite-beta
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: testing
-    digest: sha256:257c4e6c8f097c1c3453cd49a6bfd9600a2a30574cb34d06bc49ac4492769e34
+    digest: sha256:f43170dd8e264c71abbf9e305cf0a323e59d9d2239573b6588b019d52364e8cb
 
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: testing
-    digest: sha256:c46e19a7c1c2d1d8514a8641ccd2c81af882e36813f96056c308486763dd442e
+    digest: sha256:5d873fa3299c5e1f373507672361116011364546c54f8491ee8265c000e367f7
 
   # Bluefin
   - name: bluefin
