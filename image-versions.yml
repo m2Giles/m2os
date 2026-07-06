@@ -33,13 +33,13 @@ images:
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:710aa6675e45023653e57dbc4be80106cb14e1b447d2fea31c958b1f8fdffaf8
+    digest: sha256:2d26c7feef6f5ffafd0a2717f151bb575502f081c2ef09bf819badbbe45066cc
 
   # Fedora 44
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:436f616a397e37d94f8e663e1070edfa271f096485026f27787e40cff79b7beb
+    digest: sha256:d6324f035c336f7aab97d50e5471b33cca84925074ebd3e60d52fcfc640bfcf0
 
   # Aurora
   - name: aurora
@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:2f238fe605c4c0ec65180ff6bf325335f733d6dbfd2d734a88f3cce52b4a34c0
+    digest: sha256:fd68a4e7fc249a42365b8cb2dfc0d0742563813b5381828b2b5bb5f9095e4f61
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:71a9571ffc3927cd7e88622eec1d056519d3d0e60cc5352321d6afb5def72c67
+    digest: sha256:3bba1d24a355795ca79e97a2663e946a1934dce40dd41380b907646c107caf14
 
   # Bazzite
   - name: bazzite
