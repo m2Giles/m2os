@@ -102,7 +102,7 @@ images:
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:a388cb8251d23af588250c0208c2dd45775ffaf95744ca17a92bd3badc4276a6
+    digest: sha256:dbea00ea498f1154c07a88910fd405a527f4713f3d99b05bcc1f1a173608dc30
 
   # Brew
   - name: brew
