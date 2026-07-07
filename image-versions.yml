@@ -33,13 +33,13 @@ images:
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:2d26c7feef6f5ffafd0a2717f151bb575502f081c2ef09bf819badbbe45066cc
+    digest: sha256:9a2b1c4afd4056d862d701139097b154be493aa88dbb01af2848141bc92a57d0
 
   # Fedora 44
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:d6324f035c336f7aab97d50e5471b33cca84925074ebd3e60d52fcfc640bfcf0
+    digest: sha256:3d8051d4ce422083a133ee84e36ed417aa11f996d2cf1e1d7df3eef47ce32d86
 
   # Aurora
   - name: aurora
@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:488eb69a2f2c032fe166334a4597508e2223ff7c16cf2e4ac8bc34b8e34585ca
+    digest: sha256:81248f5a2d0dda1773d0bbfe2b6770767fa0e4cbf20403839541d1d437b3ac7c
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:0ba055b8c6953851446c63189753ef3ab66203d4230ce2e0457f050703d06ccf
+    digest: sha256:76f5c0b609cc89b561e440330fadffe2c99d789c2bf8b13f7a14b6e43de425a6
 
   # Bazzite
   - name: bazzite
@@ -87,17 +87,17 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:80472e0741fc0f544771c83a133882787c9a7ece74d64adf543ff617cdc6124c
+    digest: sha256:b96267c7de202f48b741d52000a308c98e7c8f22af0144fc708b8db38498512c
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:404cd1d871004594fcbccc0a955df64fa510e53ce31d8d52816ea64bb3252aba
+    digest: sha256:517514bee0f78f464410da8d09225aa12b188178e5de069d167294eb4dfdeee7
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:8b135d5f32702e8cf228d51b248aa8915e39dd960f9765c76e9fcd9e045bd88e
+    digest: sha256:2bc257ea06ade8b06d89518f53a7a462f7e2d8be04c8f73a42661880344881c1
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
