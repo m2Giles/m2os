@@ -5,11 +5,11 @@ images:
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-43
-    digest: sha256:587b3d4f9e2bf2ddc76c45e81e6357d3dd5e89e53d93db21ab24eea79ce2845e
+    digest: sha256:59754bf63dc6ffa5ae9e59b029e4bbb6745de8419fadcc6865ca87220251b9b1
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-43
-    digest: sha256:f671c20da00a732ec9c3114547c3bf17cd2a416cdaa6e799113d34b13e3e88e5
+    digest: sha256:59cb7f07c4894f4982e0f1e26da064fa2ef326e4465401a3dc9018a2174b0adf
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-43
@@ -19,27 +19,27 @@ images:
   - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-44
-    digest: sha256:05d247ea97ee2f2d2565eb5c772629dee7a54a4b420001e22c89f22c1a0b976f
+    digest: sha256:d1d25d3580a5af16f9b7a61bd9b40b7149260427fafe28d879e98b09bc5f7ab8
   - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-44
-    digest: sha256:b2177ad0b08d04e26f7f8723650aae194b65c7c92a93d787c86a20477477357c
+    digest: sha256:27b8a0e9b36cb34234ecc2179298a9923a8b18659915467e34b7c4233fd21da8
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-44-x86_64
-    digest: sha256:94def53e76fc12d07b16eb905a9cd7c8685a91d95a7a5e8ae04c13a55dc2dd1e
+    digest: sha256:8b43290098bf7a61cb0e8c81b8e157b8f1154ae32956cb14219a408d99eb4f4b
 
   # Fedora 43
   - name: base-43
     image: ghcr.io/ublue-os/base-main
     tag: 43
-    digest: sha256:075c5ae26573dae686c38c17a3a71968f35f8990ada33d5b6989cc8a70b0662d
+    digest: sha256:a0e7849f0bcacd5d5538b940a564c8a6385b159caefe5e4000be3cc79a79fc2a
 
   # Fedora 44
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:cdf226b3822f0a39d90bf5c969cb3946c4121fe2fe03177c2de10380d87c9166
+    digest: sha256:a04d48824e40d64f49b50a0436727eaa540e243aa92085eedd27168ff73b8892
 
   # Aurora
   - name: aurora
@@ -55,12 +55,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:c7f3b5fdc12e024565b8fb25d231e13e920c263d203967cc95d02a7e3ba20518
+    digest: sha256:6956b29928801aee505bbe73aad55e52e168b11bb6c8c96e858bd23862dfe66c
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:d8c195cb422a286b526654a2ce53783b73050b95a2d3e0a1592675a43add59cf
+    digest: sha256:2f8d70dcf7f2fdc6820e643c05e9e1221ef26805a8e8ebafb6ab8ac8153ce8ac
 
   # Bazzite
   - name: bazzite
@@ -76,23 +76,23 @@ images:
   - name: bazzite-beta
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: testing
-    digest: sha256:2b3f18bd0d5d6358a9f218ae2c3321594fa2048c68fd53934dfe20dcbd4f6fbc
+    digest: sha256:6b6138b03fac4a8b86555fda208f7027a201403181b946dd274a5e03bbd1b5d0
 
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: testing
-    digest: sha256:20d6fc6f8b0b01e030527fe8e477e571de0e061f42d7d8b6a1794904b7433bdd
+    digest: sha256:7beb955ab2cb823ead998faf619e3b5de239782dc4a3fe873f5e79b554f0f525
 
   # Bluefin
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:647bb3602a6b250d10d0142a5d5ff8937557ba1d5dfbcdcc478db68f4388b4e7
+    digest: sha256:892f67807a66bb2bcd680b6c74d028cd4a9327b8dd892ef3d6004a2a5baaa031
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:167d18ed51092b17687fbfcf5405e9efbc13414ddcfc5e5c5217b87beb0f074b
+    digest: sha256:56a7c7d44fc40a7d40d09fbe0ecc6259622e190d67614f06bb68582a4937df32
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
@@ -114,7 +114,7 @@ images:
   - name: common
     image: ghcr.io/projectbluefin/common
     tag: latest
-    digest: sha256:057313c9055b82b92004500b19aa1dfa066af5efea481595503f9851996ed190
+    digest: sha256:52ab0fe24f22841f05081d4c6244fe08f599f28ba1009b0584e79b7fb802e9dc
 
   # Chunkah
   - name: chunkah
