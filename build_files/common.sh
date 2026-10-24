@@ -7,7 +7,10 @@ if [[ -n "${CI:-}" ]]; then
 fi
 
 #shellcheck disable=SC2064
-trap "$trap_build" EXIT
+if [[ -n "${CI:-}" ]]; then
+    #shellcheck disable=SC2064
+    trap "$trap_build" EXIT
+fi
 
 function ghcurl() {
     set +x
