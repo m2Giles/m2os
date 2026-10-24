@@ -119,7 +119,6 @@ PACKAGES+=(
     symlinks
     tailscale
     tmux
-    topgrade
     tuned
     tuned-gtk
     tuned-ppd
