@@ -41,6 +41,12 @@ images:
     tag: 44
     digest: sha256:195a6d271f86c3858314a2fb2f87c7cf8723f40a2a423e86476611f4f2838706
 
+  # Fedora 45
+  - name: base-45
+    image: ghcr.io/ublue-os/base-main
+    tag: 45
+    digest: sha256:ec8c5c9e9c61e4b49f58af4e8a9342df350719bb9229a221095d978efd6d5c9c
+
   # Aurora
   - name: aurora
     image: ghcr.io/ublue-os/aurora
@@ -87,12 +93,12 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:3ff3451240574c0fd3fd48ddf18d69f78e6a3b2a47c0476a2e749f8704ffc416
+    digest: sha256:46ad2d6e69498517c8734be5872b928a30c7cedf505b46b18ac002d82f35e9eb
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:72649630f7bdcb324acb122b75b84838c6341c6d26607d195bfe2eee0716185c
+    digest: sha256:cfbe51d6f4e969bad6ab6b67866a85d389d8abe8e3029a9ae78f100d4d458115
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
