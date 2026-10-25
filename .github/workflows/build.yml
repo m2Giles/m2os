@@ -36,22 +36,6 @@ jobs:
     with:
       image_flavor: ${{ matrix.image_flavor }}
 
-  build-iso:
-    name: Build ISOs
-    if: ${{ ! contains(github.head_ref, 'renovate') }}
-    uses: ./.github/workflows/build-iso.yml
-    permissions:
-      actions: read
-      contents: read
-      packages: read
-    needs: [build-image]
-    strategy:
-      fail-fast: false
-      matrix:
-        image_flavor: ["Desktop", "Bazzite"]
-    with:
-      image_flavor: ${{ matrix.image_flavor }}
-
   gen-sbom:
     name: Generate SBOMs
     if: ${{ ! contains(github.head_ref, 'renovate') }}
@@ -81,22 +65,6 @@ jobs:
       packages: write
     secrets:
       SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
-    strategy:
-      fail-fast: false
-      matrix:
-        image_flavor: ["Beta-Bazzite", "Beta-Desktop"]
-    with:
-      image_flavor: ${{ matrix.image_flavor }}
-
-  build-iso-beta:
-    name: Build ISOs (Beta)
-    if: ${{ ! contains(github.head_ref, 'renovate') }}
-    uses: ./.github/workflows/build-iso.yml
-    permissions:
-      actions: read
-      contents: read
-      packages: read
-    needs: [build-image-beta]
     strategy:
       fail-fast: false
       matrix:

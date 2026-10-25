@@ -14,28 +14,34 @@ done
 if [[ -d /usr/share/bluefin ]]; then
     find /usr/share/bluefin | while read -r file; do
         setfattr -n user.component -v "bluefin" "$file"
+        setfattr -n user.update-interval -v "quarterly" "$file"
     done
 fi
 if [[ -d /usr/share/backgrounds/bluefin ]]; then
     find /usr/share/backgrounds/bluefin | while read -r file; do
         setfattr -n user.component -v "bluefin" "$file"
+        setfattr -n user.update-interval -v "quarterly" "$file"
     done
 fi
 if [[ -d /usr/share/ublue-os ]]; then
     find /usr/share/ublue-os | while read -r file; do
         setfattr -n user.component -v "bluefin" "$file"
+        setfattr -n user.update-interval -v "quarterly" "$file"
     done
 fi
 find /usr/bin/ | while read -r file; do
     if [[ "$file" =~ ublue-* ]]; then
         setfattr -n user.component -v "bluefin" "$file"
+        setfattr -n user.update-interval -v "quarterly" "$file"
     fi
 done
 if [[ -x /usr/bin/luks-tpm2-autounlock ]]; then
     setfattr -n user.component -v "bluefin" /usr/bin/luks-tpm2-autounlock
+    setfattr -n user.update-interval -v "quarterly" /usr/bin/luks-tpm2-autounlock
 fi
 if [[ -x /usr/bin/ujust ]]; then
     setfattr -n user.component -v "bluefin" /usr/bin/ujust
+    setfattr -n user.update-interval -v "quarterly" /usr/bin/ujust
 fi
 
 # Group all of the Incus UI files together
@@ -43,6 +49,7 @@ if [[ -d /usr/lib/incus ]]; then
     find /usr/lib/incus | while read -r file; do
         if [[ -f "$file" ]]; then
             setfattr -n user.component -v "incus-ui" "$file"
+            setfattr -n user.update-interval -v "quarterly" "$file"
         fi
     done
 fi
@@ -50,11 +57,13 @@ fi
 # Group Brew Files together
 find /usr -regex "\(.*homebrew.*\|.*brew-.*\.\(service\|timer\)\)" | while read -r file; do
     setfattr -n user.component -v "brew" "$file"
+    setfattr -n user.update-interval -v "quarterly" "$file"
 done
 
 # Tag RPM-Ostree sqlite db
 if [[ -f /usr/lib/sysimage/rpm-ostree-base-db/rpmdb.sqlite ]]; then
     setfattr -n user.component -v "rpm" /usr/lib/sysimage/rpm-ostree-base-db/rpmdb.sqlite
+    setfattr -n user.update-interval -v "monthly" /usr/lib/sysimage/rpm-ostree-base-db/rpmdb.sqlite
 fi
 # for file in $(rpm -q --fileprovide rpm); do
 #     [[ "$file" =~ .build-id ]] && continue

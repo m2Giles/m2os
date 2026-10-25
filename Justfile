@@ -1,4 +1,5 @@
 set unstable
+set lists
 
 mod? titanoboa
 
@@ -551,14 +552,13 @@ syft := which("syft")
 # SUDO
 
 [private]
-SUDO_DISPLAY := env("DISPLAY", "") || env("WAYLAND_DISPLAY", "")
+SUDO_DISPLAY := env("DISPLAY", env("WAYLAND_DISPLAY", ""))
 [private]
 export SUDOIF := if `id -u` == "0" { "" } else if SUDO_DISPLAY != "" { which("sudo") + " --askpass" } else { which("sudo") }
 
 # Podman By Default
 
-[private]
-export PODMAN := env("PODMAN", "") || which("podman") || require("podman-remote")
+export PODMAN := env("PODMAN", which("podman")) || require("podman-remote")
 
 # Utilities
 
