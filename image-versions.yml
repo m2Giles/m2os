@@ -39,13 +39,13 @@ images:
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:b863a9f3ba8264903e470428dd9056b82bb60874471d9097569b4ce767fb3781
+    digest: sha256:bf83aa8789143413846912ca0d781a288eb254086e1dce0e0cbb185e42997fbd
 
   # Fedora 45
   - name: base-45
     image: ghcr.io/ublue-os/base-main
     tag: 45
-    digest: sha256:6ba0dc6948848863356417f91b63d393f1053479532deae368c93ae0d714a641
+    digest: sha256:103d353eb5885243d3cefe50727d90304fd74b62900aac3d28f64e3d434251bd
 
   # Aurora
   - name: aurora
@@ -61,12 +61,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:fc485755bc80a33d1c251c5455deaa846810ce9d7fc1047f3cc9a0d0b1a2f6fc
+    digest: sha256:42a312b49895528084f2154ae8d25dc7b8b2633419bb44ef857dee154c125c48
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:2e3939cc9273d505a59740a07f360b5b15238c2f7ea3841eac2758497a2f54c0
+    digest: sha256:4c30e0ba64a3fdd46b5319ab4019f6a1d604b13fb20cf16fe4c957b4629b6b5d
 
   # Bazzite
   - name: bazzite
@@ -93,22 +93,22 @@ images:
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:702087bb3c43a4b10857ee359d96cb6463fe94509276734573331757e1771696
+    digest: sha256:00a81c6f6e077506a48a6d55a138127af773c5089552d0e69d5c7a2d1edd3f25
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:8b42a7f7730fbbbdf287f584dc818cac36cbc94db6dc880a4470ccbf143e20ab
+    digest: sha256:e2922f4b3b7b7adde421735ce271713a43c3768ebbfa8bc57cbd8ea9a1f0d7ad
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:3cbf5b7d5c5b269950237941d2a2c1b799ee7ed02fb0dbcb865e33757d4acb60
+    digest: sha256:222f4756ff96b9c9d427818bbca99fe733af0fa889adf0bb3937e83316e1c39f
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:fad0eeb44f7f29957e3cff3621e7c5e08a0f04ceffe267914103f90b0c45fafa
+    digest: sha256:89410dd17c9a2caf25ea4fa2fbf33b53ed7719cded1c0691c1dfd363e5b89ecb
 
   # Brew
   - name: brew
