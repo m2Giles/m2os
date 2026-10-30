@@ -5,29 +5,29 @@ images:
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-44
-    digest: sha256:0dc0f22e33de41a9585547c639d9dd259f66df662547d25247ffaf995fa1e710
+    digest: sha256:47f77083079b3c4ea9c4d7189d2b06c7101998a1d608e9f21c0b132c83786ab8
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-44
-    digest: sha256:f5a3155c1e866f8c525b04d521136cb75aebf493da4206e280bf4b8e5f53b0e3
+    digest: sha256:59129793c3160bf0abfaea281f15729a606abd7c21013e733acae829cd402dc8
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-44
-    digest: sha256:5b4bbb82b32a2508e847e1a1d53064c4b9401aa03eed61e007caadf3c32a809c
+    digest: sha256:90c237d0b46f0dcbafe57fdc179f3ff7f5111236148a2355bf848878d41f5cde
 
   # Testing
   - name: akmods-testing
     image: ghcr.io/ublue-os/akmods
     tag: coreos-testing-44
-    digest: sha256:3d8eed64c989ea4a068eb42691d047fea8649abdb7a9083e2a0737f8ad5c443a
+    digest: sha256:fed5b8ccffe71938579d6716a7f9e499bf789935f4f836e27e485bc304bad5d4
   - name: akmods-nvidia-open-testing
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-testing-44
-    digest: sha256:826447d6d3274bc9fe3aa411d62cd5e75a71f1e93e792467603519eaa1de5de5
+    digest: sha256:d290fc699b36ce30b1fc1e85d00792b404506dfe8a5f475534a14b629161f514
   - name: akmods-zfs-testing
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-testing-44-x86_64
-    digest: sha256:f284f1ca5a59f76e0e93b14bdb70e896ad14235a1b3e96992dccad0f59313996
+    digest: sha256:a7996284639fdf0e96a9f53f0a3bf2af01423961cb15b7088e7773c007f67710
 
   # Fedora 43
   - name: base-43
@@ -39,13 +39,13 @@ images:
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:da4af3a0821530897c0d2b555dba2027cbdde010c601265f82f9505fed56b8a6
+    digest: sha256:d926d8d4020cdc721360a451050808306d684edc0f08cc7dbd8bcd80e899bf8b
 
   # Fedora 45
   - name: base-45
     image: ghcr.io/ublue-os/base-main
     tag: 45
-    digest: sha256:73c3a53c034a35e2ededef0a5ab3d334f7c6888e9b11673621bebca831319f53
+    digest: sha256:473c5b5dd9fa716aee90c38db83d4e6569feeec5856789d6342d6d13f307ac05
 
   # Aurora
   - name: aurora
