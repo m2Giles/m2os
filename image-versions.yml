@@ -5,15 +5,15 @@ images:
   - name: akmods-stable
     image: ghcr.io/ublue-os/akmods
     tag: coreos-stable-44
-    digest: sha256:431fb42db01a3585f6324a5b1de644495a7e2e97fb0eb689f6d0f4927d6dcce8
+    digest: sha256:670307fc7da949fb124e1297342355d7000d3f7a347b73ab59c8f15209dbbc71
   - name: akmods-nvidia-open-stable
     image: ghcr.io/ublue-os/akmods-nvidia-open
     tag: coreos-stable-44
-    digest: sha256:02d62fd15641bd6033853684093cd5f7c9a7e2d5d8bd9c7407fbf5e220f00b9f
+    digest: sha256:d987c7dfbce827b8498cc9f3b69fe3e8303f6830435d48404396390c80288072
   - name: akmods-zfs-stable
     image: ghcr.io/ublue-os/akmods-zfs
     tag: coreos-stable-44
-    digest: sha256:4788121085a6d65ab729c5430e7d42134dc0e392f9b28b4170f9025f2d8759b9
+    digest: sha256:5c7e9fb9a93e74cf169e8c4f8a0578d53e4c53f8e3305f40c99a5bf8a867fdd2
 
   # Testing
   - name: akmods-testing
@@ -39,76 +39,76 @@ images:
   - name: base-44
     image: ghcr.io/ublue-os/base-main
     tag: 44
-    digest: sha256:59d5f271b40ed6ebf94cc22f20d338d92a116423aec52d326bc55cefde3172a6
+    digest: sha256:bb49d88520c60e62899c09b3e7840bdce86e64762f95cfbb253681ad24032c81
 
   # Fedora 45
   - name: base-45
     image: ghcr.io/ublue-os/base-main
     tag: 45
-    digest: sha256:932ac988f95ec038370580739913aa0f5a87fa33cb6a17bb3279898813fc87c2
+    digest: sha256:86410ba692cac1a8e6d2575e7381654e2123c5c628eeb899b09604b76b163071
 
   # Aurora
   - name: aurora
     image: ghcr.io/ublue-os/aurora
     tag: stable-daily
-    digest: sha256:d7d31e95dc63812d84b26ed6365862836b6ddc5bb749ce41f40b69802f68f203
+    digest: sha256:806f3bec549fbb2bd1d792c34e77837bb7ec093080fec69ed6ab2fb0e2ecff79
 
   - name: aurora-nvidia
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: stable-daily
-    digest: sha256:9772af4c1960c87f0bab531f6f87e4f5ba417482e9fd868bc6d2a774974ea949
+    digest: sha256:ad6b1cfb550f4b3591e1e8ed1c8300a275c9873d1a12ff741d23494a3cb59f17
 
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:2562a6b942ea3a63cf37920a4f5f0ffe735894fd0548a8749181119316ba25cb
+    digest: sha256:831e41cc3a7b2209e21dcc0a9a35698e49817b520ee0d4248ae1ad4f3afe6191
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:48d1ade6e6b1c7c30ccfa41c61bced4f1e31f0ff487a9dde07ff055dd622b537
+    digest: sha256:ea20b72f69c573556b170834172792976769127f58080bca44747c69de8da5bd
 
   # Bazzite
   - name: bazzite
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: stable
-    digest: sha256:b0164dfdf76f32bf6e169d4c8b7caeb67e33f2c27a1e86130aec92659cf9d3c1
+    digest: sha256:b70358b001c0ed079edf1f91de395d4f86e02479247314e196a2c5a335c45c5d
 
   - name: bazzite-deck
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: stable
-    digest: sha256:678e47b6e0f2bef9ba197e9eca189419e7c732fb3e46137cf93eaa8bfbd28e23
+    digest: sha256:f945753c0399bd4a8ec07c6ed9568ced58ca55ac54dc7ff9ca8517218af61df8
 
   - name: bazzite-beta
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: testing
-    digest: sha256:d1b3400a0e3a9267b01c8628a197da3c0a9b85c0c393ecf06f26cfd8c993441b
+    digest: sha256:1182ac30be657e90c254ec86be2dbbd78e812cb791ef8acc4ac7a44e63068da9
 
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: testing
-    digest: sha256:3db814c4f8ae73bd99ec6e1fc7b8fc305ebe6fd54fe70fbdcf8b16fdf40141bd
+    digest: sha256:b02cc93830ea3ff43cac7055fbd9ffc5879283879f8b1e87a17428a354cd915e
 
   # Bluefin
   - name: bluefin
     image: ghcr.io/ublue-os/bluefin
     tag: stable-daily
-    digest: sha256:8612c9f6cb9649b91a74032686b084c4aaa4e7793f3355675c794409868fb74a
+    digest: sha256:1be3600679c112996ffb12ab7af74c920eadda3968bc795357cb9e2c5a02df87
 
   - name: bluefin-nvidia
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: stable-daily
-    digest: sha256:e0cffe35e568a65f192bf187cbc775a0fdb9e7c180c1ba1e834338f066cd3e77
+    digest: sha256:35c3bd432d500d46f42124a24fbc5264899cb4c755ac92355c22ac2fa27cc483
 
   - name: bluefin-beta
     image: ghcr.io/ublue-os/bluefin
     tag: latest
-    digest: sha256:f2ce76b1d6c6b7b44e73012b66f9b21b7872bb73526628f93d25c747aeb440d2
+    digest: sha256:6a449be5c68480ef1693f9fe47e5f77dc84628f1b3998867eb62f64fa6497742
 
   - name: bluefin-nvidia-beta
     image: ghcr.io/ublue-os/bluefin-nvidia-open
     tag: latest
-    digest: sha256:4e6730654fc56976fbe7750d74cb142b4851ee6fe5318777f84a10947340ac5a
+    digest: sha256:59847b6078fba583b8a7800d080764eb92ea3c2acf851d74d1050acd8ec57bcd
 
   # Brew
   - name: brew
@@ -120,7 +120,7 @@ images:
   - name: common
     image: ghcr.io/projectbluefin/common
     tag: latest
-    digest: sha256:a2e4b8f76b3ffe23f452c1da54ee9f3887860c3ee114bb528f9d717a35aa20f9
+    digest: sha256:c90132ad354a6df565571914234e84dbd7b144fb3c478a968fb066ffcfb0ea07
 
   # Chunkah
   - name: chunkah
