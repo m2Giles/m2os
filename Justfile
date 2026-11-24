@@ -321,9 +321,7 @@ secureboot image="bluefin":
 
     # Get the Public Certificates
     curl --retry 3 -Lo "$TMPDIR"/kernel-sign.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key.der
-    curl --retry 3 -Lo "$TMPDIR"/akmods.der https://github.com/ublue-os/kernel-cache/raw/main/certs/public_key_2.der
     openssl x509 -in "$TMPDIR"/kernel-sign.der -out "$TMPDIR"/kernel-sign.crt
-    openssl x509 -in "$TMPDIR"/akmods.der -out "$TMPDIR"/akmods.crt
 
     # Make sure we have sbverify
     CMD="$(command -v sbverify)" || true
@@ -343,8 +341,7 @@ secureboot image="bluefin":
     # Confirm that Signatures Are Good
     $CMD --list "$TMPDIR/vmlinuz"
     returncode=0
-    if ! $CMD --cert "$TMPDIR/kernel-sign.crt" "$TMPDIR/vmlinuz" ||
-       ! $CMD --cert "$TMPDIR/akmods.crt" "$TMPDIR/vmlinuz"; then
+    if ! $CMD --cert "$TMPDIR/kernel-sign.crt" "$TMPDIR/vmlinuz"; then
         echo "Secureboot Signature Failed...."
         returncode=1
     fi
