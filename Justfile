@@ -178,6 +178,10 @@ build-image image="bluefin":
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'if [[ "$akmods_nvidia_kernel" != "$akmods_zfs_kernel" ]]; then akmods_nvidia=ghcr.io/ublue-os/akmods-nvidia-open:coreos-$akmods_version-$fedora_version-$akmods_zfs_kernel; fi' } else { '' } }}
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'verify-container "${akmods_nvidia#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DNVIDIA=$akmods_nvidia")' } else { '' } }}
 
+    # Kernel Version
+    ostree_linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)
+    {{ if image =~ 'cosmic|aurora|bluefin' { 'ostree_linux="$akmods_zfs_kernel"' } else { '' } }}
+
     # Get The Version
     VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
     skopeo list-tags docker://{{ FQ_IMAGE_NAME }} > "$BUILDTMP"/repotags.json
@@ -207,8 +211,8 @@ build-image image="bluefin":
         "--label" "org.opencontainers.image.source=https://github.com/{{ repo_name }}/{{ repo_image_name }}"
         "--label" "org.opencontainers.image.title={{ repo_image_name }}"
         "--label" "org.opencontainers.image.version=$VERSION"
-        "--label" "ostree.kernel_flavor={{ if image =~ 'bazzite' { 'bazzite' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}"
-        "--label" "ostree.linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)"
+        "--label" "ostree.kernel_flavor={{ if image =~ 'bazzite' { 'ogc' } else if image =~ 'beta' { 'coreos-testing' } else { 'coreos-stable' } }}"
+        "--label" "ostree.linux=$ostree_linux"
         "--label" "containers.bootc=1"
         "--label" "ostree.bootable=true"
     )
