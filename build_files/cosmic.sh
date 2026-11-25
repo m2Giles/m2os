@@ -75,7 +75,6 @@ PACKAGES+=(
     gnupg2-scdaemon
     gum
     gvfs
-    gvfs-archive
     gvfs-fuse
     gvfs-nfs
     gvfs-smb
