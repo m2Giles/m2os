@@ -169,13 +169,13 @@ build-image image="bluefin":
     # akmods
     {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}-${fedora_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
     {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'akmods_kernel="$(skopeo inspect docker://"${akmods/:*@/@}" --format "{{ index .Labels \"ostree.linux\" }}" )"' } else { '' } }}
-    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'if [[ "$akmods_zfs_kernel" != "$akmods_kernel" ]]; then akmods=ghcr.io/ublue-os/akmods:$akmods_version-$fedora_version-$akmods_zfs_kernel; fi' } else { '' } }}
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'if [[ "$akmods_zfs_kernel" != "$akmods_kernel" ]]; then akmods=ghcr.io/ublue-os/akmods:coreos-$akmods_version-$fedora_version-$akmods_zfs_kernel; fi' } else { '' } }}
     {{ if image =~ 'aurora|bluefin|cosmic' { 'verify-container "${akmods#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DAKMODS=$akmods")' } else { '' } }}
 
     # nvidia
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'akmods_nvidia="$(yq -r ".images[] | select(.name == \"akmods-nvidia-open-${akmods_version}-${fedora_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'akmods_nvidia_kernel="$(skopeo inspect docker://"${akmods_nvidia/:*@/@}" --format "{{ index .Labels \"ostree.linux\" }}" )"' } else { '' } }}
-    {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'if [[ "$akmods_nvidia_kernel" != "$akmods_zfs_kernel" ]]; then akmods_nvidia=ghcr.io/ublue-os/akmods-nvidia-open:$akmods_version-$fedora_version-$akmods_zfs_kernel; fi' } else { '' } }}
+    {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'if [[ "$akmods_nvidia_kernel" != "$akmods_zfs_kernel" ]]; then akmods_nvidia=ghcr.io/ublue-os/akmods-nvidia-open:coreos-$akmods_version-$fedora_version-$akmods_zfs_kernel; fi' } else { '' } }}
     {{ if image =~ 'cosmic-nv.*|(aurora-nv.*|bluefin-nv.*)-beta' { 'verify-container "${akmods_nvidia#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DNVIDIA=$akmods_nvidia")' } else { '' } }}
 
     # Get The Version
