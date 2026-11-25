@@ -180,7 +180,7 @@ build-image image="bluefin":
 
     # Kernel Version
     ostree_linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)
-    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'ostree_linux="$akmods_zfs_kernel"' } else if image =~ 'aurora|bluefin|cosmic' { 'ostree_linux="$akmods_kernel"' } else { '' } }}
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'ostree_linux="$akmods_zfs_kernel"' } else { '' } }}
 
     # Get The Version
     VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
