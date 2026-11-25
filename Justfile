@@ -168,7 +168,7 @@ build-image image="bluefin":
 
     # akmods
     {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods="$(yq -r ".images[] | select(.name == \"akmods-${akmods_version}-${fedora_version}\")" ' + image-file + ' | yq -r "\"\(.image):\(.tag)@\(.digest)\"")"' } else { '' } }}
-    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'akmods_kernel="$(skopeo inspect docker://"${akmods/:*@/@}" --format "{{ index .Labels \"ostree.linux\" }}" )"' } else { '' } }}
+    {{ if image =~ 'aurora|bluefin|cosmic' { 'akmods_kernel="$(skopeo inspect docker://"${akmods/:*@/@}" --format "{{ index .Labels \"ostree.linux\" }}" )"' } else { '' } }}
     {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'if [[ "$akmods_zfs_kernel" != "$akmods_kernel" ]]; then akmods=ghcr.io/ublue-os/akmods:coreos-$akmods_version-$fedora_version-$akmods_zfs_kernel; fi' } else { '' } }}
     {{ if image =~ 'aurora|bluefin|cosmic' { 'verify-container "${akmods#*-os/}"; BUILD_ARGS+=("--cpp-flag=-DAKMODS=$akmods")' } else { '' } }}
 
@@ -180,7 +180,7 @@ build-image image="bluefin":
 
     # Kernel Version
     ostree_linux=$(jq -r '.Labels["ostree.linux"]' < "$BUILDTMP"/inspect-{{ image }}.json)
-    {{ if image =~ 'cosmic|aurora|bluefin' { 'ostree_linux="$akmods_zfs_kernel"' } else { '' } }}
+    {{ if image =~ 'cosmic|(aurora.*|bluefin.*)-beta' { 'ostree_linux="$akmods_zfs_kernel"' } else if image =~ 'aurora|bluefin|cosmic' { 'ostree_linux="$akmods_kernel"' } else { '' } }}
 
     # Get The Version
     VERSION="{{ image }}-${fedora_version}.$(date +%Y%m%d)"
