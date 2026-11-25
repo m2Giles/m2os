@@ -61,7 +61,7 @@
         "ghcr.io/qemus/qemu",
         "cgr.dev/chainguard/cosign",
         "ghcr.io/anchore/syft",
-        "quay.io/jlebon/chunkah"
+        "quay.io/coreos/chunkah"
       ]
     },
     {
