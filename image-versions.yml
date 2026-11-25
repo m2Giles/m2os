@@ -124,9 +124,9 @@ images:
 
   # Chunkah
   - name: chunkah
-    image: quay.io/jlebon/chunkah
-    tag: dev
-    digest: sha256:9d309a7ebace606d6d3e240c4985cbf8276f032afd9c8eb000b70e8424257461
+    image: quay.io/coreos/chunkah
+    tag: latest
+    digest: sha256:71e593421c5de7dcc7c8c5c50e98d3bac572055a76f399f61a491d123c20a523
 
   # QEMU
   - name: qemu
