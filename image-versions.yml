@@ -12,7 +12,7 @@ images:
     digest: sha256:02d62fd15641bd6033853684093cd5f7c9a7e2d5d8bd9c7407fbf5e220f00b9f
   - name: akmods-zfs-stable-44
     image: ghcr.io/ublue-os/akmods-zfs
-    tag: coreos-stable-44
+    tag: coreos-stable-44-x86_64
     digest: sha256:4788121085a6d65ab729c5430e7d42134dc0e392f9b28b4170f9025f2d8759b9
 
   # Testing 44
@@ -26,7 +26,7 @@ images:
     digest: sha256:3fc7932721e5f74bc9ab030d045b47344d54e280140e6ececffb5c2fb63945ee
   - name: akmods-zfs-testing-44
     image: ghcr.io/ublue-os/akmods-zfs
-    tag: coreos-testing-44
+    tag: coreos-testing-44-x86_64
     digest: sha256:952c5ef834023728a7f4e5cbaf4ecef2b3adba9392de200a5fcc9e8034085f81
 
   # Stable 45
@@ -40,7 +40,7 @@ images:
     digest: sha256:02d62fd15641bd6033853684093cd5f7c9a7e2d5d8bd9c7407fbf5e220f00b9f
   - name: akmods-zfs-stable-45
     image: ghcr.io/ublue-os/akmods-zfs
-    tag: coreos-stable-45
+    tag: coreos-stable-45-x86_64
     digest: sha256:4788121085a6d65ab729c5430e7d42134dc0e392f9b28b4170f9025f2d8759b9
 
   # Testing 45
@@ -54,7 +54,7 @@ images:
     digest: sha256:3fc7932721e5f74bc9ab030d045b47344d54e280140e6ececffb5c2fb63945ee
   - name: akmods-zfs-testing-45
     image: ghcr.io/ublue-os/akmods-zfs
-    tag: coreos-testing-45
+    tag: coreos-testing-45-x86_64
     digest: sha256:952c5ef834023728a7f4e5cbaf4ecef2b3adba9392de200a5fcc9e8034085f81
 
   # Fedora 43
