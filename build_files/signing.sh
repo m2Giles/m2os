@@ -6,7 +6,9 @@
 set -eoux pipefail
 
 # Signing
-mkdir -p /etc/containers
+if [[ -f /etc/containers/policy.json ]]; then
+    mv /etc/containers/policy.json /usr/share/containers/policy.json
+fi
 
 yq -i '.transports.docker."ghcr.io/m2giles/m2os" = [{
     "type": "sigstoreSigned",
@@ -17,4 +19,4 @@ yq -i '.transports.docker."ghcr.io/m2giles/m2os" = [{
     "signedIdentity": {
         "type": "matchRepository"
     }
-}]' /etc/containers/policy.json
+}]' /usr/share/containers/policy.json
