@@ -110,12 +110,12 @@ images:
   - name: bazzite-beta
     image: ghcr.io/ublue-os/bazzite-gnome-nvidia-open
     tag: testing
-    digest: sha256:cc3b4514c52d4ae7312c5213482bde739ac19f336bc42adb4d4bb573f2e6393a
+    digest: sha256:6c022103a09a72e83c6ae57041805221ba26d7669134650ae69b72822c0cddce
 
   - name: bazzite-deck-beta
     image: ghcr.io/ublue-os/bazzite-deck-gnome
     tag: testing
-    digest: sha256:09827f3c32f5517a946c152d52b8151beb9925b59dcc1f53c1599a97be99dd25
+    digest: sha256:91effa9ed8565405375e46023855eb1d147aeb9aac5323913383fb49fbb9aa1e
 
   # Bluefin
   - name: bluefin
@@ -148,7 +148,7 @@ images:
   - name: common
     image: ghcr.io/projectbluefin/common
     tag: latest
-    digest: sha256:b4ae6bf000e5f4be0e7743e10f522e53ac65d24b573c30ce177d9b153549cd25
+    digest: sha256:3b4bb18dc83505478bd021a906894772e169b9ce89885054a7444f476785dd6b
 
   # Chunkah
   - name: chunkah
