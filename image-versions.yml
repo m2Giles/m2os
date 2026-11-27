@@ -73,7 +73,7 @@ images:
   - name: base-45
     image: ghcr.io/ublue-os/base-main
     tag: 45
-    digest: sha256:0b8b9415e6d39adc53202968fb9f6c246dad551d26ca70693807a0238b1d1a90
+    digest: sha256:cbcb3ea1b82dd92a0fdb0cd80b12292e1676a1f070cfbd0d10ef1ca487db1a71
 
   # Aurora
   - name: aurora
@@ -89,12 +89,12 @@ images:
   - name: aurora-beta
     image: ghcr.io/ublue-os/aurora
     tag: latest
-    digest: sha256:a15514588ac1d659bf268d4c54594f9ce18756cde78a32045a75426f193f83d6
+    digest: sha256:30939ee67012c853fa9b8ada005f58a012aa6e02d0a646bbce5b32ebfe2f812f
 
   - name: aurora-nvidia-beta
     image: ghcr.io/ublue-os/aurora-nvidia-open
     tag: latest
-    digest: sha256:c384b397a58a228ffb56eb76cf67c4625fea45598d92a5661ce75d0c3ae5afa9
+    digest: sha256:e47b77885639073fa2160651742586988240ef6aa76cfc641d6bd686d41d9599
 
   # Bazzite
   - name: bazzite
@@ -148,7 +148,7 @@ images:
   - name: common
     image: ghcr.io/projectbluefin/common
     tag: latest
-    digest: sha256:3b4bb18dc83505478bd021a906894772e169b9ce89885054a7444f476785dd6b
+    digest: sha256:a6cc44964c983357b1ecf8193f9e0caa402976d5a399b589511444e8638f49ff
 
   # Chunkah
   - name: chunkah
